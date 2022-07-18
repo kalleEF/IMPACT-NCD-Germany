@@ -2,8 +2,19 @@
 .Rhistory
 .Rapp.history
 
+# VScode
+.vscode
+
 # Session Data files
 .RData
+*.fst
+*.qs
+*.xls*
+
+# Rcpp
+**/src/*.o
+**/src/*.so
+**/src/*.dll
 
 # User-specific files
 .Ruserdata
@@ -34,3 +45,12 @@ vignettes/*.pdf
 # Temporary files created by R markdown
 *.utf8.md
 *.knit.md
+
+# R Environment Variables
+.Renviron
+
+# IMPACTncd specific
+/outputs/
+/secure_data/
+DELETEme*
+*.png
