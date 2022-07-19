@@ -514,12 +514,12 @@ Disease <-
             # Additional p0 trend as sensitivity analysis
             if (scenario_p_zero != 1) {
               
-              parf_dt[, p_zero_delta := fifelse(year == design_$sim_prm$init_year,
+              parf_dt[, p_zero_change := fifelse(year == design_$sim_prm$init_year,
                                                 1,
                                                 scenario_p_zero)]
               parf_dt[, xp := get(nam)]
-              parf_dt[, (nam) := Reduce(`*`, p_zero_delta[-1], init = first(xp), accumulate = TRUE),
-                      by = .(age, sex)][, `:=`(p_zero_delta = NULL, xp = NULL)] #STRATA
+              parf_dt[, (nam) := Reduce(`*`, p_zero_change[-1], init = first(xp), accumulate = TRUE),
+                      by = .(age, sex)][, `:=`(p_zero_change = NULL, xp = NULL)] #STRATA
 
             }
           }
@@ -562,13 +562,13 @@ Disease <-
 
             setnames(tt, "mu2", "mu")
             if ("mu1" %in% names(tt)) tt[, mu1 := NULL]
-            # nam <- "m0"
 
             if (!all(yrs %in% unique(parf_dt$year))) { # TODO safer logic here
               parf_dt <- clone_dt(parf_dt, length(yrs))
               parf_dt[, year := .id - 1L + design_$sim_prm$init_year]
               parf_dt[, .id := NULL]
             }
+            
             #lookup_dt(parf_dt, tt, check_lookup_tbl_validity = FALSE) #TODO: lookup_dt
             absorb_dt(parf_dt, tt)
             setnafill(parf_dt, "c", fill = 0, cols = "mu") # fix for prostate and breast cancer
@@ -578,6 +578,19 @@ Disease <-
               parf_dt[, parf_mrtl := NULL]
             } else {
               parf_dt[, "m0" := mu * (1 - parf)]
+        
+              # Additional m0 trend TODO: Add to other layers!
+              if (perc_change_m0 != 1) {
+                
+                nam2 <- "m0"
+                parf_dt[, m_zero_change := fifelse(year == design_$sim_prm$init_year,
+                                                   1,
+                                                   perc_change_m0)]
+                parf_dt[, xp := get(nam2)]
+                parf_dt[, (nam2) := Reduce(`*`, m_zero_change[-1], init = first(xp), accumulate = TRUE),
+                        by = .(age, sex)][, `:=`(m_zero_change = NULL, xp = NULL)] #STRATA
+                
+              }
             }
             parf_dt[, "mu" := NULL]
           }
