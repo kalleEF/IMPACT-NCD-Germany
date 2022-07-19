@@ -111,7 +111,13 @@ Disease <-
           it <- c(it, "ftlt")
 
         }
-
+        
+        private$filenams$p_zero_trend <- file.path(paste0(gsub("disease_burden",
+                                                               "other_parameters",
+                                                               db), "/p_zero_trend.fst"))
+        private$filenams$p_zero_trend_indx <- file.path(paste0(gsub("disease_burden",
+                                                                    "other_parameters",
+                                                                    db), "/p_zero_trend_indx.fst"))
 
         # TODO add check for stop('For type 1 incidence aggregation of RF need
         # to be "any" or "all".')
@@ -170,7 +176,7 @@ Disease <-
               read_fst(private$filenams[[i]], as.data.table = TRUE,
                        columns = c("year", "mc")
               )[, .(from = min(.I), to = max(.I)), keyby = c("year", "mc")]
-
+          
             write_fst(private[[finn]], private$filenams[[finn]], 100L)
           }
 
@@ -188,6 +194,8 @@ Disease <-
           for (i in it) {
             private[[paste0(i, "_indx")]] <-
               read_fst(private$filenams[[paste0(i, "_indx")]], as.data.table = TRUE)
+            private[["p_zero_trend_indx"]] <- 
+              read_fst(private$filenams[["p_zero_trend_indx"]], as.data.table = TRUE)
           }
         }
 
@@ -468,19 +476,50 @@ Disease <-
             parf_dt[, (nam) := (mu * (1 - parf))]
             parf_dt[, "mu" := NULL]
 
-            if (scenario_p_zero != 1) {
+            if (!design_$sim_prm$model_trends_in_redidual_incd) {
 
               parf_dt <- clone_dt(parf_dt, design_$sim_prm$sim_horizon_max + 1)
               parf_dt[, `:=` (
                 year = .id - 1L + design_$sim_prm$init_year,
                 .id = NULL
               )]
-
-              parf_dt[, p_zero_delta := scenario_p_zero]
+              
+              # Read p0 trend data:
+                if (all(unique(parf_dt$year) %in% private$p_zero_trend_indx[, year])) {
+                  ro <- private$p_zero_trend_indx[
+                    year %in% sort(unique(parf_dt$year)) &
+                      mc %in% sp$mc_aggr,                 # No sorting because only
+                    .("from" = min(from), "to" = max(to)) # single MC iteration at a time
+                  ]
+                } else {
+                  stop("Year for which p0 trend is to be used is not in index file!")
+                }
+                out <- read_fst(
+                  private$filenams$p_zero_trend,
+                  as.data.table = TRUE,
+                  from = ro$from,
+                  to = ro$to
+                )
+                out <- out[cause == self$name]
+                out[, `:=`(mc = NULL, cause = NULL)]
+                
+              # Merge p0 trend with parf_dt and reduce
+              absorb_dt(parf_dt, out)
               parf_dt[, xp := get(nam)]
-
+              parf_dt[, (nam) := Reduce(`*`, mx_perc_change[-1], init = first(xp), accumulate = TRUE),
+                      by = .(age, sex)][, `:=`(mx_perc_change = NULL, xp = NULL)] #STRATA
+              
+            }
+            
+            # Additional p0 trend as sensitivity analysis
+            if (scenario_p_zero != 1) {
+              
+              parf_dt[, p_zero_delta := fifelse(year == design_$sim_prm$init_year,
+                                                1,
+                                                scenario_p_zero)]
+              parf_dt[, xp := get(nam)]
               parf_dt[, (nam) := Reduce(`*`, p_zero_delta[-1], init = first(xp), accumulate = TRUE),
-                      by = .(age, sex)][, `:=`(p_zero_delta = NULL)] #STRATA
+                      by = .(age, sex)][, `:=`(p_zero_delta = NULL, xp = NULL)] #STRATA
 
             }
           }
@@ -525,7 +564,7 @@ Disease <-
             if ("mu1" %in% names(tt)) tt[, mu1 := NULL]
             # nam <- "m0"
 
-            if (!all(yrs %in% unique(parf_dt$years))) { # TODO safer logic here
+            if (!all(yrs %in% unique(parf_dt$year))) { # TODO safer logic here
               parf_dt <- clone_dt(parf_dt, length(yrs))
               parf_dt[, year := .id - 1L + design_$sim_prm$init_year]
               parf_dt[, .id := NULL]
@@ -1730,6 +1769,7 @@ Disease <-
       prvl_indx = data.table(NULL),
       ftlt_indx = data.table(NULL),
       dur_indx = data.table(NULL),
+      p_zero_trend_indx = data.table(NULL),
       chksum = NA,
       parf_dir = NA,
       parf_filenam = NA,
