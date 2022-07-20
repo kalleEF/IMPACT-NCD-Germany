@@ -591,7 +591,7 @@ Disease <-
             } else {
               parf_dt[, "m0" := mu * (1 - parf)]
         
-              # Additional m0 trend TODO: Add to other layers!
+              # m0 trend 
               if (perc_change_m0 != 1) {
                 
                 nam2 <- "m0"
@@ -650,7 +650,53 @@ Disease <-
             setnafill(parf_dt, "c", fill = 0, cols = "mu") # fix for prostate and breast cancer
             parf_dt[, (nam) := (mu * (1 - parf))]
             parf_dt[, "mu" := NULL]
-
+            
+            if (!design_$sim_prm$model_trends_in_redidual_incd) {
+              
+              parf_dt <- clone_dt(parf_dt, design_$sim_prm$sim_horizon_max + 1)
+              parf_dt[, `:=` (
+                year = .id - 1L + design_$sim_prm$init_year,
+                .id = NULL
+              )]
+              
+              # Read p0 trend data:
+              if (all(unique(parf_dt$year) %in% private$p_zero_trend_indx[, year])) {
+                ro <- private$p_zero_trend_indx[
+                  year %in% sort(unique(parf_dt$year)) &
+                    mc %in% sp$mc_aggr,                 # No sorting because only
+                  .("from" = min(from), "to" = max(to)) # single MC iteration at a time
+                ]
+              } else {
+                stop("Year for which p0 trend is to be used is not in index file!")
+              }
+              out <- read_fst(
+                private$filenams$p_zero_trend,
+                as.data.table = TRUE,
+                from = ro$from,
+                to = ro$to
+              )
+              out <- out[cause == self$name]
+              out[, `:=`(mc = NULL, cause = NULL)]
+              
+              # Merge p0 trend with parf_dt and reduce
+              absorb_dt(parf_dt, out)
+              parf_dt[, xp := get(nam)]
+              parf_dt[, (nam) := Reduce(`*`, mx_perc_change[-1], init = first(xp), accumulate = TRUE),
+                      by = .(age, sex)][, `:=`(mx_perc_change = NULL, xp = NULL)] #STRATA
+              
+            }
+            
+            # Additional p0 trend as sensitivity analysis
+            if (scenario_p_zero != 1) {
+              
+              parf_dt[, p_zero_change := fifelse(year == design_$sim_prm$init_year,
+                                                 1,
+                                                 scenario_p_zero)]
+              parf_dt[, xp := get(nam)]
+              parf_dt[, (nam) := Reduce(`*`, p_zero_change[-1], init = first(xp), accumulate = TRUE),
+                      by = .(age, sex)][, `:=`(p_zero_change = NULL, xp = NULL)] #STRATA
+              
+            }
           }
 
           if (sum(dim(private$ftlt_indx)) > 0) {
@@ -707,6 +753,18 @@ Disease <-
               parf_dt[, parf_mrtl := NULL]
             } else {
               parf_dt[, "m0" := mu * (1 - parf)]
+              
+              # m0 trend 
+              if (perc_change_m0 != 1) {
+                
+                nam2 <- "m0"
+                parf_dt[, m_zero_change := fifelse(year == design_$sim_prm$init_year,
+                                                   1,
+                                                   perc_change_m0)]
+                parf_dt[, xp := get(nam2)]
+                parf_dt[, (nam2) := Reduce(`*`, m_zero_change[-1], init = first(xp), accumulate = TRUE),
+                        by = .(age, sex)][, `:=`(m_zero_change = NULL, xp = NULL)] #STRATA
+                
             }
             parf_dt[, "mu" := NULL]
           }
