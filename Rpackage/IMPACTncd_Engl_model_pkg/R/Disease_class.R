@@ -401,7 +401,7 @@ Disease <-
       #' @return The invisible self for chaining.
 
       gen_parf = function(sp = sp, design_ = design, diseases_ = diseases,
-                          scenario_p_zero = 1,
+                          scenario_p_zero = 1, perc_change_m0 = 1, 
                           popsize = 10000, check = design_$sim_prm$logs, #TODO: Right pop size?
                           keep_intermediate_file = TRUE) {
 

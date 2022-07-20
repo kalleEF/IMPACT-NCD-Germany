@@ -216,7 +216,8 @@ Simulation <-
       #' @param multicore If TRUE run the simulation in parallel.
       #' @param scenario_nam A string for the scenario name (i.e. sc1)
       #' @return The invisible self for chaining.
-      run = function(mc, multicore = TRUE, scenario_nam, scenario_p_zero = 1) {
+      run = function(mc, multicore = TRUE, scenario_nam,
+                     scenario_p_zero = 1, perc_change_m0 = 1) {
 
         if (!is.integer(mc)) stop("mc need to be an integer vector")
         if (any(mc <= 0)) stop("mc need to be positive")
@@ -284,7 +285,8 @@ Simulation <-
             .noexport = NULL # c("time_mark")
           ) %dopar% {
 
-            private$run_sim(mc_ = mc_iter, scenario_nam, scenario_p_zero = 1)
+            private$run_sim(mc_ = mc_iter, scenario_nam,
+                            scenario_p_zero = 1, perc_change_m0 = 1)
 
           }
 
@@ -297,7 +299,8 @@ Simulation <-
           if (self$design$sim_prm$logs)
             private$time_mark("Start of single-core run")
 
-          lapply(mc_sp, private$run_sim, scenario_nam, scenario_p_zero = 1)
+          lapply(mc_sp, private$run_sim, scenario_nam,
+                 scenario_p_zero = 1, perc_change_m0 = 1)
 
           if (self$design$sim_prm$logs)
             private$time_mark("End of single-core run")
@@ -523,7 +526,8 @@ Simulation <-
 
 
       # Runs the simulation in one core. mc is scalar
-      run_sim = function(mc_, scenario_nam = "", scenario_p_zero = 1) {
+      run_sim = function(mc_, scenario_nam = "",
+                         scenario_p_zero = 1, perc_change_m0 = 1) {
 
         if (self$design$sim_prm$logs) {
           private$time_mark(paste0("Start mc iteration ", mc_))
@@ -542,7 +546,9 @@ Simulation <-
         # ds <- copy(self$diseases) # Necessary for parallelisation
         lapply(self$diseases, function(x) {
           print(x$name)
-          x$gen_parf(sp, self$design, self$diseases, scenario_p_zero = scenario_p_zero)$
+          x$gen_parf(sp, self$design, self$diseases,
+                     scenario_p_zero = scenario_p_zero,
+                     perc_change_m0 = perc_change_m0)$
             set_init_prvl(sp, self$design)$
             set_rr(sp, self$design)$
             set_incd_prb(sp, self$design)$
