@@ -93,12 +93,9 @@ Disease <-
             paste0(self$name, "_prvl_indx", ".fst")
           )
           private$filenams$dur <- file.path(db,
-            paste0(self$name, "_dur", ".fst")
+            paste0(self$name, "_duration_table", ".fst")
           )
-          private$filenams$dur_indx <- file.path(db,
-            paste0(self$name, "_dur_indx", ".fst")
-          )
-          it <- c(it, "incd", "prvl", "dur")
+          it <- c(it, "incd", "prvl")
         }
 
         if (is.numeric(meta$mortality$type)) {
@@ -916,23 +913,41 @@ Disease <-
               sp$pop[, c("ncases", "disease_wt") := NULL]
             }
 
-
             # set duration
             dqset.seed(private$seed, stream = sp$mc * 10 + 2L) # not mc_aggr
-
-            ##TODO: Include correct duration!
-            tbl <- self$get_dur(mc_ = sp$mc_aggr)[year == design_$sim_prm$init_year] #TODO
-
+            
+            tbl <- read_fst(private$filenams$dur, as.data.table = TRUE)
             col_nam <- setdiff(names(tbl), intersect(names(sp$pop), names(tbl)))
             tbl[, (namprvl) := 1L]
-
-            #lookup_dt(sp$pop, tbl, check_lookup_tbl_validity = FALSE) #TODO: lookup_dt
+            
+            #lookup_dt(sp$pop, tbl, check_lookup_tbl_validity = FALSE)
             absorb_dt(sp$pop, tbl)
-
-            sp$pop[get(namprvl) == 1L,
-                   (namprvl) := 1L + qpois(dqrunif(.N), get(col_nam))]
-
-            sp$pop[, (col_nam) := NULL]
+            
+            fn <- paste0("q", self$meta$diagnosis$duration_distr)
+            
+            if (self$name %in% c("chd", "stroke")) {
+              
+              sp$pop[get(namprvl) == 1L,
+                     (namprvl) := 2L + do.call(fn, c(p = list(dqrunif(.N)),
+                                                     mu = list(clamp(mu - 2, 0, Inf)),
+                                                     sigma = list(sigma)))]
+              dt[get(namprvl) > age, (namprvl) := age]
+              sp$pop[, (col_nam) := NULL]
+              
+            } else if (self$name == "t2dm") {
+              
+              sp$pop[get(namprvl) == 1L,
+                     (namprvl) := 2L + rpois(.N, 3L) + do.call(fn, c(p = list(dqrunif(.N)),
+                                                                     mu = list(clamp(mu - 2, 0, Inf)),
+                                                                     sigma = list(sigma)))]
+              # rpois(.N, 3L) to assume 3 year mean period from onset till
+              # diagnosis because the model was fitted in diagnosed patients
+              dt[get(namprvl) > age, (namprvl) := age]
+              sp$pop[, (col_nam) := NULL]
+              
+            } else {
+              stop(paste0("No duration defined for disease: ", self$name))
+            }
 
             if (!is.null(self$meta$mortality$cure))
               sp$pop[get(namprvl) > self$meta$mortality$cure,
@@ -1859,7 +1874,6 @@ Disease <-
       incd_indx = data.table(NULL),
       prvl_indx = data.table(NULL),
       ftlt_indx = data.table(NULL),
-      dur_indx = data.table(NULL),
       p_zero_trend_indx = data.table(NULL),
       chksum = NA,
       parf_dir = NA,

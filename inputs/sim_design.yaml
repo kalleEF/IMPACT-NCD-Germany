@@ -40,7 +40,7 @@ diseases:
     diagnosis:
       type: 1
       probability: 1
-      duration_distr: ZANBI
+      duration_distr: NBI
       mm_wt: 0.49
     mortality:
       type: 3
@@ -57,7 +57,7 @@ diseases:
     diagnosis:
       type: 1
       probability: 1
-      duration_distr: ZANBI
+      duration_distr: PIG
       mm_wt: 0.8
     mortality:
       type: 3
@@ -73,7 +73,7 @@ diseases:
     diagnosis:
       type: 1
       probability: 1
-      duration_distr: ZANBI
+      duration_distr: GPO
       mm_wt: 0.0
     mortality:
       type: 1
