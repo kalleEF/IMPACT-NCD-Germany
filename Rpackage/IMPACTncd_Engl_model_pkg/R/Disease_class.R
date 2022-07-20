@@ -931,7 +931,7 @@ Disease <-
                      (namprvl) := 2L + do.call(fn, c(p = list(dqrunif(.N)),
                                                      mu = list(clamp(mu - 2, 0, Inf)),
                                                      sigma = list(sigma)))]
-              dt[get(namprvl) > age, (namprvl) := age]
+              sp$pop[get(namprvl) > age, (namprvl) := age]
               sp$pop[, (col_nam) := NULL]
               
             } else if (self$name == "t2dm") {
@@ -942,7 +942,7 @@ Disease <-
                                                                      sigma = list(sigma)))]
               # rpois(.N, 3L) to assume 3 year mean period from onset till
               # diagnosis because the model was fitted in diagnosed patients
-              dt[get(namprvl) > age, (namprvl) := age]
+              sp$pop[get(namprvl) > age, (namprvl) := age]
               sp$pop[, (col_nam) := NULL]
               
             } else {
