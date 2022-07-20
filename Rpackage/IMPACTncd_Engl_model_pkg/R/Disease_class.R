@@ -592,18 +592,20 @@ Disease <-
               parf_dt[, parf_mrtl := NULL]
             } else {
               parf_dt[, "m0" := mu * (1 - parf)]
-        
-              # m0 trend TODO: different per disease
-              if (perc_change_m0 != 1) {
+              
+              if(self$name %in% c("stroke", "chd")){ #TODO more general logic here!
                 
-                nam2 <- "m0"
-                parf_dt[, m_zero_change := fifelse(year == design_$sim_prm$init_year,
-                                                   1,
-                                                   perc_change_m0)]
-                parf_dt[, xp := get(nam2)]
-                parf_dt[, (nam2) := Reduce(`*`, m_zero_change[-1], init = first(xp), accumulate = TRUE),
-                        by = .(age, sex)][, `:=`(m_zero_change = NULL, xp = NULL)] #STRATA
-                
+                # m0 trend TODO: different per disease
+                if (perc_change_m0 != 1) {
+                  
+                  nam2 <- "m0"
+                  parf_dt[, m_zero_change := fifelse(year == design_$sim_prm$init_year,
+                                                     1,
+                                                     perc_change_m0)]
+                  parf_dt[, xp := get(nam2)]
+                  parf_dt[, (nam2) := Reduce(`*`, m_zero_change[-1], init = first(xp), accumulate = TRUE),
+                          by = .(age, sex)][, `:=`(m_zero_change = NULL, xp = NULL)] #STRATA
+                }
               }
             }
             parf_dt[, "mu" := NULL]
@@ -758,18 +760,20 @@ Disease <-
             } else {
               parf_dt[, "m0" := mu * (1 - parf)]
               
-              # m0 trend TODO: different per disease
-              if (perc_change_m0 != 1) {
+              if(self$name %in% c("stroke", "chd")){ #TODO more general logic here!
                 
-                nam2 <- "m0"
-                parf_dt[, m_zero_change := fifelse(year == design_$sim_prm$init_year,
-                                                   1,
-                                                   perc_change_m0)]
-                parf_dt[, xp := get(nam2)]
-                parf_dt[, (nam2) := Reduce(`*`, m_zero_change[-1], init = first(xp), accumulate = TRUE),
-                        by = .(age, sex)][, `:=`(m_zero_change = NULL, xp = NULL)] #STRATA
-                
-            }
+                # m0 trend TODO: different per disease
+                if (perc_change_m0 != 1) {
+                  
+                  nam2 <- "m0"
+                  parf_dt[, m_zero_change := fifelse(year == design_$sim_prm$init_year,
+                                                     1,
+                                                     perc_change_m0)]
+                  parf_dt[, xp := get(nam2)]
+                  parf_dt[, (nam2) := Reduce(`*`, m_zero_change[-1], init = first(xp), accumulate = TRUE),
+                          by = .(age, sex)][, `:=`(m_zero_change = NULL, xp = NULL)] #STRATA
+                }  
+              }
             parf_dt[, "mu" := NULL]
           }
 
