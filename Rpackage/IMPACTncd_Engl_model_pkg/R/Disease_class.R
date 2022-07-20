@@ -781,7 +781,7 @@ Disease <-
 
 
         invisible(self)
-      },
+      }
 
 
       #' @description Set disease prevalence & diagnosis in a new col in sp$pop.
