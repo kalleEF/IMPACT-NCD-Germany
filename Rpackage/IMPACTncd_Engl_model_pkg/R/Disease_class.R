@@ -523,7 +523,7 @@ Disease <-
               }
             }
             # Additional p0 trend as sensitivity analysis
-            if (scenario_p_zero != 1) {
+            if (scenario_p_zero != 1) { #TODO: p0 trend applicable for t2dm?
               
               parf_dt[, p_zero_change := fifelse(year == design_$sim_prm$init_year,
                                                 1,
@@ -740,9 +740,8 @@ Disease <-
 
             setnames(tt, "mu2", "mu")
             if ("mu1" %in% names(tt)) tt[, mu1 := NULL]
-            # nam <- "m0"
 
-            if (!all(yrs %in% unique(parf_dt$years))) { # TODO safer logic here
+            if (!all(yrs %in% unique(parf_dt$year))) { # TODO safer logic here
               parf_dt <- clone_dt(parf_dt, length(yrs))
               parf_dt[, year := .id - 1L + design_$sim_prm$init_year]
               parf_dt[, .id := NULL]
