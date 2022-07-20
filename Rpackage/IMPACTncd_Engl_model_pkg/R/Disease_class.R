@@ -593,7 +593,7 @@ Disease <-
             } else {
               parf_dt[, "m0" := mu * (1 - parf)]
         
-              # m0 trend 
+              # m0 trend TODO: different per disease
               if (perc_change_m0 != 1) {
                 
                 nam2 <- "m0"
@@ -661,6 +661,8 @@ Disease <-
                 .id = NULL
               )]
               
+              if(self$name %in% c("stroke", "chd")){ #TODO more general logic here!
+                
               # Read p0 trend data:
               if (all(unique(parf_dt$year) %in% private$p_zero_trend_indx[, year])) {
                 ro <- private$p_zero_trend_indx[
@@ -685,7 +687,7 @@ Disease <-
               parf_dt[, xp := get(nam)]
               parf_dt[, (nam) := Reduce(`*`, mx_perc_change[-1], init = first(xp), accumulate = TRUE),
                       by = .(age, sex)][, `:=`(mx_perc_change = NULL, xp = NULL)] #STRATA
-              
+              }
             }
             
             # Additional p0 trend as sensitivity analysis
@@ -756,7 +758,7 @@ Disease <-
             } else {
               parf_dt[, "m0" := mu * (1 - parf)]
               
-              # m0 trend 
+              # m0 trend TODO: different per disease
               if (perc_change_m0 != 1) {
                 
                 nam2 <- "m0"
