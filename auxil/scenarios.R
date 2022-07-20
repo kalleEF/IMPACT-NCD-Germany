@@ -30,7 +30,7 @@ scenario_fn <- function(sp) {
                              (year - (13 + policy_lag)) * bmi_steps,
                              1)]
 
-  sp$pop[year >= 13 + policy_lag, bmi_curr_xps := bmi_curr_xps - bmi_delta]
+  sp$pop[year >= 13 + policy_lag, bmi_curr_xps := bmi_curr_xps - bmi_delta * bmi_mod]
   
   sp$pop[, c("ssb_delta_xps", "sugar_delta", "bmi_delta", "bmi_mod") := NULL]
   
