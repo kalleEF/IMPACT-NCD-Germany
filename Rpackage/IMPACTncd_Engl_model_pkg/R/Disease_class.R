@@ -180,6 +180,16 @@ Disease <-
             write_fst(private[[finn]], private$filenams[[finn]], 100L)
           }
 
+          if (file.exists(private$filenams[["p_zero_trend_indx"]]))
+            file.remove(private$filenams[["p_zero_trend_indx"]])
+          
+          private[["p_zero_trend_indx"]] <-
+            read_fst(private$filenams[["p_zero_trend"]], as.data.table = TRUE,
+                     columns = c("year", "mc", "cause")
+            )[, .(from = min(.I), to = max(.I)), keyby = c("year", "mc", "cause")]
+          
+          write_fst(private[["p_zero_trend_indx"]], private$filenams[["p_zero_trend_indx"]], 100L)
+          
           if (file.exists(snfile)) file.remove(snfile)
           qsave(
             fileSnapshot(
@@ -194,9 +204,11 @@ Disease <-
           for (i in it) {
             private[[paste0(i, "_indx")]] <-
               read_fst(private$filenams[[paste0(i, "_indx")]], as.data.table = TRUE)
-            private[["p_zero_trend_indx"]] <- 
-              read_fst(private$filenams[["p_zero_trend_indx"]], as.data.table = TRUE)
           }
+          
+          private[["p_zero_trend_indx"]] <- 
+            read_fst(private$filenams[["p_zero_trend_indx"]], as.data.table = TRUE)
+          
         }
 
         invisible(self)
