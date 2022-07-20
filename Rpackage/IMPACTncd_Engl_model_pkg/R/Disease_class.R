@@ -771,6 +771,7 @@ Disease <-
                           by = .(age, sex)][, `:=`(m_zero_change = NULL, xp = NULL)] #STRATA
                 }  
               }
+            }
             parf_dt[, "mu" := NULL]
           }
 
