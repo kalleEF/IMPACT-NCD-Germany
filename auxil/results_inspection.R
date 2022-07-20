@@ -1,6 +1,6 @@
 res <- fread("./outputs/summaries/prvl_out.csv.gz")
 
-ggplot(res[mc == 8], aes(year, t2dm_prvl/popsize, linetype = scenario, col = agegrp)) +
+ggplot(res[mc == 7], aes(year, obesity_prvl/popsize, linetype = scenario, col = agegrp)) +
   facet_wrap(~ sex) +
   geom_line()
 
