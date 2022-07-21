@@ -253,10 +253,10 @@ Disease <-
           self$del_parf_file(invert = TRUE) # Delete old versions
 
           # start if file not exist
-          if (sum(dim(private$incd_indx)) > 0) {
-            ttt <- self$get_incd(design_$sim_prm$init_year, mc_ = sp$mc_aggr)
+          if (sum(dim(private$incd_indx)) > 0) { 
+            ttt <- self$get_incd(design_$sim_prm$init_year, mc_ = 0)
           } else {
-            ttt <- self$get_ftlt(design_$sim_prm$init_year, mc_ = sp$mc_aggr)
+            ttt <- self$get_ftlt(design_$sim_prm$init_year, mc_ = 0)
           }
 
           ttt <- CJ(
@@ -303,7 +303,7 @@ Disease <-
           ans$pop <- rbindlist(xps_dt)
           ans$pop [, `:=` (pid = .I, pid_mrk = TRUE)] # TODO add check to avoid intmax limit
           ans$mc <- 0L
-          ans$mc_aggr <- 1L # TODO: Check with Chris. Needed so that PARF files can read prevalence
+          ans$mc_aggr <- 0L # TODO: Check with Chris. Needed so that PARF files can read prevalence
                             #       for diseases that act as exposures!
 
           # NOTE xps_dt does not contain disease init prevalence. I simulate
