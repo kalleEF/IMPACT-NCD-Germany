@@ -56,3 +56,5 @@ DELETEme*
 *.png
 
 IMPACT NCD Germany.Rproj
+
+auxil/results_inspection.R
