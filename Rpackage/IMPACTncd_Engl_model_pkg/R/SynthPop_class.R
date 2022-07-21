@@ -977,6 +977,7 @@ SynthPop <-
               dt <- absorb_dt(dt, tbl)
             #}
             dt[, bmi := my_qBCPEo(rank_bmi, mu, sigma, nu, tau, n_cpu = design_$sim_prm$n_cpu)]
+            dt[bmi > 80, bmi := 80] #Truncate BMI predictions to avoid unrealistic values.
             dt[, rank_bmi := NULL]
             dt[, (col_nam) := NULL]
 
@@ -1022,7 +1023,7 @@ SynthPop <-
             dt[, sugar_per_ssb := ssb_sugar/ssb]
             dt[, sugar_per_juice := juice_sugar/juice]
 
- 			dt[, `:=` (
+ 			      dt[, `:=` (
               pid_mrk = NULL
               # to be recreated when loading synthpop
             )]

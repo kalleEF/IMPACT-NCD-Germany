@@ -2028,6 +2028,7 @@ Disease <-
             ff <- absorb_dt(ff, tbl)
           #}
           ff[, bmi_curr_xps := my_qBCPEo(rank_bmi, mu, sigma, nu, tau, n_cpu = design_$sim_prm$n_cpu)]
+          ff[bmi_curr_xps > 80, bmi_curr_xps := 80] #Truncate BMI predictions to avoid unrealistic values.
           ff[, rank_bmi := NULL]
           ff[, (col_nam) := NULL]
           ff[, year := year + lag]
