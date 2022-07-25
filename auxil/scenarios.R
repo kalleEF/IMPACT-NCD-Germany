@@ -21,6 +21,8 @@ scenario_fn <- function(sp) {
   sugar_rr_high <- as.numeric(tbl[mc == sp$mc_aggr, "sugar_rr_high"])
   
   sp$pop[, ssb_delta_xps := ssb_curr_xps - (ssb_curr_xps * (1 + oPE_SSB * ((tax/100) * pass_through)))]
+  sp$pop[, ssb_curr_xps := ssb_curr_xps - ssb_delta_xps]
+  
   sp$pop[, sugar_delta := ssb_delta_xps * sugar_per_ssb]
   sp$pop[, bmi_delta := fifelse(bmi_curr_xps < 25,
                                 sugar_delta * sugar_rr_low,
