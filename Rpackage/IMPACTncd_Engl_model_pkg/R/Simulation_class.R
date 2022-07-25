@@ -1002,17 +1002,17 @@ Simulation <-
                        .SDcols = patterns("_prvl$"), keyby = strata],
                     private$output_dir(paste0("summaries/", "incd_esp.csv.gz"
                     )))
-        fwrite_safe(lc[, c("popsize" = (.N),
+        fwrite_safe(lc[, .("popsize" = (.N),
                            "all_cause_mrtl" = sum(all_cause_mrtl > 0)),
                        keyby = strata],
                     private$output_dir(paste0("summaries/", "mrtl_out.csv.gz"
                     )))
-        fwrite_safe(lc[, c("popsize" = sum(wt),
+        fwrite_safe(lc[, .("popsize" = sum(wt),
                            "all_cause_mrtl" = sum((all_cause_mrtl > 0) * wt)),
                        keyby = strata],
                     private$output_dir(paste0("summaries/", "mrtl_scaled_up.csv.gz"
                     )))
-        fwrite_safe(lc[, c("popsize" = sum(wt_esp),
+        fwrite_safe(lc[, .("popsize" = sum(wt_esp),
                            "all_cause_mrtl" = sum((all_cause_mrtl > 0) * wt_esp)),
                        keyby = strata],
                     private$output_dir(paste0("summaries/", "mrtl_esp.csv.gz"
