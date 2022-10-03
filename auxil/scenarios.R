@@ -9,7 +9,7 @@ scenario_fn <- function(sp) {
   pass_through <- 0.82
   oPE_SSB <- -1.2 # Own-price elasticity of SSBs #TODO Make probabilistic
   
-  #tbl <- read_fst(.inputsother_parametersoPE_SSB_rr.fst)
+  #tbl <- read_fst(.inputs/other_parameters/oPE_SSB_rr.fst)
   #oPE_SSB <- as.numeric(tbl[mc == sp$mc_aggr, oPE_SSB])
   
   policy_lag <- 0 # Lag until policy affects consumption in years
