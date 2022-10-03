@@ -190,7 +190,7 @@ Disease <-
           if (file.exists(snfile)) file.remove(snfile)
           qsave(
             fileSnapshot(
-              private$parf_dir,
+              db,
               timestamp = NULL,
               md5sum = TRUE,
               recursive = FALSE,
@@ -1067,6 +1067,7 @@ Disease <-
             set(sp$pop, NULL, private$incd_colnam, thresh)
 
           } else if (length(private$rr) > 0L) {
+            
             # if incidence$type not 1 and at least 1 associated RF
             if (length(riskcolnam) > 0) {
               risk_product <-
@@ -1078,7 +1079,7 @@ Disease <-
             # Calibrate estimated incidence prbl to init year incidence
             tbl <- self$get_incd(design_$sim_prm$init_year, mc_ = sp$mc_aggr
             )[between(age, design_$sim_prm$ageL,
-                      design_$sim_prm$ageH)]
+                           design_$sim_prm$ageH)]
             #lookup_dt(sp$pop, tbl) #TODO: lookup_dt
             absorb_dt(sp$pop, tbl)
             sp$pop[, rp := private$parf$p0 * sp$get_risks(self$name)[, Reduce(`*`, .SD),

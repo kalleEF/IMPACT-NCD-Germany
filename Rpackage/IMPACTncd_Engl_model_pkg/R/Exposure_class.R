@@ -531,7 +531,6 @@ Exposure <-
         out <- copy(private$input_rr)
         out[, agegroup := NULL]
         setnames(out, "rr", private$nam_rr)
-        private$cache <- copy(out)
         out
         },
 
