@@ -1030,7 +1030,8 @@ SynthPop <-
 
             xps_tolag <- c(
               "bmi",
-              "ssb"
+              "ssb",
+              "juice"
             )
             xps_nam <-  paste0(xps_tolag, "_curr_xps")
             setnames(dt, xps_tolag, xps_nam)
