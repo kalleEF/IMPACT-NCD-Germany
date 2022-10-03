@@ -21,26 +21,20 @@ scenario_fn <- function(sp) {
   sugar_rr_high <- as.numeric(tbl[mc == sp$mc_aggr, "sugar_rr_high"])
   
   sp$pop[, ssb_delta_xps := ssb_curr_xps - (ssb_curr_xps * (1 + oPE_SSB * ((tax/100) * pass_through)))]
-  sp$pop[, ssb_curr_xps := ssb_curr_xps - ssb_delta_xps]
+  sp$pop[year > 13, ssb_curr_xps := ssb_curr_xps - ssb_delta_xps]
   
   sp$pop[, sugar_delta := ssb_delta_xps * sugar_per_ssb]
   sp$pop[, bmi_delta := fifelse(bmi_curr_xps < 25,
                                 sugar_delta * sugar_rr_low,
                                 sugar_delta * sugar_rr_high)]
   
-  sp$pop[, bmi_mod := fifelse(year >= (13 + policy_lag) & year <= (13 + policy_lag + bmi_lag),
-                              (year - (13 + policy_lag)) * bmi_steps,
-                              1)]
+  sp$pop[, bmi_mod := 0]
+  sp$pop[year > 13, bmi_mod := fifelse(year > (13 + policy_lag) & year <= (13 + policy_lag + bmi_lag),
+                                      (year - (13 + policy_lag)) * bmi_steps,
+                                       1)]
   
-  sp$pop[, bmi_check := bmi_curr_xps]
-  sp$pop[year >= (13 + policy_lag), bmi_check := bmi_curr_xps - (bmi_delta * bmi_mod)]
+  sp$pop[year > (13 + policy_lag), bmi_curr_xps := bmi_curr_xps - (bmi_delta * bmi_mod)]
   
-  print("BMI CHECK START")
-  print(sp$pop[, all(bmi_check <= bmi_curr_xps)])
-  print("BMI CHECK END")
-  
-  sp$pop[year >= (13 + policy_lag), bmi_curr_xps := bmi_check]
-  
-  sp$pop[, c("ssb_delta_xps", "sugar_delta", "bmi_delta", "bmi_mod", "bmi_check") := NULL]
+  sp$pop[, c("ssb_delta_xps", "sugar_delta", "bmi_delta", "bmi_mod") := NULL]
   
 }

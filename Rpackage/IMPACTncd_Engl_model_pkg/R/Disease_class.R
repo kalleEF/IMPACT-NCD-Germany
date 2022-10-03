@@ -553,7 +553,7 @@ Disease <-
                 perl = TRUE
               )
 
-              if (length(riskcolnam) > 0) {
+              if (length(riskcolnam) > 0) { ###CHECK AGAIN
                 parf_dt_mrtl <-
                   ans$pop[between(age, design_$sim_prm$ageL, design_$sim_prm$ageH),
                           .(parf_mrtl = 1 - 1 / (sum(Reduce(`*`, mget(riskcolnam))) / .N)),
@@ -1067,7 +1067,6 @@ Disease <-
             set(sp$pop, NULL, private$incd_colnam, thresh)
 
           } else if (length(private$rr) > 0L) {
-            
             # if incidence$type not 1 and at least 1 associated RF
             if (length(riskcolnam) > 0) {
               risk_product <-
@@ -1075,15 +1074,16 @@ Disease <-
             } else {
               risk_product <- 1
             }
-
+            
+            if (TRUE) {
             # Calibrate estimated incidence prbl to init year incidence
             tbl <- self$get_incd(design_$sim_prm$init_year, mc_ = sp$mc_aggr
             )[between(age, design_$sim_prm$ageL,
-                           design_$sim_prm$ageH)]
+                      design_$sim_prm$ageH)]
             #lookup_dt(sp$pop, tbl) #TODO: lookup_dt
             absorb_dt(sp$pop, tbl)
-            sp$pop[, rp := private$parf$p0 * sp$get_risks(self$name)[, Reduce(`*`, .SD),
-                                                                     .SDcols = patterns("_rr$")]]
+            sp$pop[, rp := (private$parf$p0 * sp$get_risks(self$name)[, Reduce(`*`, .SD),
+                                                                     .SDcols = patterns("_rr$")])]
             setnafill(sp$pop, "c", 0, cols = c("rp", "mu"))
             # Above rp includes rr from diseases that risk_product doesn't have
             tbl <- sp$pop[year == design_$sim_prm$init_year &
@@ -1107,7 +1107,11 @@ Disease <-
             # sp$pop[, (paste0(self$name, "_risk_product")) := risk_product]
             # sp$pop[, (paste0(self$name, "_p0")) := private$parf$p0]
             sp$pop[, c("mu", "rp", "clbfctr") := NULL]
-
+            } else {
+             set(sp$pop, NULL, private$incd_colnam,
+                clamp(private$parf$p0 * risk_product))
+            }
+            
             if (design_$sim_prm$export_PARF) {
               path <- file.path(design_$sim_prm$output_dir, "parf")
               filenam <- file.path(path, "parf.csv")
@@ -1262,7 +1266,8 @@ Disease <-
             } else {
               risk_product <- 1
             }
-
+            
+            if (TRUE) {
             # Calibrate estimated fatality prbl to init year incidence
             tbl <- self$get_ftlt(design_$sim_prm$init_year, mc_ = sp$mc_aggr
             )[between(age, design_$sim_prm$ageL,
@@ -1302,7 +1307,10 @@ Disease <-
             # sp$pop[, (paste0(self$name, "_risk_product_mrtl")) := risk_product]
             # sp$pop[, (paste0(self$name, "_m0")) := private$parf$m0]
             sp$pop[, c("mu2", "rp", "clbfctr") := NULL]
-
+            } else {
+              set(sp$pop, NULL, private$mrtl_colnam2,
+                  clamp(private$parf$m0 * risk_product))
+            }
           }
 
           setnafill(sp$pop, type = "const", fill = 0,

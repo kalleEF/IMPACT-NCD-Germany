@@ -33,7 +33,7 @@
 fwrite_safe <- function(x,
                         file,
                         append = TRUE,
-                        threat_safe = append,
+                        #threat_safe = append,
                         ...) {
   if (append) {
     if (file.exists(file)) {
@@ -46,17 +46,17 @@ fwrite_safe <- function(x,
     }
   }
 
-  # create threat-safe mechanism
-  flock <- paste0(file, ".lock")
-
-
-  while (file.exists(flock)) {
-    Sys.sleep(runif(1))
-  }
-
-    file.create(flock)
-    fwrite(x, file, append, ...)
-    on.exit(if (file.exists(flock)) file.remove(flock))
+#  # create threat-safe mechanism
+#  flock <- paste0(file, ".lock")
+#
+#
+#  while (file.exists(flock)) {
+#    Sys.sleep(runif(1))
+#  }
+#
+#    file.create(flock)
+     fwrite(x, file, append, ...)
+#    on.exit(if (file.exists(flock)) file.remove(flock))
 
 }
 

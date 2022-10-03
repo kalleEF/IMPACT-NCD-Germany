@@ -1,8 +1,10 @@
 
+
 sp <- qread("./simulation/tmp.qs")
 sp2 <- qread("./simulation/tmp.qs")
 setDT(sp$pop)
 setDT(sp2$pop)
+
 all.equal(sp$pop, sp2$pop)
 l <- mk_scenario_init2("", diseases, sp, design)
 l2 <- mk_scenario_init2("", diseases, sp2, design)
@@ -10,6 +12,21 @@ all.equal(l, l2)
 simcpp(sp$pop, l, sp$mc_aggr)
 simcpp(sp2$pop, l2, sp2$mc_aggr)
 all.equal(sp$pop, sp2$pop)
+
+sp_NA <- sp$pop[is.na(all_cause_mrtl)]
+
+sp_test <- copy(sp$pop)
+sp_test[, `:=`(sex = NULL, pid_mrk = NULL)]
+
+sp2_test <- copy(sp2$pop)
+sp2_test[, `:=`(sex = NULL, pid_mrk = NULL)]
+
+diff <- as.matrix(sp_test) - as.matrix(sp2_test)
+diff <- as.data.table(diff)
+summary(diff)
+
+diff <- cbind(diff, sp$pop[, "pid_mrk"])
+
 
 i = 1L
 while (identical(sp$pop[seq(i)], sp2$pop[seq(i)])) {

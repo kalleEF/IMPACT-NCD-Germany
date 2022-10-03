@@ -36,6 +36,8 @@ mk_scenario_init2 <- function(scenario_name, diseases_, sp, design_) {
         "ages"               = "age",
         "ageL"               = design_$sim_prm$ageL,
         "all_cause_mrtl"     = paste0("all_cause_mrtl", scenario_suffix_for_pop),
+        "cms_score"          = paste0("cms_score", scenario_suffix_for_pop),
+        "cms_count"          = paste0("cms_count", scenario_suffix_for_pop),
         "strata_for_outputs" = c("pid", "year", "age", "sex"),
         "diseases"           = lapply(diseases_, function(x) x$to_cpp(sp, design_))
     )
@@ -79,45 +81,48 @@ sp  <- SynthPop$new(1L, design)
 #lapply(diseases, function(x) {
 #    print(x)
 #    x$set_mrtl_prb(sp, design)
-#})
+# #})
 # # diseases$t2dm$harmonise_epi_tables(sp)
-diseases$t2dm$gen_parf(sp, design)
-diseases$t2dm$set_init_prvl(sp, design)
-diseases$t2dm$set_rr(sp, design)
-diseases$t2dm$set_incd_prb(sp, design)
-diseases$t2dm$set_dgns_prb(sp, design)
-diseases$t2dm$set_mrtl_prb(sp, design)
-#
-# # diseases$chd$harmonise_epi_tables(sp)
-diseases$chd$gen_parf(sp, design)
-diseases$chd$set_init_prvl(sp, design)
-diseases$chd$set_rr(sp, design)
-diseases$chd$set_incd_prb(sp, design)
-diseases$chd$set_dgns_prb(sp, design)
-diseases$chd$set_mrtl_prb(sp, design)
+ # diseases$t2dm$gen_parf(sp, design)
+ # diseases$t2dm$set_init_prvl(sp, design)
+ # diseases$t2dm$set_rr(sp, design)
+ # diseases$t2dm$set_incd_prb(sp, design)
+ # diseases$t2dm$set_dgns_prb(sp, design)
+ # diseases$t2dm$set_mrtl_prb(sp, design)
+# #
+# # # diseases$chd$harmonise_epi_tables(sp)
+# diseases$chd$gen_parf(sp, design)
+# diseases$chd$set_init_prvl(sp, design)
+# diseases$chd$set_rr(sp, design)
+# diseases$chd$set_incd_prb(sp, design)
+# diseases$chd$set_dgns_prb(sp, design)
+# diseases$chd$set_mrtl_prb(sp, design)
+# 
+# # diseases$stroke$harmonise_epi_tables(sp)
+# diseases$stroke$gen_parf(sp, design)
+# diseases$stroke$set_init_prvl(sp, design)
+# diseases$stroke$set_rr(sp, design)
+# diseases$stroke$set_incd_prb(sp, design)
+# diseases$stroke$set_dgns_prb(sp, design)
+# diseases$stroke$set_mrtl_prb(sp, design)
+# 
+# diseases$obesity$gen_parf(sp, design)
+# diseases$obesity$set_init_prvl(sp, design)
+# diseases$obesity$set_rr(sp, design)
+# diseases$obesity$set_incd_prb(sp, design)
+# diseases$obesity$set_dgns_prb(sp, design)
+# diseases$obesity$set_mrtl_prb(sp, design)
+# 
+# #diseases$nonmodelled$harmonise_epi_tables(sp)
+# diseases$nonmodelled$gen_parf(sp, design)
+# diseases$nonmodelled$set_init_prvl(sp, design)
+# diseases$nonmodelled$set_rr(sp, design)
+# diseases$nonmodelled$set_incd_prb(sp, design)
+# diseases$nonmodelled$set_dgns_prb(sp, design)
+# diseases$nonmodelled$set_mrtl_prb(sp, design)
 
-# diseases$stroke$harmonise_epi_tables(sp)
-diseases$stroke$gen_parf(sp, design)
-diseases$stroke$set_init_prvl(sp, design)
-diseases$stroke$set_rr(sp, design)
-diseases$stroke$set_incd_prb(sp, design)
-diseases$stroke$set_dgns_prb(sp, design)
-diseases$stroke$set_mrtl_prb(sp, design)
+qsave(sp, "./simulation/tmp_s.qs")
 
-diseases$obesity$gen_parf(sp, design)
-diseases$obesity$set_init_prvl(sp, design)
-diseases$obesity$set_rr(sp, design)
-diseases$obesity$set_incd_prb(sp, design)
-diseases$obesity$set_dgns_prb(sp, design)
-diseases$obesity$set_mrtl_prb(sp, design)
-
-#diseases$nonmodelled$harmonise_epi_tables(sp)
-diseases$nonmodelled$gen_parf(sp, design)
-diseases$nonmodelled$set_init_prvl(sp, design)
-diseases$nonmodelled$set_rr(sp, design)
-diseases$nonmodelled$set_incd_prb(sp, design)
-diseases$nonmodelled$set_dgns_prb(sp, design)
-diseases$nonmodelled$set_mrtl_prb(sp, design)
 
 lapply(diseases, function(x) {
     print(x$name)
@@ -128,6 +133,8 @@ lapply(diseases, function(x) {
     set_dgns_prb(sp, design)$
     set_mrtl_prb(sp, design)
 })
+
+qsave(sp, "./simulation/tmp.qs")
 
 transpose(sp$pop[, lapply(.SD, anyNA)], keep.names = "rn")[(V1)]
 

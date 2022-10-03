@@ -356,7 +356,7 @@ Exposure <-
 
           stopifnot(length(mc) == 1L, between(mc, 1L, design_$sim_prm$iteration_n_max))
           mc <- as.integer(ceiling(mc))
-          if (identical(mc, private$cache_mc)) {
+            if (identical(mc, private$cache_mc)) {
             out <- copy(private$cache) # copy for safety
           } else {
             if (design_$sim_prm$stochastic) {
@@ -531,9 +531,11 @@ Exposure <-
         out <- copy(private$input_rr)
         out[, agegroup := NULL]
         setnames(out, "rr", private$nam_rr)
+        private$cache <- copy(out)
+        private$cache_mc <- "forPARF"
         out
-        },
-
+      },
+      
 
       #' @description Get original metadata.
       #' @return A list with the original metadata.

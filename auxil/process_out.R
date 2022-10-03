@@ -10,9 +10,8 @@ theme_update(axis.text.x = element_text(size = 9), plot.title = element_text(hju
 
 
 
-tt <- fread("/mnt/storage_fast/output/hf_real/summaries/prvl_scaled_up.csv.gz"
-)[, `:=` (year = year + 2000L,
-          dimd = factor(dimd, c("1 most deprived", as.character(2:9), "10 least deprived")))]
+tt <- fread("./outputs/summaries/prvl_scaled_up.csv.gz"
+)[, `:=` (year = year + 2000)]
 
 outstrata <- c("mc", "year", "scenario")
 d <- tt[, lapply(.SD, sum), .SDcols = patterns("_prvl$|^popsize$"), keyby = eval(outstrata)
@@ -20,93 +19,31 @@ d <- tt[, lapply(.SD, sum), .SDcols = patterns("_prvl$|^popsize$"), keyby = eval
 d <- melt(d, id.vars = outstrata)
 d <- d[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(setdiff(outstrata, "mc"))]
 setnames(d, c(setdiff(outstrata, "mc"), "disease", percent(prbl, prefix = "prvl_rate_")))
-fwrite(d, "/mnt/storage_fast/output/hf_real/tables/prevalence by year.csv")
+fwrite(d, "./outputs/tables/prevalence by year.csv")
 
-d[disease == "cmsmm0_prvl", disease := "CMS score > 0"]
-d[disease == "CMS score > 0", `:=` (
-  `prvl_rate_50.0%` = 1 - `prvl_rate_50.0%`,
-  `prvl_rate_2.5%` = 1 - `prvl_rate_97.5%`,
-  `prvl_rate_97.5%` = 1 - `prvl_rate_2.5%`,
-  `prvl_rate_10.0%` = 1 - `prvl_rate_90.0%`,
-  `prvl_rate_90.0%` = 1 - `prvl_rate_10.0%`
-)]
-d[disease == "cmsmm1_prvl", disease := "CMS score > 1"]
-d[disease == "cmsmm1.5_prvl", disease := "CMS score > 1.5"]
-d[disease == "cmsmm2_prvl", disease := "CMS score > 2"]
-d <- d[between(year, 2014, 2040) & disease %in% c("CMS score > 1", "CMS score > 1.5", "CMS score > 2", "CMS score = 0")]
-d[scenario == "sc0", scenario := "Base-case"]
-d[scenario == "sc1", scenario := "10% BMI reduction"]
+d[disease == "t2dm_prvl", disease := "Type 2 Diabetes"]
+d[disease == "chd_prvl", disease := "Coronary Heart Disease"]
+d[disease == "stroke_prvl", disease := "Stroke"]
+d[disease == "obesity_prvl", disease := "Obesity"]
 
-ggplot(d[scenario == "Base-case"], aes(x = year, y = `prvl_rate_50.0%`, ymin = `prvl_rate_2.5%`,
-              ymax = `prvl_rate_97.5%`, colour = disease, fill = disease)) +
+d <- d[between(year, 2013, 2040) & disease %in% c("Type 2 Diabetes", "Coronary Heart Disease", "Stroke", "Obesity")]
+
+ggplot(d, aes(x = year, y = `prvl_rate_50.0%`, ymin = `prvl_rate_2.5%`,
+              ymax = `prvl_rate_97.5%`, colour = scenario, fill = scenario)) +
+  facet_wrap(~ disease, scales = "free") +
   geom_ribbon(alpha = 2/5, colour = NA) +
   geom_line() +
   scale_x_continuous(name = "Year") +
   scale_y_continuous(name = "Prevalence rate", labels = percent) +
-  ggtitle(paste0("Prevalence of ", "multimorbidity")) +
-  expand_limits(y = 0) +
-  theme(legend.title = element_blank())
-ggsave("~/pCloudDrive/pCloud Sync/MM prevalence.png", scale = 1.5, width = 16/2, height = 9/2)
-
-
-ggplot(d[disease == "CMS score > 1.5"], aes(x = year, y = `prvl_rate_50.0%`, ymin = `prvl_rate_2.5%`,
-                                 ymax = `prvl_rate_97.5%`, colour = scenario, fill = scenario)) +
-  geom_ribbon(alpha = 2/5, colour = NA) +
-  geom_line() +
-  scale_x_continuous(name = "Year") +
-  scale_y_continuous(name = "Prevalence rate", labels = percent) +
-  ggtitle(paste0("Prevalence of ", "multimorbidity (CMS score > 1.5)")) +
-  expand_limits(y = 0) +
-  theme(legend.title = element_blank())
-ggsave("~/pCloudDrive/pCloud Sync/MM scenario.png", scale = 1.5, width = 16/2, height = 9/2)
-
-d0 <- d[disease == "CMS score > 1",
-        .(disease = "CMS score [0,1]",
-          year,
-          `prvl_rate_50.0%` = 1 - `prvl_rate_50.0%`,
-          `prvl_rate_2.5%`  = 1 - `prvl_rate_97.5%`,
-          `prvl_rate_97.5%` = 1 - `prvl_rate_2.5%`,
-          `prvl_rate_10.0%` = 1 - `prvl_rate_90.0%`,
-          `prvl_rate_90.0%` = 1 - `prvl_rate_10.0%`)
-]
-
-d1 <- d[disease == "CMS score > 1"]
-d1.5 <- d[disease == "CMS score > 1.5"]
-d2 <- d[disease == "CMS score > 2"]
-d1 <- d1[d1.5, on = "year",  .(disease = "CMS score (1,1.5]",
-                               year,
-                               `prvl_rate_50.0%` = `prvl_rate_50.0%` - `i.prvl_rate_50.0%`,
-                               `prvl_rate_2.5%`  = `prvl_rate_97.5%` - `i.prvl_rate_97.5%`,
-                               `prvl_rate_97.5%` = `prvl_rate_2.5%` - `i.prvl_rate_2.5%`,
-                               `prvl_rate_10.0%` = `prvl_rate_90.0%` - `i.prvl_rate_90.0%`,
-                               `prvl_rate_90.0%` = `prvl_rate_10.0%` - `i.prvl_rate_10.0%`)]
-d1.5 <- d1.5[d2, on = "year",  .(disease = "CMS score (1.5,2]",
-                                 year,
-                                 `prvl_rate_50.0%` = `prvl_rate_50.0%` - `i.prvl_rate_50.0%`,
-                                 `prvl_rate_2.5%`  = `prvl_rate_97.5%` - `i.prvl_rate_97.5%`,
-                                 `prvl_rate_97.5%` = `prvl_rate_2.5%` - `i.prvl_rate_2.5%`,
-                                 `prvl_rate_10.0%` = `prvl_rate_90.0%` - `i.prvl_rate_90.0%`,
-                                 `prvl_rate_90.0%` = `prvl_rate_10.0%` - `i.prvl_rate_10.0%`)]
-d2[, disease := "CMS score > 2"]
-d <- rbind(d0, d1, d1.5, d2)
-d[, disease := factor(disease, c("CMS score > 2", "CMS score (1.5,2]", "CMS score (1,1.5]", "CMS score [0,1]"))]
-
-
-ggplot(d, aes(x = year, y = `prvl_rate_50.0%`, fill = disease)) +
-  geom_area(alpha = 0.6 , size = 1, colour = "black") +
-  scale_x_continuous(name = "Year") +
-  scale_y_continuous(name = "Proportion", labels = percent) +
-  ggtitle(paste0("CMS distribution")) +
+  ggtitle(paste0("Prevalence of ", "diseases")) +
   expand_limits(y = 0) +
   theme(legend.title = element_blank())
 
-ggsave("~/pCloudDrive/pCloud Sync/CMS distr.png", scale = 1.5, width = 16/2, height = 9/2)
 
-tt_esp <- fread("/mnt/storage_fast/output/hf_real/summaries/prvl_esp.csv.gz"
-)[, `:=` (year = year + 2000L,
-          dimd = factor(dimd, c("1 most deprived", as.character(2:9), "10 least deprived")))]
+tt_esp <- fread("./outputs/summaries/prvl_scaled_up.csv.gz"
+)[, `:=` (year = year + 2000L)]
 
-outstrata <- c("mc", "year", "dimd", "scenario")
+outstrata <- c("mc", "year", "scenario")
 e <- tt_esp[, lapply(.SD, sum), .SDcols = patterns("_prvl$|^popsize$"), keyby = eval(outstrata)
 ][, lapply(.SD, function(x) x/popsize), keyby = outstrata]
 e <- melt(e, id.vars = outstrata)
