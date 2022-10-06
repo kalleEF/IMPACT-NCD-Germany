@@ -109,6 +109,9 @@ cols_for_output:
 - age
 - sex
 - wt
+- bmi_curr_xps
+- ssb_curr_xps
+- juice_curr_xps
 strata_for_output:
 - scenario
 - year
