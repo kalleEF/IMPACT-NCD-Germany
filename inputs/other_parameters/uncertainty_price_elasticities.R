@@ -38,6 +38,6 @@ cPE_ssb_juice_samples <- data.table(
 
 write_fst(oPE_ssb_samples, "./inputs/other_parameters/oPE_ssb.fst")
 write_fst(oPE_juice_samples, "./inputs/other_parameters/oPE_juice.fst")
-write_fst(cPE_ssb_juice_samples, "./inputs/other_parameters/oPE_ssb_juice.fst")
+write_fst(cPE_ssb_juice_samples, "./inputs/other_parameters/cPE_ssb_juice.fst")
 
 

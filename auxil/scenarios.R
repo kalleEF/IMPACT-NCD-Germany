@@ -13,7 +13,7 @@ scenario_fn <- function(sp) {
   oPE_ssb <- as.numeric(tbl[mc == sp$mc_aggr, "oPE_ssb"]) # Own-price elasticity of SSBs
   
   tbl <- read_fst("./inputs/other_parameters/cPE_ssb_juice.fst", as.data.table = TRUE)
-  cPE_ssb <- as.numeric(tbl[mc == sp$mc_aggr, "cPE_ssb_juice"]) # Own-price elasticity of SSBs
+  cPE_ssb_juice <- as.numeric(tbl[mc == sp$mc_aggr, "cPE_ssb_juice"]) # Cross-price elasticity of SSBs and fruit juice
   
   policy_lag <- 0 # Lag until policy affects consumption in years
   
@@ -129,12 +129,12 @@ scenario_fn <- function(sp) {
   ref_lag <- 3
   ref_steps <- 1/ref_lag
   
-  sp$pop[, ref_mod := 0]
+  sp$pop[, ref_mod := 1]
   sp$pop[year > 13, ref_mod := fifelse(year > 13 & year <= (13 + ref_lag),
-                                       (year - 13) * ref_steps,
-                                       1)]
+                                       1 - (year - 13) * (1 - ref) * ref_steps,
+                                       ref)]
   
-  sp$pop[year > 13, sugar_per_ssb := sugar_per_ssb * (ref * ref_mod)]
+  sp$pop[year > 13, sugar_per_ssb := sugar_per_ssb * ref_mod]
 
   # Change in consumption of sugar from SSBs after tax #
   sp$pop[, sugar_delta := ssb_curr_xps * sugar_per_ssb - ssb_sugar]
@@ -161,6 +161,7 @@ scenario_fn <- function(sp) {
 
 ### Scenario 4 - 20% tiered tax with hypothetical thresholds leading to reformulation (30% less sugar) ----
 #               (change in consumption and reformulation)
+
 scenario_fn <- function(sp) {
   
   # Set scenario variables #
@@ -171,8 +172,8 @@ scenario_fn <- function(sp) {
   tbl <- read_fst("./inputs/other_parameters/oPE_ssb.fst", as.data.table = TRUE)
   oPE_ssb <- as.numeric(tbl[mc == sp$mc_aggr, "oPE_ssb"]) # Own-price elasticity of SSBs
   
-  tbl <- read_fst("./inputs/other_parameters/oPE_juice.fst", as.data.table = TRUE)
-  cPE_juice <- as.numeric(tbl[mc == sp$mc_aggr, "oPE_juice"]) # Own-price elasticity of fruit juice
+  tbl <- read_fst("./inputs/other_parameters/cPE_ssb_juice.fst", as.data.table = TRUE)
+  cPE_ssb_juice <- as.numeric(tbl[mc == sp$mc_aggr, "cPE_ssb_juice"]) # Cross-price elasticity of SSBs and fruit juice
   
   policy_lag <- 0 # Lag until policy affects consumption in years
   
@@ -188,23 +189,23 @@ scenario_fn <- function(sp) {
   ref_lag <- 3
   ref_steps <- 1/ref_lag
   
-  sp$pop[, ref_mod := 0]
+  sp$pop[, ref_mod := 1]
   sp$pop[year > 13, ref_mod := fifelse(year > 13 & year <= (13 + ref_lag),
-                                       (year - 13) * ref_steps,
-                                       1)]
+                                       1 - (year - 13) * (1 - ref) * ref_steps,
+                                       ref)]
   
-  sp$pop[year > 13, sugar_per_ssb := sugar_per_ssb * (ref * ref_mod)]
+  sp$pop[year > 13, sugar_per_ssb := sugar_per_ssb * ref_mod]
   
   # Change in SSB consumption after tax #
   sp$pop[, ssb_delta_xps := ssb_curr_xps - (ssb_curr_xps * (1 + oPE_ssb * ((tax/100) * pass_through)))]
   sp$pop[year > 13, ssb_curr_xps := ssb_curr_xps - ssb_delta_xps]
   
   # Change in fruit juice consumption after tax #
-  sp$pop[, juice_delta_xps := juice_curr_xps - (juice_curr_xps * (1 + cPE_juice * ((tax/100) * pass_through)))]
+  sp$pop[, juice_delta_xps := juice_curr_xps - (juice_curr_xps * (1 + cPE_ssb_juice * ((tax/100) * pass_through)))]
   sp$pop[year > 13, juice_curr_xps := juice_curr_xps - juice_delta_xps]
   
   # Change in consumption of sugar from SSBs and juice after tax #
-  sp$pop[, sugar_delta := (ssb_curr_xps * sugar_per_ssb - ssb_sugar) + (juice_delta_xps * sugar_per_juice)]
+  sp$pop[, sugar_delta := (ssb_sugar - ssb_curr_xps * sugar_per_ssb) + (juice_delta_xps * sugar_per_juice)]
   
   # Change in BMI after tax #
   sp$pop[, bmi_delta := fifelse(bmi_curr_xps < 25,
