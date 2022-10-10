@@ -15,19 +15,25 @@ cPE_ssb_juice_se <- 0.096911994
   
 n_samples <- 10000
 
+## Ensure replicability #  
+set.seed(log(n_samples) + 1337) # Seed is parameter-specific!
+
+## Draw quantiles #
+quantiles <- runif(n_samples, min = 0, max = 1) * 0.999
+
 oPE_ssb_samples <- data.table(
   mc = 1:n_samples,
-  oPE_ssb = rnorm(n_samples, mean = oPE_ssb, sd = oPE_ssb_se)
+  oPE_ssb = qnorm(quantiles, mean = oPE_ssb, sd = oPE_ssb_se)
 )
 
 oPE_juice_samples <- data.table(
   mc = 1:n_samples,
-  oPE_juice = rnorm(n_samples, mean = oPE_juice, sd = oPE_juice_se)
+  oPE_juice = qnorm(quantiles, mean = oPE_juice, sd = oPE_juice_se)
 )
 
 cPE_ssb_juice_samples <- data.table(
   mc = 1:n_samples,
-  cPE_ssb_juice = rnorm(n_samples, mean = cPE_ssb_juice, sd = cPE_ssb_juice_se)
+  cPE_ssb_juice = qnorm(quantiles, mean = cPE_ssb_juice, sd = cPE_ssb_juice_se)
 )
 
 write_fst(oPE_ssb_samples, "./inputs/other_parameters/oPE_ssb.fst")
