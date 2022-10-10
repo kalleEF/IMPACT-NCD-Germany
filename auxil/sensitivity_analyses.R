@@ -13,7 +13,7 @@ scenario_fn <- function(sp) {
   oPE_ssb <- as.numeric(tbl[mc == sp$mc_aggr, "oPE_ssb"]) # Own-price elasticity of SSBs
   
   tbl <- read_fst("./inputs/other_parameters/cPE_ssb_juice.fst", as.data.table = TRUE)
-  cPE_ssb <- as.numeric(tbl[mc == sp$mc_aggr, "cPE_ssb_juice"]) # Own-price elasticity of SSBs
+  cPE_ssb_juice <- as.numeric(tbl[mc == sp$mc_aggr, "cPE_ssb_juice"]) # Cross-price elasticity of SSBs and fruit juice
   
   policy_lag <- 0 # Lag until policy affects consumption in years
   
@@ -68,7 +68,7 @@ scenario_fn <- function(sp) {
   oPE_ssb <- as.numeric(tbl[mc == sp$mc_aggr, "oPE_ssb"]) # Own-price elasticity of SSBs
   
   tbl <- read_fst("./inputs/other_parameters/cPE_ssb_juice.fst", as.data.table = TRUE)
-  cPE_ssb <- as.numeric(tbl[mc == sp$mc_aggr, "cPE_ssb_juice"]) # Own-price elasticity of SSBs
+  cPE_ssb_juice <- as.numeric(tbl[mc == sp$mc_aggr, "cPE_ssb_juice"]) # Cross-price elasticity of SSBs and fruit juice
   
   policy_lag <- 0 # Lag until policy affects consumption in years
   
@@ -178,15 +178,15 @@ scenario_fn <- function(sp) {
   ref_lag <- 3
   ref_steps <- 1/ref_lag
   
-  sp$pop[, ref_mod := 0]
+  sp$pop[, ref_mod := 1]
   sp$pop[year > 13, ref_mod := fifelse(year > 13 & year <= (13 + ref_lag),
-                                       (year - 13) * ref_steps,
-                                       1)]
+                                       1 - (year - 13) * (1 - ref) * ref_steps,
+                                       ref)]
   
-  sp$pop[year > 13, sugar_per_ssb := sugar_per_ssb * (ref * ref_mod)]
+  sp$pop[year > 13, sugar_per_ssb := sugar_per_ssb * ref_mod]
   
   # Change in consumption of sugar from SSBs after tax #
-  sp$pop[, sugar_delta := ssb_curr_xps * sugar_per_ssb - ssb_sugar]
+  sp$pop[, sugar_delta := ssb_sugar - ssb_curr_xps * sugar_per_ssb]
   
   # Change in BMI after tax #
   sp$pop[, bmi_delta := fifelse(bmi_curr_xps < 25,

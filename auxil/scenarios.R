@@ -137,7 +137,7 @@ scenario_fn <- function(sp) {
   sp$pop[year > 13, sugar_per_ssb := sugar_per_ssb * ref_mod]
 
   # Change in consumption of sugar from SSBs after tax #
-  sp$pop[, sugar_delta := ssb_curr_xps * sugar_per_ssb - ssb_sugar]
+  sp$pop[, sugar_delta := ssb_sugar - ssb_curr_xps * sugar_per_ssb]
   
   # Change in BMI after tax #
   sp$pop[, bmi_delta := fifelse(bmi_curr_xps < 25,
