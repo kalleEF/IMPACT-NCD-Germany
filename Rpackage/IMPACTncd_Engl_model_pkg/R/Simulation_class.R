@@ -558,13 +558,16 @@ Simulation <-
             set_mrtl_prb(sp, self$design)
         })
 
+        if (!nzchar(scenario_nam)) scenario_nam <- "sc0"
+        sp$pop[, scenario := scenario_nam]
+        
         l <- private$mk_scenario_init(sp, scenario_nam) # TODO update with scenarios
         simcpp(sp$pop, l, sp$mc)
         # it doesn't matter if mc or mc_aggr is used in the above, because it is
         # only used for the RNG stream and the pid are different in each mc_aggr
         # pop
-
-        sp$update_pop_weights()
+        
+        sp$update_pop_weights(scenario_nam)
 
         if (self$design$sim_prm$export_xps) {
           if (self$design$sim_prm$logs) message("Exporting exposures...")
@@ -623,9 +626,8 @@ Simulation <-
                                              pid_mrk, TRUE, 1L)
         )]
 
-        if (!nzchar(scenario_nam)) scenario_nam <- "sc0"
-          sp$pop[, scenario := scenario_nam]
-
+        setkeyv(sp$pop, c("pid", "year"))
+        
         # Write lifecourse
           if (self$design$sim_prm$logs) message("Exporting lifecourse...")
           fwrite_safe(sp$pop,
