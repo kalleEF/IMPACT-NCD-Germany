@@ -927,7 +927,7 @@ SynthPop <-
             # ggplot2::qplot(year, rank_ssb, data = dt[pid %in% sample(1e1, 1)], ylim = c(0,1))
 
 
-            # Generate SSB consumption ----
+            # Generate SSB consumption (WEI3 - BCTo Mixture) ----
             if (design_$sim_prm$logs) message("Generate SSB consumption")
 
             tbl <-
@@ -942,15 +942,24 @@ SynthPop <-
             #}
             #dt <- merge(dt, tbl, by = c(intersect(names(dt), names(tbl))))
 
-            dt[, ssb_mx1 := qGG(rank_ssb,
-                                mu1, sigma1, nu1)]  # mixture component 1
-            dt[, ssb_mx2 := qLOGNO2(rank_ssb,
-                                    mu2, sigma2)]  # mixture component 2
+            dt[, ssb_mx1 := qWEI3(rank_ssb,
+                                mu1, sigma1)]  # mixture component 1
+            dt[, ssb_mx2 := qBCTo(rank_ssb,
+                                    mu2, sigma2, nu2, tau2)]  # mixture component 2
             dt[, ssb := ((1-pi) * ssb_mx1 + pi * ssb_mx2)] # ml/day
             dt[, (col_nam) := NULL]
             dt[, `:=`(rank_ssb = NULL, ssb_mx1 = NULL, ssb_mx2 = NULL)]
+            
+            # Generate proportion of diet SSBs ----
+            if (design_$sim_prm$logs) message("Adjust SSB consumption for diet drinks")
+            tbl <-
+              read_fst("./inputs/exposure_distributions/ssb_diet_prop.fst", as.data.table = TRUE)
+            
+            dt <- absorb_dt(dt, tbl)
+            
+            dt[, ssb := ssb * diet_prop][, diet_prop := NULL]
 
-            # Generate fruit juice consumption ----
+            # Generate fruit juice consumption (BCTo - LOGNO Mixture) ----
             if (design_$sim_prm$logs) message("Generate Juice consumption")
 
             tbl <-
@@ -963,10 +972,10 @@ SynthPop <-
             #} else {
               dt <- absorb_dt(dt, tbl)
             #}
-            dt[, juice_mx1 := qGA(rank_juice,
-                                mu1, sigma1)]  # mixture component 1
-            dt[, juice_mx2 := qBCTo(rank_juice,
-                                    mu2, sigma2, nu2, tau2)]  # mixture component 2
+            dt[, juice_mx1 := qBCTo(rank_juice,
+                                mu1, sigma1, nu1, tau1)]  # mixture component 1
+            dt[, juice_mx2 := qLOGNO(rank_juice,
+                                    mu2, sigma2)]  # mixture component 2
             dt[, juice := ((1-pi) * juice_mx1 + pi * juice_mx2)] # ml/day
             dt[, (col_nam) := NULL]
             dt[, `:=`(rank_juice = NULL, juice_mx1 = NULL, juice_mx2 = NULL)]
