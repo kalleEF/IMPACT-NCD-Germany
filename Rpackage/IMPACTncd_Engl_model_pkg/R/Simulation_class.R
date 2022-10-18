@@ -577,6 +577,7 @@ Simulation <-
         nam <- c(self$design$sim_prm$cols_for_output,
                  grep("^cms_|_prvl$|_dgns$|_mrtl$", names(sp$pop), value = TRUE))
         nam <- grep("^prb_", nam, value = TRUE, invert = TRUE) # exclude prb_ ... _dgns
+        nam <- c(nam, "scenario")
         sp$pop[, mc := sp$mc_aggr]
 
         # Prune pop (NOTE that assignment in the function env makes this data.table local)

@@ -1975,13 +1975,21 @@ Disease <-
             ff <- absorb_dt(ff, tbl)
           #}
 
-          ff[, ssb_mx1 := qGG(rank_ssb,
-                              mu1, sigma1, nu1)]  # mixture component 1
-          ff[, ssb_mx2 := qLOGNO2(rank_ssb,
-                                  mu2, sigma2)]  # mixture component 2
+          ff[, ssb_mx1 := qWEI3(rank_ssb,
+                              mu1, sigma1)]  # mixture component 1
+          ff[, ssb_mx2 := qBCTo(rank_ssb,
+                                  mu2, sigma2, nu2, tau2)]  # mixture component 2
           ff[, ssb_curr_xps := ((1-pi) * ssb_mx1 + pi * ssb_mx2)] # ml/day
           ff[, (col_nam) := NULL]
           ff[, `:=`(rank_ssb = NULL, ssb_mx1 = NULL, ssb_mx2 = NULL)]
+          
+          tbl <-
+            read_fst("./inputs/exposure_distributions/ssb_diet_prop.fst", as.data.table = TRUE)
+          
+          ff <- absorb_dt(ff, tbl)
+          
+          ff[, ssb_curr_xps := ssb_curr_xps * (1 - diet_prop)][, diet_prop := NULL]
+          
           ff[, year := year + lag]
           }
 
@@ -2006,10 +2014,10 @@ Disease <-
             ff <- absorb_dt(ff, tbl)
           #}
 
-          ff[, juice_mx1 := qGA(rank_juice,
-                                mu1, sigma1)]  # mixture component 1
-          ff[, juice_mx2 := qBCTo(rank_juice,
-                                  mu2, sigma2, nu2, tau2)]  # mixture component 2
+          ff[, juice_mx1 := qBCTo(rank_juice,
+                                mu1, sigma1, nu1, tau1)]  # mixture component 1
+          ff[, juice_mx2 := qLOGNO(rank_juice,
+                                  mu2, sigma2)]  # mixture component 2
           ff[, juice_curr_xps := ((1-pi) * juice_mx1 + pi * juice_mx2)] # ml/day
           ff[, (col_nam) := NULL]
           ff[, `:=`(rank_juice = NULL, juice_mx1 = NULL, juice_mx2 = NULL)]

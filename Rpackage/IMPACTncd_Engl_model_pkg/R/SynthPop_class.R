@@ -957,7 +957,7 @@ SynthPop <-
             
             dt <- absorb_dt(dt, tbl)
             
-            dt[, ssb := ssb * diet_prop][, diet_prop := NULL]
+            dt[, ssb := ssb * (1 - diet_prop)][, diet_prop := NULL]
 
             # Generate fruit juice consumption (BCTo - LOGNO Mixture) ----
             if (design_$sim_prm$logs) message("Generate Juice consumption")
