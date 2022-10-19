@@ -82,7 +82,7 @@ out <- foreach(i = iterations,
   
   # Calculate health utility #
   
-  dt[, health_util := util_incpt + age * util_age + util_sex + util_bmi + util_disease]
+  dt[, health_util := util_incpt + age * util_age + util_sex + bmi_curr_xps * util_bmi + util_disease]
   
   # Setup results object #
   
@@ -212,17 +212,31 @@ cea_res[, `:=`(tot_costs = cost + cost_t2dm + cost_chd + cost_stroke,
                tot_costs_scl = cost_scl + cost_t2dm_scl + cost_chd_scl + cost_stroke_scl,
                tot_costs_esp = cost_esp + cost_t2dm_esp + cost_chd_esp + cost_stroke_esp)]
 
-cea_res[, `:=`(incr_qaly = qalys_out - shift(qalys_out),
-               incr_cost = tot_costs - shift(tot_costs),
-               incr_qaly_scl = qalys_scl - shift(qalys_scl),
-               incr_cost_scl = tot_costs_scl - shift(tot_costs_scl),
-               incr_qaly_esp = qalys_esp - shift(qalys_esp),
-               incr_cost_esp = tot_costs_esp - shift(tot_costs_esp)), keyby = .(mc, pid)]
+scenarios <- unique(cea_res$scenario)[scenario != "sc0"] # Exclude baseline scenario
+
+# Compute CEA results per scenario #
+
+cea_diff <- data.table(NULL)
+
+for(i in scenarios){
+
+xx <- cea_res[scenario %in% c("sc0", i)]  
+  
+xx[, `:=`(incr_qaly = qalys_out - shift(qalys_out),
+          incr_cost = tot_costs - shift(tot_costs),
+          incr_qaly_scl = qalys_scl - shift(qalys_scl),
+          incr_cost_scl = tot_costs_scl - shift(tot_costs_scl),
+          incr_qaly_esp = qalys_esp - shift(qalys_esp),
+          incr_cost_esp = tot_costs_esp - shift(tot_costs_esp)), keyby = .(mc, pid)]
+
+cea_diff <- rbind(cea_diff, xx)
+  
+}
 
 cea_agg <- cea_res[, lapply(.SD, mean, na.rm = TRUE),
                    .SDcols = c("incr_qaly", "incr_cost", "incr_qaly_scl", "incr_cost_scl",
                                "incr_qaly_esp", "incr_cost_esp"),
-                   keyby = mc]
+                   keyby = .(mc, scenario)]
 
 
 

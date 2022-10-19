@@ -3,7 +3,7 @@
 
 ### Scenario 1 - 20% ad valorem tax on all drinks with added caloric sweeteners ----
 
-scenario_fn <- function(sp) {
+scenario_1_fn <- function(sp) {
   
   # Set scenario variables #
   tax <- 20
@@ -57,7 +57,7 @@ scenario_fn <- function(sp) {
 
 ### Scenario 2 - 20% ad valorem tax on all drinks with added caloric sweeteners and fruit juice ----
 
-scenario_fn <- function(sp) {
+scenario_2_fn <- function(sp) {
   
   # Set scenario variables #
   tax <- 20
@@ -112,7 +112,7 @@ scenario_fn <- function(sp) {
 
 ### Scenario 3 - 20% tiered tax with hypothetical thresholds leading to reformulation (30% less sugar) ----
 
-scenario_fn <- function(sp) {
+scenario_3_fn <- function(sp) {
   
   # Set scenario variables #
   ref <- 1 - 0.3
@@ -151,7 +151,7 @@ scenario_fn <- function(sp) {
                                        1)]
   
   # New BMI under taxation scenario #
-  sp$pop[year > (13 + policy_lag), bmi_curr_xps := bmi_curr_xps - (bmi_delta * bmi_mod)]
+  sp$pop[year > 13, bmi_curr_xps := bmi_curr_xps - (bmi_delta * bmi_mod)]
   
   # Delete unnecessary variables from synthpop #
   sp$pop[, c("sugar_delta", "bmi_delta", "ref_mod", "bmi_mod") := NULL]
@@ -162,7 +162,7 @@ scenario_fn <- function(sp) {
 ### Scenario 4 - 20% tiered tax with hypothetical thresholds leading to reformulation (30% less sugar) ----
 #               (change in consumption and reformulation)
 
-scenario_fn <- function(sp) {
+scenario_4_fn <- function(sp) {
   
   # Set scenario variables #
   ref <- 1 - 0.3
