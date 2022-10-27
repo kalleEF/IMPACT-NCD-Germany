@@ -959,7 +959,7 @@ SynthPop <-
             
             dt[, ssb := ssb * (1 - diet_prop)][, diet_prop := NULL]
 
-            # Generate fruit juice consumption (BCTo - LOGNO Mixture) ----
+            # Generate fruit juice consumption (GA - LOGNO2 Mixture) ----
             if (design_$sim_prm$logs) message("Generate Juice consumption")
 
             tbl <-
@@ -972,9 +972,9 @@ SynthPop <-
             #} else {
               dt <- absorb_dt(dt, tbl)
             #}
-            dt[, juice_mx1 := qBCTo(rank_juice,
-                                mu1, sigma1, nu1, tau1)]  # mixture component 1
-            dt[, juice_mx2 := qLOGNO(rank_juice,
+            dt[, juice_mx1 := qGA(rank_juice,
+                                mu1, sigma1)]  # mixture component 1
+            dt[, juice_mx2 := qLOGNO2(rank_juice,
                                     mu2, sigma2)]  # mixture component 2
             dt[, juice := ((1-pi) * juice_mx1 + pi * juice_mx2)] # ml/day
             dt[, (col_nam) := NULL]

@@ -326,10 +326,10 @@ Simulation <-
 
           if (Sys.info()["sysname"] == "Windows") {
             cl <-
-              makeCluster(self$design$sim_prm$clusternumber) # used for clustering. Windows compatible
+              makeCluster(self$design$sim_prm$clusternumber/2) # used for clustering. Windows compatible
             registerDoParallel(cl)
           } else {
-            registerDoParallel(self$design$sim_prm$clusternumber) # used for forking. Only Linux/OSX compatible
+            registerDoParallel(self$design$sim_prm$clusternumber/2) # used for forking. Only Linux/OSX compatible
           }
 
           if (self$design$sim_prm$logs)
