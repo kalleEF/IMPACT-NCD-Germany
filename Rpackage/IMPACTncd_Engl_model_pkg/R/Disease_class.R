@@ -2014,9 +2014,9 @@ Disease <-
             ff <- absorb_dt(ff, tbl)
           #}
 
-          ff[, juice_mx1 := qBCTo(rank_juice,
-                                mu1, sigma1, nu1, tau1)]  # mixture component 1
-          ff[, juice_mx2 := qLOGNO(rank_juice,
+          ff[, juice_mx1 := qGA(rank_juice,
+                                mu1, sigma1)]  # mixture component 1
+          ff[, juice_mx2 := qLOGNO2(rank_juice,
                                   mu2, sigma2)]  # mixture component 2
           ff[, juice_curr_xps := ((1-pi) * juice_mx1 + pi * juice_mx2)] # ml/day
           ff[, (col_nam) := NULL]
