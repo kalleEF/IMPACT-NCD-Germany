@@ -9,10 +9,10 @@ library(fst)
 
 if (Sys.info()["sysname"] == "Windows") {
   cl <-
-    makeCluster(detectCores()) # used for clustering. Windows compatible
+    makeCluster(detectCores()/2) # used for clustering. Windows compatible
   registerDoParallel(cl)
 } else {
-  registerDoParallel(detectCores()) # used for forking. Only Linux/OSX compatible
+  registerDoParallel(detectCores()/2) # used for forking. Only Linux/OSX compatible
 }
 
 ## Computation of QALYs and costs per MC iteration ##
