@@ -90,102 +90,47 @@ out <- foreach(i = iterations,
   
   # Setup results object #
   
-  pids <- unique(lc$pid)
-  
   cea <- CJ(scenario = unique(lc$scenario),
-            pid = pids)
+            pid = unique(lc$pid))
   
-  pid_batches <- split(pids, ceiling(seq_along(pids)/10000))
-  
-  # qalys_out <- data.table(NULL)
-  #
-  # Calculate QALYs #
-  # 
-  # for(j in pid_batches){
-  #   
-  #   qalys_out_x <- lc[pid %in% j, lapply(.SD, function(x){
-  #     
-  #     if(length(x) > 1) {
-  #       
-  #       q <- integrate(approxfun(c(1:length(x)), x),
-  #                      lower = range(c(1:length(x)))[1],
-  #                      upper = range(c(1:length(x)))[2], abs.tol = 0.01)$value
-  #       
-  #     } else {
-  #       
-  #       q <- x # For individuals with only one year per scenario
-  #       
-  #     }
-  #     
-  #     return(q)
-  #     
-  #   }), .SDcols = "health_util", by = .(pid, scenario)]
-  #   
-  #   qalys_out <- rbind(qalys_out, qalys_out_x)
-  #   
-  # }
-  # setnames(qalys_out, "health_util", "qalys_out")
-  # 
-  # absorb_dt(cea, qalys_out)
   
   setkeyv(lc, c("pid", cea_strata))
   
-  qalys_scaled <- data.table(NULL)
-  
-  for(j in pid_batches){
+  qalys_scaled <- lc[, lapply(.SD, function(x){
     
-    qalys_scaled_x <- lc[pid %in% j, lapply(.SD, function(x){
+    if(length(x) > 1) {
       
-      if(length(x) > 1) {
-        
-        q <- integrate(approxfun(c(1:length(x)), x * wt), 
-                       lower = range(c(1:length(x)))[1],
-                       upper = range(c(1:length(x)))[2], abs.tol = 0.01)$value
-        
-      } else {
-        
-        q <- x * wt # For individuals with only one year per scenario
-        
-      }
+      q <- MESS::auc(c(1:length(x)), x * wt)
       
-      return(q) 
+    } else {
       
-    }), .SDcols = "health_util", keyby = c("pid", cea_strata)]
+      q <- x * wt # For individuals with only one year per scenario
+      
+    }
     
-    qalys_scaled <- rbind(qalys_scaled, qalys_scaled_x)
+    return(q) 
     
-  }
+  }), .SDcols = "health_util", keyby = c("pid", cea_strata)]
   
   setnames(qalys_scaled, "health_util", "qalys_scl")
   
   absorb_dt(cea, qalys_scaled)
   
-  
-  qalys_esp <- data.table(NULL)
-  
-  for(j in pid_batches){
+  qalys_esp <- lc[, lapply(.SD, function(x){
     
-    qalys_esp_x <- lc[pid %in% j, lapply(.SD, function(x){
+    if(length(x) > 1) {
       
-      if(length(x) > 1) {
-        
-        q <- integrate(approxfun(c(1:length(x)), x * wt_esp),
-                       lower = range(c(1:length(x)))[1],
-                       upper = range(c(1:length(x)))[2], abs.tol = 0.01)$value
-        
-      } else {
-        
-        q <- x * wt_esp # For individuals with only one year per scenario
-        
-      }
+      q <- MESS::auc(c(1:length(x)), x * wt_esp)
       
-      return(q)
+    } else {
       
-    }), .SDcols = "health_util", keyby = c("pid", cea_strata)]
+      q <- x * wt_esp # For individuals with only one year per scenario
+      
+    }
     
-    qalys_esp <- rbind(qalys_esp, qalys_esp_x)
+    return(q)
     
-  }
+  }), .SDcols = "health_util", keyby = c("pid", cea_strata)]
   
   setnames(qalys_esp, "health_util", "qalys_esp")
   
@@ -193,12 +138,6 @@ out <- foreach(i = iterations,
   
   
   # Calculate Healthcare Costs #
-  
-  # costs_out <- lc[, lapply(.SD, sum),
-  #                 .SDcols = c("cost", "cost_t2dm", "cost_chd", "cost_stroke"),
-  #                 by = .(pid, scenario)]
-  # 
-  # absorb_dt(cea, costs_out)
   
   costs_scl <- lc[, lapply(.SD, function(x){
     
@@ -230,11 +169,12 @@ out <- foreach(i = iterations,
   absorb_dt(cea, costs_esp)
   
   
-  cea[, `:=`(#tot_costs = cost + cost_t2dm + cost_chd + cost_stroke,
+  cea[, `:=`(
     disease_costs_scl = cost_t2dm_scl + cost_chd_scl + cost_stroke_scl,
     disease_costs_esp = cost_t2dm_esp + cost_chd_esp + cost_stroke_esp,
     tot_costs_scl = cost_scl + cost_t2dm_scl + cost_chd_scl + cost_stroke_scl,
-    tot_costs_esp = cost_esp + cost_t2dm_esp + cost_chd_esp + cost_stroke_esp)]
+    tot_costs_esp = cost_esp + cost_t2dm_esp + cost_chd_esp + cost_stroke_esp
+  )]
   
   cea_agg <- cea[, lapply(.SD, sum),
                  .SDcols = c("tot_costs_esp", "tot_costs_scl",
@@ -255,8 +195,7 @@ out <- foreach(i = iterations,
     
     setkeyv(xx, cea_strata[cea_strata != "scenario"])
     
-    xx[, `:=`(#incr_qaly = qalys_out - shift(qalys_out),
-      #incr_cost = tot_costs - shift(tot_costs),
+    xx[, `:=`(
       incr_qaly_scl = qalys_scl - shift(qalys_scl),
       incr_cost_scl = tot_costs_scl - shift(tot_costs_scl),
       incr_dis_cost_scl = disease_costs_scl - shift(disease_costs_scl),
@@ -268,7 +207,8 @@ out <- foreach(i = iterations,
       incr_dis_cost_esp = disease_costs_esp - shift(disease_costs_esp),
       incr_t2dm_cost_esp = cost_t2dm_esp - shift(cost_t2dm_esp),
       incr_chd_cost_esp = cost_chd_esp - shift(cost_chd_esp),
-      incr_stroke_cost_esp = cost_stroke_esp - shift(cost_stroke_esp)), keyby = .(agegrp_start, sex)]
+      incr_stroke_cost_esp = cost_stroke_esp - shift(cost_stroke_esp)
+    ), keyby = .(agegrp_start, sex)]
     
     cea_diff <- rbind(cea_diff, xx)
     
@@ -276,18 +216,15 @@ out <- foreach(i = iterations,
   
   cea_diff <- rbind(cea_diff[scenario != "sc0"],
                     cea_diff[scenario == "sc0", lapply(.SD, mean),
-                             .SDcols = !cea_strata,#names(cea_diff)[-c(1:3)],
+                             .SDcols = !cea_strata,
                              by = cea_strata])
   
   cea_diff[, mc := mc_]
-  
-  fwrite_safe(cea_diff,
-              private$output_dir(paste0("summaries/", "cea_results.csv.gz")))
 
 
 }
 
-
+fwrite(rbindlist(out), "./outputs/summaries/cea_results_local.csv.gz")
 
 
 
