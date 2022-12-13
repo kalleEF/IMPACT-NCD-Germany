@@ -216,7 +216,7 @@ Simulation <-
       #' @param scenario_nam A string for the scenario name (i.e. sc1)
       #' @return The invisible self for chaining.
       run = function(mc, multicore = TRUE, scenario_nam,
-                     m_zero_trend = 0, p_zero_trend = 0) {
+                     p_zero_trend = -0.03, m_zero_trend = 0) {
 
         if (!is.integer(mc)) stop("mc need to be an integer vector")
         if (any(mc <= 0)) stop("mc need to be positive")
@@ -231,10 +231,10 @@ Simulation <-
             min(mc) * self$design$sim_prm$n_synthpop_aggregation -
               self$design$sim_prm$n_synthpop_aggregation + 1L
           ):(max(mc) * self$design$sim_prm$n_synthpop_aggregation)
-
+        
         scenario_p_zero <- 1 + p_zero_trend # Define declining or increasing p0 over time (% per year)
         perc_change_m0 <- 1 + m_zero_trend # Define declining or increasing m0 over time (% per year)
-        
+
         if (any(file.exists( # TODO fix when lifecourse is not saved
           file.path(
             self$design$sim_prm$output_dir,
@@ -288,7 +288,8 @@ Simulation <-
           ) %dopar% {
 
             private$run_sim(mc_ = mc_iter, scenario_nam,
-                            scenario_p_zero = scenario_p_zero, perc_change_m0 = perc_change_m0)
+                            scenario_p_zero = scenario_p_zero,
+                            perc_change_m0 = perc_change_m0)
 
           }
 
@@ -327,10 +328,10 @@ Simulation <-
 
           if (Sys.info()["sysname"] == "Windows") {
             cl <-
-              makeCluster(self$design$sim_prm$clusternumber/4) # used for clustering. Windows compatible
+              makeCluster(self$design$sim_prm$clusternumber/8) # used for clustering. Windows compatible
             registerDoParallel(cl)
           } else {
-            registerDoParallel(self$design$sim_prm$clusternumber/4) # used for forking. Only Linux/OSX compatible
+            registerDoParallel(self$design$sim_prm$clusternumber/8) # used for forking. Only Linux/OSX compatible
           }
 
           if (self$design$sim_prm$logs)
@@ -554,7 +555,7 @@ Simulation <-
             set_init_prvl(sp, self$design)
         })
         
-        scenario_fn(sp) # apply simple scenario
+        scenario_fn(sp) # apply scenario
         
         lapply(self$diseases, function(x) {
           print(x$name)
@@ -641,182 +642,6 @@ Simulation <-
                       private$output_dir(paste0(
                         "lifecourse/", sp$mc_aggr, "_lifecourse.csv.gz"
                       )))
-
-        # Export summaries
-        # if (self$design$sim_prm$logs) message("Exporting summaries...")
-        # strata <- setdiff(self$design$sim_prm$cols_for_output, c("age", "pid", "wt"))
-        #
-        # # Life expectancy NOTE for scaled_up LE weights need to apply from the very beginning
-        # fwrite_safe(sp$pop[all_cause_mrtl > 0, .("popsize" = (.N), LE = mean(age)),  keyby = strata],
-        #             private$output_dir(paste0("summaries/", "le_out.csv"
-        #             )))
-        # fwrite_safe(sp$pop[all_cause_mrtl > 0, .("popsize" = sum(wt), LE = weighted.mean(age, wt)),  keyby = strata],
-        #             private$output_dir(paste0("summaries/", "le_scaled_up.csv"
-        #             )))
-        # fwrite_safe(sp$pop[all_cause_mrtl > 0, .("popsize" = sum(wt_esp), LE = weighted.mean(age, wt_esp)),  keyby = strata],
-        #             private$output_dir(paste0("summaries/", "le_esp.csv"
-        #             )))
-        # # Life expectancy at 60
-        #
-        # fwrite_safe(sp$pop[all_cause_mrtl > 0 & age > 60, .("popsize" = (.N), LE60 = mean(age)),  keyby = strata],
-        #             private$output_dir(paste0("summaries/", "le60_out.csv"
-        #             )))
-        # fwrite_safe(sp$pop[all_cause_mrtl > 0 & age > 60, .("popsize" = sum(wt), LE60 = weighted.mean(age, wt)),  keyby = strata],
-        #             private$output_dir(paste0("summaries/", "le60_scaled_up.csv"
-        #             )))
-        # fwrite_safe(sp$pop[all_cause_mrtl > 0 & age > 60, .("popsize" = sum(wt_esp), LE60 = weighted.mean(age, wt_esp)),  keyby = strata],
-        #             private$output_dir(paste0("summaries/", "le60_esp.csv"
-        #             )))
-        # # Note: for less aggregation use wtd.mean with popsize i.e le_out[, weighted.mean(LE, popsize), keyby = year]
-        #
-        # # Healthy life expectancy
-        # # TODO currently some individuals are counted more than once because
-        # # disease counter and score can be reduced. Ideally only the first reach
-        # # to the threshold should be counted
-        # fwrite_safe(sp$pop[cms_count == 1L, .("popsize" = (.N), HLE = mean(age)),
-        #                    keyby = strata],
-        #             private$output_dir(paste0("summaries/", "hle_1st_cond_out.csv")))
-        # fwrite_safe(sp$pop[cms_count == 1L,
-        #                    .("popsize" = sum(wt), HLE = weighted.mean(age, wt)),
-        #                    keyby = strata],
-        #             private$output_dir(paste0(
-        #               "summaries/", "hle_1st_cond_scaled_up.csv"
-        #             )))
-        # fwrite_safe(sp$pop[cms_count == 1L,
-        #                    .("popsize" = sum(wt_esp), HLE = weighted.mean(age, wt_esp)),
-        #                    keyby = strata],
-        #             private$output_dir(paste0("summaries/", "hle_1st_cond_esp.csv"
-        #             )))
-        #
-        # fwrite_safe(sp$pop[cmsmm1.5_prvl == 1L, .("popsize" = (.N), HLE = mean(age)),
-        #                    keyby = strata],
-        #             private$output_dir(paste0("summaries/", "hle_cmsmm1.5_out.csv")))
-        # fwrite_safe(sp$pop[cmsmm1.5_prvl == 1L,
-        #                    .("popsize" = sum(wt), HLE = weighted.mean(age, wt)),
-        #                    keyby = strata],
-        #             private$output_dir(paste0(
-        #               "summaries/", "hle_cmsmm1.5_scaled_up.csv"
-        #             )))
-        # fwrite_safe(sp$pop[cmsmm1.5_prvl == 1L,
-        #                    .("popsize" = sum(wt_esp), HLE = weighted.mean(age, wt_esp)),
-        #                    keyby = strata],
-        #             private$output_dir(paste0("summaries/", "hle_cmsmm1.5_esp.csv"
-        #             )))
-        #
-        # strata <- c("agegrp", strata) # Need to be after LE
-        #
-        # fwrite_safe(sp$pop[, c("popsize" = (.N),
-        #                        lapply(.SD, function(x) sum(x > 0))),
-        #                    .SDcols = patterns("_prvl$"), keyby = strata],
-        #             private$output_dir(paste0("summaries/", "prvl_out.csv"
-        #             )))
-        # fwrite_safe(sp$pop[, c("popsize" = sum(wt),
-        #                        lapply(.SD, function(x, wt) sum((x > 0) * wt), wt)),
-        #                    .SDcols = patterns("_prvl$"), keyby = strata],
-        #             private$output_dir(paste0("summaries/", "prvl_scaled_up.csv"
-        #             )))
-        # fwrite_safe(sp$pop[, c("popsize" = sum(wt_esp),
-        #                        lapply(.SD, function(x, wt) sum((x > 0) * wt), wt_esp)),
-        #                    .SDcols = patterns("_prvl$"), keyby = strata],
-        #             private$output_dir(paste0("summaries/", "prvl_esp.csv"
-        #             )))
-        # fwrite_safe(sp$pop[, c("popsize" = (.N),
-        #                        lapply(.SD, function(x) sum(x == 1))),
-        #                    .SDcols = patterns("_prvl$"), keyby = strata],
-        #             private$output_dir(paste0("summaries/", "incd_out.csv"
-        #             )))
-        # fwrite_safe(sp$pop[, c("popsize" = sum(wt),
-        #                        lapply(.SD, function(x, wt) sum((x == 1) * wt), wt)),
-        #                    .SDcols = patterns("_prvl$"), keyby = strata],
-        #             private$output_dir(paste0("summaries/", "incd_scaled_up.csv"
-        #             )))
-        # fwrite_safe(sp$pop[, c("popsize" = sum(wt_esp),
-        #                        lapply(.SD, function(x, wt) sum((x == 1) * wt), wt_esp)),
-        #                    .SDcols = patterns("_prvl$"), keyby = strata],
-        #             private$output_dir(paste0("summaries/", "incd_esp.csv"
-        #             )))
-        # fwrite_safe(sp$pop[, c("popsize" = (.N),
-        #                        "all_cause_mrtl" = sum(all_cause_mrtl > 0)),
-        #                    keyby = strata],
-        #             private$output_dir(paste0("summaries/", "mrtl_out.csv"
-        #             )))
-        # fwrite_safe(sp$pop[, c("popsize" = sum(wt),
-        #                        "all_cause_mrtl" = sum((all_cause_mrtl > 0) * wt)),
-        #                    keyby = strata],
-        #             private$output_dir(paste0("summaries/", "mrtl_scaled_up.csv"
-        #             )))
-        # fwrite_safe(sp$pop[, c("popsize" = sum(wt_esp),
-        #                        "all_cause_mrtl" = sum((all_cause_mrtl > 0) * wt_esp)),
-        #                    keyby = strata],
-        #             private$output_dir(paste0("summaries/", "mrtl_esp.csv"
-        #             )))
-        #
-        #
-        #
-        # # disease specific mortality
-        # dis_mrtl_out <-
-        #   dcast(
-        #     sp$pop[, .("deaths" = (.N)),
-        #            keyby = c(strata, "all_cause_mrtl")],
-        #     formula = as.formula(paste0(
-        #       paste(strata, collapse = "+"), "~all_cause_mrtl"
-        #     )),
-        #     fill = 0L,
-        #     value.var = "deaths"
-        #   )
-        #
-        # setnames(dis_mrtl_out, as.character(private$death_codes),
-        #          names(private$death_codes), skip_absent = TRUE)
-        # dis_mrtl_out[, `:=` (
-        #   popsize = Reduce(`+`, .SD),
-        #   alive = NULL
-        # ), .SDcols = !strata]
-        # fwrite_safe(dis_mrtl_out,
-        #             private$output_dir(paste0("summaries/", "dis_mrtl_out.csv"
-        #             )))
-        #
-        # dis_mrtl_out <- # scale up
-        #   dcast(
-        #     sp$pop[, .("deaths" = sum(wt)),
-        #            keyby = c(strata, "all_cause_mrtl")],
-        #     formula = as.formula(paste0(
-        #       paste(strata, collapse = "+"), "~all_cause_mrtl"
-        #     )),
-        #     fill = 0L,
-        #     value.var = "deaths"
-        #   )
-        #
-        # setnames(dis_mrtl_out, as.character(private$death_codes),
-        #          names(private$death_codes), skip_absent = TRUE)
-        # dis_mrtl_out[, `:=` (
-        #   popsize = Reduce(`+`, .SD),
-        #   alive = NULL
-        # ), .SDcols = !strata]
-        # fwrite_safe(dis_mrtl_out,
-        #             private$output_dir(paste0("summaries/", "dis_mrtl_scaled_up.csv"
-        #             )))
-        #
-        # dis_mrtl_out <- # scale up esp
-        #   dcast(
-        #     sp$pop[, .("deaths" = sum(wt_esp)),
-        #            keyby = c(strata, "all_cause_mrtl")],
-        #     formula = as.formula(paste0(
-        #       paste(strata, collapse = "+"), "~all_cause_mrtl"
-        #     )),
-        #     fill = 0L,
-        #     value.var = "deaths"
-        #   )
-        #
-        # setnames(dis_mrtl_out, as.character(private$death_codes),
-        #          names(private$death_codes), skip_absent = TRUE)
-        # dis_mrtl_out[, `:=` (
-        #   popsize = Reduce(`+`, .SD),
-        #   alive = NULL
-        # ), .SDcols = !strata]
-        # fwrite_safe(dis_mrtl_out,
-        #             private$output_dir(paste0("summaries/", "dis_mrtl_esp.csv"
-        #             )))
-
 
         if (self$design$sim_prm$logs) {
           private$time_mark(paste0("End mc iteration ", mc_))
@@ -1092,8 +917,7 @@ Simulation <-
         fwrite_safe(dis_mrtl_out,
                     private$output_dir(paste0("summaries/", "dis_mrtl_esp.csv.gz"
                     )))
-
-
+        
         ## Health Economics ##
         
         # Set MC iteration #
@@ -1160,7 +984,6 @@ Simulation <-
         
         cea <- CJ(scenario = unique(lc$scenario),
                   pid = unique(lc$pid))
-        
         
         setkeyv(lc, c("pid", cea_strata))
         
@@ -1292,8 +1115,7 @@ Simulation <-
         fwrite_safe(cea_diff,
                     private$output_dir(paste0("summaries/", "cea_results.csv.gz")))
         
-        
-        
+
         if (!self$design$sim_prm$keep_lifecourse) file.remove(pth)
 
         return(invisible(self))
