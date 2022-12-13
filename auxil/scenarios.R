@@ -27,14 +27,14 @@ scenario_1_fn <- function(sp) {
   
   # Change in SSB consumption after tax #
   sp$pop[, ssb_delta_xps := ssb_curr_xps - (ssb_curr_xps * (1 + oPE_ssb * ((tax/100) * pass_through)))]
-  sp$pop[year > 13, ssb_curr_xps := ssb_curr_xps - ssb_delta_xps]
+  sp$pop[year > 13, ssb_curr_xps := ssb_curr_xps - (ssb_delta_xps)]
   
   # Change in fruit juice consumption after tax (substitution) #
   sp$pop[, juice_delta_xps := juice_curr_xps - (juice_curr_xps * (1 + cPE_ssb_juice * ((tax/100) * pass_through)))]
-  sp$pop[year > 13, juice_curr_xps := juice_curr_xps - juice_delta_xps]
+  sp$pop[year > 13, juice_curr_xps := juice_curr_xps - (juice_delta_xps)]
   
   # Change in consumption of sugar from SSBs after tax #
-  sp$pop[, sugar_delta := ssb_delta_xps * sugar_per_ssb + juice_delta_xps * sugar_per_juice]
+  sp$pop[, sugar_delta := (ssb_delta_xps * sugar_per_ssb) + (juice_delta_xps * sugar_per_juice)]
   
   # Change in BMI after tax #
   sp$pop[, bmi_delta := fifelse(bmi_curr_xps < 25,
@@ -81,14 +81,14 @@ scenario_2_fn <- function(sp) {
   
   # Change in SSB consumption after tax #
   sp$pop[, ssb_delta_xps := ssb_curr_xps - (ssb_curr_xps * (1 + oPE_ssb * ((tax/100) * pass_through)))]
-  sp$pop[year > 13, ssb_curr_xps := ssb_curr_xps - ssb_delta_xps]
+  sp$pop[year > 13, ssb_curr_xps := ssb_curr_xps - (ssb_delta_xps)]
   
   # Change in fruit juice consumption after tax #
   sp$pop[, juice_delta_xps := juice_curr_xps - (juice_curr_xps * (1 + oPE_juice * ((tax/100) * pass_through)))]
-  sp$pop[year > 13, juice_curr_xps := juice_curr_xps - juice_delta_xps]
+  sp$pop[year > 13, juice_curr_xps := juice_curr_xps - (juice_delta_xps)]
   
   # Change in consumption of sugar from SSBs after tax #
-  sp$pop[, sugar_delta := ssb_delta_xps * sugar_per_ssb + juice_delta_xps * sugar_per_juice]
+  sp$pop[, sugar_delta := (ssb_delta_xps * sugar_per_ssb) + (juice_delta_xps * sugar_per_juice)]
   
   # Change in BMI after tax #
   sp$pop[, bmi_delta := fifelse(bmi_curr_xps < 25,
@@ -137,7 +137,7 @@ scenario_3_fn <- function(sp) {
   sp$pop[year > 13, sugar_per_ssb := sugar_per_ssb * ref_mod]
 
   # Change in consumption of sugar from SSBs after tax #
-  sp$pop[, sugar_delta := ssb_sugar - ssb_curr_xps * sugar_per_ssb]
+  sp$pop[, sugar_delta := ssb_sugar - (ssb_curr_xps * sugar_per_ssb)]
   
   # Change in BMI after tax #
   sp$pop[, bmi_delta := fifelse(bmi_curr_xps < 25,
@@ -198,11 +198,11 @@ scenario_4_fn <- function(sp) {
   
   # Change in SSB consumption after tax #
   sp$pop[, ssb_delta_xps := ssb_curr_xps - (ssb_curr_xps * (1 + oPE_ssb * ((tax/100) * pass_through)))]
-  sp$pop[year > 13, ssb_curr_xps := ssb_curr_xps - ssb_delta_xps]
+  sp$pop[year > 13, ssb_curr_xps := ssb_curr_xps - (ssb_delta_xps)]
   
   # Change in fruit juice consumption after tax #
   sp$pop[, juice_delta_xps := juice_curr_xps - (juice_curr_xps * (1 + cPE_ssb_juice * ((tax/100) * pass_through)))]
-  sp$pop[year > 13, juice_curr_xps := juice_curr_xps - juice_delta_xps]
+  sp$pop[year > 13, juice_curr_xps := juice_curr_xps - (juice_delta_xps)]
   
   # Change in consumption of sugar from SSBs and juice after tax #
   sp$pop[, sugar_delta := (ssb_sugar - ssb_curr_xps * sugar_per_ssb) + (juice_delta_xps * sugar_per_juice)]

@@ -22,7 +22,8 @@ iterations <- list.files("./outputs/lifecourse/")
 out <- foreach(i = iterations,
                .packages = c("data.table",
                              "CKutils",
-                             "fst")) %dopar% {
+                             "fst",
+                             "MESS")) %dopar% {
   
   # Load lifecourse file #
   
@@ -93,6 +94,36 @@ out <- foreach(i = iterations,
   cea <- CJ(scenario = unique(lc$scenario),
             pid = unique(lc$pid))
   
+  # qalys_out <- data.table(NULL)
+  #
+  # Calculate QALYs #
+  # 
+  # for(j in pid_batches){
+  #   
+  #   qalys_out_x <- lc[pid %in% j, lapply(.SD, function(x){
+  #     
+  #     if(length(x) > 1) {
+  #       
+  #       q <- integrate(approxfun(c(1:length(x)), x),
+  #                      lower = range(c(1:length(x)))[1],
+  #                      upper = range(c(1:length(x)))[2], abs.tol = 0.01)$value
+  #       
+  #     } else {
+  #       
+  #       q <- x # For individuals with only one year per scenario
+  #       
+  #     }
+  #     
+  #     return(q)
+  #     
+  #   }), .SDcols = "health_util", by = .(pid, scenario)]
+  #   
+  #   qalys_out <- rbind(qalys_out, qalys_out_x)
+  #   
+  # }
+  # setnames(qalys_out, "health_util", "qalys_out")
+  # 
+  # absorb_dt(cea, qalys_out)
   
   setkeyv(lc, c("pid", cea_strata))
   
@@ -174,7 +205,7 @@ out <- foreach(i = iterations,
     disease_costs_esp = cost_t2dm_esp + cost_chd_esp + cost_stroke_esp,
     tot_costs_scl = cost_scl + cost_t2dm_scl + cost_chd_scl + cost_stroke_scl,
     tot_costs_esp = cost_esp + cost_t2dm_esp + cost_chd_esp + cost_stroke_esp
-  )]
+    )]
   
   cea_agg <- cea[, lapply(.SD, sum),
                  .SDcols = c("tot_costs_esp", "tot_costs_scl",
@@ -208,7 +239,7 @@ out <- foreach(i = iterations,
       incr_t2dm_cost_esp = cost_t2dm_esp - shift(cost_t2dm_esp),
       incr_chd_cost_esp = cost_chd_esp - shift(cost_chd_esp),
       incr_stroke_cost_esp = cost_stroke_esp - shift(cost_stroke_esp)
-    ), keyby = .(agegrp_start, sex)]
+      ), keyby = .(agegrp_start, sex)]
     
     cea_diff <- rbind(cea_diff, xx)
     
@@ -220,11 +251,14 @@ out <- foreach(i = iterations,
                              by = cea_strata])
   
   cea_diff[, mc := mc_]
+  
+  fwrite_safe(cea_diff,
+              private$output_dir(paste0("summaries/", "cea_results.csv.gz")))
 
 
 }
 
-fwrite(rbindlist(out), "./outputs/summaries/cea_results_local.csv.gz")
+
 
 
 

@@ -7,8 +7,8 @@ sp2 <- qread("./simulation/tmp_s.qs")
 setDT(sp$pop)
 setDT(sp2$pop)
 
-#source("./auxil/scenarios.R")
-scenario_fn <- function(sp){sp$pop[year > 13, bmi_curr_xps := bmi_curr_xps * 0.9]}
+source("./auxil/scenarios.R")
+scenario_fn <- scenario_3_fn
 scenario_fn(sp)
 
 #diseases_b <- diseases
@@ -74,6 +74,12 @@ test2 <- copy(test)
 
 sum(sp2$pop$prb_t2dm_incd)
 sum(sp$pop$prb_t2dm_incd)
+
+sum(sp2$pop$prb_chd_incd)
+sum(sp$pop$prb_chd_incd)
+
+sum(sp2$pop$prb_stroke_incd)
+sum(sp$pop$prb_stroke_incd)
 
 l <- mk_scenario_init2("", diseases, sp, design)
 l2 <- mk_scenario_init2("", diseases, sp2, design)
