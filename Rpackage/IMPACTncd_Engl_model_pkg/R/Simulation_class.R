@@ -1076,8 +1076,15 @@ Simulation <-
                                    "qalys_esp", "qalys_scl"),
                        keyby = cea_strata]
         
+        cea_agg[, mc := mc_]
+        
+        fwrite_safe(cea_agg,
+                    private$output_dir(paste0("summaries/", "health_economic_results.csv.gz")))
+        
         scenarios <- unique(cea_agg$scenario)[unique(cea_agg$scenario) != "sc0"] # Exclude baseline scenario
         
+        if(length(scenarios) != 0){
+          
         cea_diff <- data.table(NULL)
         
         for(i in scenarios){
@@ -1114,7 +1121,7 @@ Simulation <-
         
         fwrite_safe(cea_diff,
                     private$output_dir(paste0("summaries/", "cea_results.csv.gz")))
-        
+        }
 
         if (!self$design$sim_prm$keep_lifecourse) file.remove(pth)
 

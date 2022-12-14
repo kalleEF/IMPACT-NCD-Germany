@@ -1975,11 +1975,12 @@ Disease <-
             ff <- absorb_dt(ff, tbl)
           #}
 
-          ff[, ssb_mx1 := qWEI3(rank_ssb,
+          ff[, ssb_mx1 := qLOGNO(rank_ssb,
                               mu1, sigma1)]  # mixture component 1
-          ff[, ssb_mx2 := qBCTo(rank_ssb,
-                                  mu2, sigma2, nu2, tau2)]  # mixture component 2
+          ff[, ssb_mx2 := qWEI2(rank_ssb,
+                                  mu2, sigma2)]  # mixture component 2
           ff[, ssb_curr_xps := ((1-pi) * ssb_mx1 + pi * ssb_mx2)] # ml/day
+          ff[ssb_curr_xps > 5000, ssb_curr_xps := 5000] #Truncate Juice predictions to avoid unrealistic values.
           ff[, (col_nam) := NULL]
           ff[, `:=`(rank_ssb = NULL, ssb_mx1 = NULL, ssb_mx2 = NULL)]
           
@@ -2014,11 +2015,12 @@ Disease <-
             ff <- absorb_dt(ff, tbl)
           #}
 
-          ff[, juice_mx1 := qGA(rank_juice,
+          ff[, juice_mx1 := qLOGNO2(rank_juice,
                                 mu1, sigma1)]  # mixture component 1
-          ff[, juice_mx2 := qLOGNO2(rank_juice,
+          ff[, juice_mx2 := qPARETO2o(rank_juice,
                                   mu2, sigma2)]  # mixture component 2
           ff[, juice_curr_xps := ((1-pi) * juice_mx1 + pi * juice_mx2)] # ml/day
+          ff[juice_curr_xps > 5000, juice_curr_xps := 5000] #Truncate Juice predictions to avoid unrealistic values.
           ff[, (col_nam) := NULL]
           ff[, `:=`(rank_juice = NULL, juice_mx1 = NULL, juice_mx2 = NULL)]
           ff[, year := year + lag]

@@ -927,7 +927,7 @@ SynthPop <-
             # ggplot2::qplot(year, rank_ssb, data = dt[pid %in% sample(1e1, 1)], ylim = c(0,1))
 
 
-            # Generate SSB consumption (WEI3 - BCTo Mixture) ----
+            # Generate SSB consumption (LOGNO - WEI2 Mixture) ----
             if (design_$sim_prm$logs) message("Generate SSB consumption")
 
             tbl <-
@@ -942,11 +942,12 @@ SynthPop <-
             #}
             #dt <- merge(dt, tbl, by = c(intersect(names(dt), names(tbl))))
 
-            dt[, ssb_mx1 := qWEI3(rank_ssb,
+            dt[, ssb_mx1 := qLOGNO(rank_ssb,
                                 mu1, sigma1)]  # mixture component 1
-            dt[, ssb_mx2 := qBCTo(rank_ssb,
-                                    mu2, sigma2, nu2, tau2)]  # mixture component 2
+            dt[, ssb_mx2 := qWEI2(rank_ssb,
+                                    mu2, sigma2)]  # mixture component 2
             dt[, ssb := ((1-pi) * ssb_mx1 + pi * ssb_mx2)] # ml/day
+            dt[ssb > 5000, ssb := 5000] #Truncate Juice predictions to avoid unrealistic values.
             dt[, (col_nam) := NULL]
             dt[, `:=`(rank_ssb = NULL, ssb_mx1 = NULL, ssb_mx2 = NULL)]
             
@@ -959,7 +960,7 @@ SynthPop <-
             
             dt[, ssb := ssb * (1 - diet_prop)][, diet_prop := NULL]
 
-            # Generate fruit juice consumption (GA - LOGNO2 Mixture) ----
+            # Generate fruit juice consumption (LOGNO2 - PARETO2o Mixture) ----
             if (design_$sim_prm$logs) message("Generate Juice consumption")
 
             tbl <-
@@ -972,11 +973,12 @@ SynthPop <-
             #} else {
               dt <- absorb_dt(dt, tbl)
             #}
-            dt[, juice_mx1 := qGA(rank_juice,
+            dt[, juice_mx1 := qLOGNO2(rank_juice,
                                 mu1, sigma1)]  # mixture component 1
-            dt[, juice_mx2 := qLOGNO2(rank_juice,
+            dt[, juice_mx2 := qPARETO2o(rank_juice,
                                     mu2, sigma2)]  # mixture component 2
             dt[, juice := ((1-pi) * juice_mx1 + pi * juice_mx2)] # ml/day
+            dt[juice > 5000, juice := 5000] #Truncate Juice predictions to avoid unrealistic values.
             dt[, (col_nam) := NULL]
             dt[, `:=`(rank_juice = NULL, juice_mx1 = NULL, juice_mx2 = NULL)]
 
@@ -998,7 +1000,7 @@ SynthPop <-
             dt[, rank_bmi := NULL]
             dt[, (col_nam) := NULL]
 
-            # Generate SSB sugar (LOGNO) ----
+            # Generate SSB sugar (BCPEo) ----
             if (design_$sim_prm$logs) message("Generate Sugar from SSBs")
 
             tbl <-
@@ -1011,11 +1013,11 @@ SynthPop <-
             #} else {
               dt <- absorb_dt(dt, tbl)
             #}
-            dt[, ssb_sugar := ssb * qLOGNO(rankstat_ssb_sug, mu, sigma)]
+            dt[, ssb_sugar := ssb * my_qBCPEo(rankstat_ssb_sug, mu, sigma, nu, tau, n_cpu = design_$sim_prm$n_cpu)]
             dt[, rankstat_ssb_sug := NULL]
             dt[, (col_nam) := NULL]
 
-            # Generate Juice sugar (LNO) ----
+            # Generate Juice sugar (BCPE) ----
             if (design_$sim_prm$logs) message("Generate Sugar from Fruit Juice")
 
             tbl <-
@@ -1028,7 +1030,7 @@ SynthPop <-
             #} else {
               dt <- absorb_dt(dt, tbl)
             #}
-            dt[, juice_sugar := juice * qLNO(rankstat_juice_sug, mu, sigma, nu)]
+            dt[, juice_sugar := juice * qBCPE(rankstat_juice_sug, mu, sigma, nu, tau)]
             dt[, rankstat_juice_sug := NULL]
             dt[, (col_nam) := NULL]
 
