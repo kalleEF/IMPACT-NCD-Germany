@@ -207,6 +207,8 @@ ggplot(data_orig[sex == "men" & disease == "all_cause_mrtl"],
 
 ggsave("./outputs/plots/validation_all_cause_mortality_men.tiff",
        height = 9, width = 16)
+ggsave("./outputs/plots/validation_all_cause_mortality_men.jpeg",
+       height = 9, width = 16)
 
 # Women #
 
@@ -221,6 +223,8 @@ ggplot(data_orig[sex == "women" & disease == "all_cause_mrtl"],
   ggtitle("All-cause mortality (women)")
 
 ggsave("./outputs/plots/validation_all_cause_mortality_women.tiff",
+       height = 9, width = 16)
+ggsave("./outputs/plots/validation_all_cause_mortality_women.jpeg",
        height = 9, width = 16)
 
 ## Disease-specific mortality ##
@@ -241,6 +245,8 @@ ggplot(data_orig[sex == "men" & disease == "chd"],
 
 ggsave("./outputs/plots/validation_chd_mortality_men.tiff",
        height = 9, width = 16)
+ggsave("./outputs/plots/validation_chd_mortality_men.jpeg",
+       height = 9, width = 16)
 
 # Women #
 
@@ -256,6 +262,9 @@ ggplot(data_orig[sex == "women" & disease == "chd"],
 
 ggsave("./outputs/plots/validation_chd_mortality_women.tiff",
        height = 9, width = 16)
+ggsave("./outputs/plots/validation_chd_mortality_women.jpeg",
+       height = 9, width = 16)
+
 
 ## Stroke ##
 
@@ -273,6 +282,8 @@ ggplot(data_orig[sex == "men" & disease == "stroke"],
 
 ggsave("./outputs/plots/validation_stroke_mortality_men.tiff",
        height = 9, width = 16)
+ggsave("./outputs/plots/validation_stroke_mortality_men.jpeg",
+       height = 9, width = 16)
 
 # Women #
 
@@ -287,6 +298,8 @@ ggplot(data_orig[sex == "women" & disease == "stroke"],
   ggtitle("Stroke mortality (women)")
 
 ggsave("./outputs/plots/validation_stroke_mortality_women.tiff",
+       height = 9, width = 16)
+ggsave("./outputs/plots/validation_stroke_mortality_women.jpeg",
        height = 9, width = 16)
 
 
