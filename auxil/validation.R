@@ -25,6 +25,8 @@ theme_update(axis.text.x = element_text(size = 9), plot.title = element_text(hju
 tt <- fread("./outputs/summaries/mrtl_scaled_up.csv.gz"
 )[, `:=` (year = year + 2000)]
 
+tt[, agegrp := fifelse(agegrp == "90-94", "90+", agegrp)]
+
 outstrata <- c("mc", "agegrp", "year", "sex")
 
 # Rate #
@@ -46,6 +48,8 @@ writeLines(gsub(",+$", "", file_lines), "./outputs/summaries/dis_mrtl_scaled_up.
 tt <- fread("./outputs/summaries/dis_mrtl_scaled_up.csv.gz", fill = TRUE,
 )[, `:=` (year = year + 2000)]
 
+tt[, agegrp := fifelse(agegrp == "90-94", "90+", agegrp)]
+
 outstrata <- c("mc", "agegrp", "year", "sex")
 
 # Rate #
@@ -63,9 +67,9 @@ impact_disease <- d[disease != "popsize"]
 # CODE COPIED FROM MORTALITY FORECAST PLOT SCRIPT #
 
 age_width <- 5
-agg_age <- 95
+agg_age <- 90
 min_age <- 30
-max_age <- 95
+max_age <- 90
 hor <- 16
 agegroups <- agegrp_name(min_age = min_age, max_age = agg_age, grp_width = age_width) # Define agegroups
 
@@ -78,8 +82,8 @@ setwd("G:/Meine Ablage/PhD/Publications/2021_Mortality_Projection_Germany/R/")
 dt_pop <- as.data.table(fread("./data/germany/pop.csv")) # Population estimates 1987-2011 adjusted for census irregularities
 dt_pop_proj <- fread("./data/germany/ger_pop_proj_agg.csv") # Official population projections 2019-2050
 
-dt_mort_rate_ci_res <- fread("./output/mort_rate_ci.csv")
-setnames(dt_mort_rate_ci_res, c("disease", "upper", "lower"), c("cause", "deaths_hi", "deaths_low"))
+#dt_mort_rate_ci_res <- fread("./output/mort_rate_ci.csv")
+#setnames(dt_mort_rate_ci_res, c("disease", "upper", "lower"), c("cause", "deaths_hi", "deaths_low"))
 
 dt_mrtl <- as.data.table(read_fst("./output/mortality_projections.fst")) # Mortality projections 2019-2035 and smoothed rates 1998-2018
 setnames(dt_mrtl, c("mx_total_1", "mx_total_99"), c("mx_total_low", "mx_total_hi")) # See projection function
@@ -128,25 +132,22 @@ dt_mrtl_dc <- merge(dt_mrtl_dc, dt_pop, by = c("year", "sex", "reg", "age"))
 
 
 to_agegrp(dt_mrtl_dc, grp_width = age_width, max_age = agg_age, to_factor = F)
-dt_mrtl_dc[, agegrp := ifelse(!(agegrp %in% agegrp_name(min_age = min_age,
-                                                        max_age = agg_age,
-                                                        grp_width = age_width)), "80+", agegrp)]
 
-dt_mrtl_agg <- dt_mrtl_dc[cause != "other", lapply(.SD, weighted.mean, w = pops),
+dt_mrtl_agg <- dt_mrtl_dc[, lapply(.SD, weighted.mean, w = pops),
                           by = .(year, agegrp, sex, reg, cause),
                           .SDcols = c("mx_total")]
 
 
 keys <- c("year", "agegrp", "sex", "reg", "cause")
 
-dt_mrtl_agg <- merge(dt_mrtl_agg, dt_mort_rate_ci_res, all.x = T, by = keys)
-setnames(dt_mrtl_agg, c("deaths_low", "deaths_hi", "mx_total"), c("mx_total_low", "mx_total_hi", "mx_total_mean"))
+#dt_mrtl_agg <- merge(dt_mrtl_agg, dt_mort_rate_ci_res, all.x = T, by = keys)
+setnames(dt_mrtl_agg, c("mx_total"), c("mx_total_mean"))
 
 data_fdm <- dt_mrtl_agg
 
 data_orig <- fread("./data/germany/ger_all_deaths_grouped.csv") # Load observed raw death counts
 
-data_orig[, `:=`(deaths_low = 0, deaths_hi = 0)]
+#data_orig[, `:=`(deaths_low = 0, deaths_hi = 0)]
 setnames(data_orig, "agegroup", "agegrp")
 data_orig <- data_orig[!agegrp %in% c(agegrp_name(0, min_age - 1L), "01-14")] # Exclude population below 20 years of age
 # 
@@ -158,27 +159,34 @@ data_orig <- data_orig[!agegrp %in% c(agegrp_name(0, min_age - 1L), "01-14")] # 
 
 #data_orig[, agegrp := ifelse(agegrp %in% c("80-84", "85-89", "90+"), "80+", agegrp)]
 
+data_orig[, deaths_other := deaths_all - deaths_chd - deaths_diab - deaths_stroke]
+data_orig[, deaths_other_w_diab := deaths_all - deaths_chd - deaths_stroke]
+
 data_orig <- data_orig[, lapply(.SD, sum),
                        by = .(year, agegrp, sex, reg),
-                       .SDcols = c("pops", "deaths_all", "deaths_diab", "deaths_chd", "deaths_stroke")]
+                       .SDcols = c("pops",
+                                   "deaths_all", "deaths_diab", "deaths_chd", "deaths_stroke",
+                                   "deaths_other", "deaths_other_w_diab")]
 
 data_orig[, `:=`(mx_all = deaths_all/pops,
                  mx_diab = deaths_diab/pops,
                  mx_chd = deaths_chd/pops,
-                 mx_stroke = deaths_stroke/pops)]
+                 mx_stroke = deaths_stroke/pops,
+                 mx_other = deaths_other/pops,
+                 mx_other_w_diab = deaths_other_w_diab/pops)]
 
-data_orig[, `:=`(mx_total_hi = as.numeric(NA),
-                 mx_total_low = as.numeric(NA))]
+#data_orig[, `:=`(mx_total_hi = as.numeric(NA),
+#                 mx_total_low = as.numeric(NA))]
 
 ## Prepare data for plots ##
 
 # Functional Demographic Model # 
 
-data_fdm <- data_fdm[reg == "Overall" & cause %in% c("all", "stroke", "chd")]
+data_fdm <- data_fdm[reg == "Overall" & cause %in% c("all", "stroke", "chd", "other")]
 data_fdm[, `:=`(reg = NULL, disease = fifelse(cause == "all", "all_cause_mrtl", cause))][, cause := NULL]
 
 data_orig <- data_orig[reg == "Overall"]
-data_orig <- melt(data_orig, measure.vars = c("mx_all", "mx_diab", "mx_chd", "mx_stroke"),
+data_orig <- melt(data_orig, measure.vars = c("mx_all", "mx_diab", "mx_chd", "mx_stroke", "mx_other", "mx_other_w_diab"),
                                               id.vars = c("year", "agegrp", "sex"))
 data_orig[, `:=`(disease = fifelse(variable == "mx_all", "all_cause_mrtl", gsub("mx_", "", variable)),
                  mx_total_mean = value)][, `:=`(variable = NULL, value = NULL)]
@@ -190,6 +198,80 @@ data_orig[, `:=`(disease = fifelse(variable == "mx_all", "all_cause_mrtl", gsub(
 ### Plots for  validation ###
 
 setwd("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT NCD Germany")
+
+## Non-modelled mortality (without deaths from diabetes included in non-modelled) ##
+
+# Men #
+
+ggplot(data_orig[sex == "men" & disease == "other"],
+       aes(x = year, y = mx_total_mean)) +
+  facet_wrap(~ agegrp, scales = "free") + 
+  geom_point() +
+  geom_line(data = impact_disease[sex == "men" & disease == "nonmodelled"],
+            aes(x = year, y = `mrtl_rate_50.0%`), col = "blue") +
+  geom_line(data = data_fdm[sex == "men" & disease == "other"],
+            aes(x = year, y = mx_total_mean), col = "red") +
+  ggtitle("Non-modelled (men)")
+
+ggsave("./outputs/plots/validation_nonmodelled_mortality_men.tiff",
+       height = 9, width = 16)
+ggsave("./outputs/plots/validation_nonmodelled_mortality_men.jpeg",
+       height = 9, width = 16)
+
+# Women #
+
+ggplot(data_orig[sex == "women" & disease == "other"],
+       aes(x = year, y = mx_total_mean)) +
+  facet_wrap(~ agegrp, scales = "free") + 
+  geom_point() +
+  geom_line(data = impact_disease[sex == "women" & disease == "nonmodelled"],
+            aes(x = year, y = `mrtl_rate_50.0%`), col = "blue") +
+  geom_line(data = data_fdm[sex == "women" & disease == "other"],
+            aes(x = year, y = mx_total_mean), col = "red") +
+  ggtitle("Non-modelled (women)")
+
+
+ggsave("./outputs/plots/validation_nonmodelled_mortality_women.tiff",
+       height = 9, width = 16)
+ggsave("./outputs/plots/validation_nonmodelled_mortality_women.jpeg",
+       height = 9, width = 16)
+
+## Non-modelled mortality (with deaths from diabetes included in non-modelled) ##
+
+# Men #
+
+ggplot(data_orig[sex == "men" & disease == "other_w_diab"],
+       aes(x = year, y = mx_total_mean)) +
+  facet_wrap(~ agegrp, scales = "free") + 
+  geom_point() +
+  geom_line(data = impact_disease[sex == "men" & disease == "nonmodelled"],
+            aes(x = year, y = `mrtl_rate_50.0%`), col = "blue") +
+  geom_line(data = data_fdm[sex == "men" & disease == "other"],
+            aes(x = year, y = mx_total_mean), col = "red") +
+  ggtitle("Non-modelled (men)")
+
+ggsave("./outputs/plots/validation_nonmodelled_w_diab_mortality_men.tiff",
+       height = 9, width = 16)
+ggsave("./outputs/plots/validation_nonmodelled_w_diab_mortality_men.jpeg",
+       height = 9, width = 16)
+
+# Women #
+
+ggplot(data_orig[sex == "women" & disease == "other_w_diab"],
+       aes(x = year, y = mx_total_mean)) +
+  facet_wrap(~ agegrp, scales = "free") + 
+  geom_point() +
+  geom_line(data = impact_disease[sex == "women" & disease == "nonmodelled"],
+            aes(x = year, y = `mrtl_rate_50.0%`), col = "blue") +
+  geom_line(data = data_fdm[sex == "women" & disease == "other"],
+            aes(x = year, y = mx_total_mean), col = "red") +
+  ggtitle("Non-modelled (women)")
+
+
+ggsave("./outputs/plots/validation_nonmodelled_w_diab_mortality_women.tiff",
+       height = 9, width = 16)
+ggsave("./outputs/plots/validation_nonmodelled_w_diab_mortality_women.jpeg",
+       height = 9, width = 16)
 
 ## All-cause mortality ##
 
