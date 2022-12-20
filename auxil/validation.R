@@ -21,31 +21,31 @@ theme_update(axis.text.x = element_text(size = 9), plot.title = element_text(hju
 ## Load model data ##
 
 ## All-cause Mortality ## ----
-
-tt <- fread("./outputs/summaries/mrtl_scaled_up.csv.gz"
-)[, `:=` (year = year + 2000)]
-
-tt[, agegrp := fifelse(agegrp == "90-94", "90+", agegrp)]
-
-outstrata <- c("mc", "agegrp", "year", "sex")
-
-# Rate #
-
-d <- tt[scenario == "sc0", lapply(.SD, sum), .SDcols = c("all_cause_mrtl", "popsize"), keyby = eval(outstrata)
-][, lapply(.SD, function(x) x/popsize), keyby = outstrata]
-d <- melt(d, id.vars = outstrata)
-dd <- d[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(setdiff(outstrata, "mc"))]
-setnames(dd, c(setdiff(outstrata, "mc"), "disease", percent(prbl, prefix = "mrtl_rate_")))
-
-ddd <- d[, lapply(.SD, mean), .SDcols = "value", by = eval(c("variable", setdiff(outstrata, "mc")))]
-setnames(ddd, "value", "mrtl_rate_Mean")
-ddd[, disease := as.character(variable)]
-
-d <- merge(dd[disease != "popsize"], ddd[variable != "popsize"], by = c("disease", "agegrp", "sex", "year"))
-
-d[, variable := NULL]
-
-impact_all_cause <- copy(d)
+# 
+# tt <- fread("./outputs/summaries/mrtl_scaled_up.csv.gz"
+# )[, `:=` (year = year + 2000)]
+# 
+# tt[, agegrp := fifelse(agegrp == "90-94", "90+", agegrp)]
+# 
+# outstrata <- c("mc", "agegrp", "year", "sex")
+# 
+# # Rate #
+# 
+# d <- tt[scenario == "sc0", lapply(.SD, sum), .SDcols = c("all_cause_mrtl", "popsize"), keyby = eval(outstrata)
+# ][, lapply(.SD, function(x) x/popsize), keyby = outstrata]
+# d <- melt(d, id.vars = outstrata)
+# dd <- d[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(setdiff(outstrata, "mc"))]
+# setnames(dd, c(setdiff(outstrata, "mc"), "disease", percent(prbl, prefix = "mrtl_rate_")))
+# 
+# ddd <- d[, lapply(.SD, mean), .SDcols = "value", by = eval(c("variable", setdiff(outstrata, "mc")))]
+# setnames(ddd, "value", "mrtl_rate_Mean")
+# ddd[, disease := as.character(variable)]
+# 
+# d <- merge(dd[disease != "popsize"], ddd[variable != "popsize"], by = c("disease", "agegrp", "sex", "year"))
+# 
+# d[, variable := NULL]
+# 
+# impact_all_cause <- copy(d)
 
 ## Disease-specific Mortality ## ----
 
