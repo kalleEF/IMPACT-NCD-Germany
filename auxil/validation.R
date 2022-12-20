@@ -34,10 +34,18 @@ outstrata <- c("mc", "agegrp", "year", "sex")
 d <- tt[scenario == "sc0", lapply(.SD, sum), .SDcols = c("all_cause_mrtl", "popsize"), keyby = eval(outstrata)
 ][, lapply(.SD, function(x) x/popsize), keyby = outstrata]
 d <- melt(d, id.vars = outstrata)
-d <- d[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(setdiff(outstrata, "mc"))]
-setnames(d, c(setdiff(outstrata, "mc"), "disease", percent(prbl, prefix = "mrtl_rate_")))
+dd <- d[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(setdiff(outstrata, "mc"))]
+setnames(dd, c(setdiff(outstrata, "mc"), "disease", percent(prbl, prefix = "mrtl_rate_")))
 
-impact_all_cause <- d[disease != "popsize"]
+ddd <- d[, lapply(.SD, mean), .SDcols = "value", by = eval(c("variable", setdiff(outstrata, "mc")))]
+setnames(ddd, "value", "mrtl_rate_Mean")
+ddd[, disease := as.character(variable)]
+
+d <- merge(dd[disease != "popsize"], ddd[variable != "popsize"], by = c("disease", "agegrp", "sex", "year"))
+
+d[, variable := NULL]
+
+impact_all_cause <- copy(d)
 
 ## Disease-specific Mortality ## ----
 
@@ -57,10 +65,18 @@ outstrata <- c("mc", "agegrp", "year", "sex")
 d <- tt[scenario == "sc0", lapply(.SD, sum), .SDcols = c("nonmodelled", "chd", "stroke", "popsize"), keyby = eval(outstrata)
 ][, lapply(.SD, function(x) x/popsize), keyby = outstrata]
 d <- melt(d, id.vars = outstrata)
-d <- d[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(setdiff(outstrata, "mc"))]
-setnames(d, c(setdiff(outstrata, "mc"), "disease", percent(prbl, prefix = "mrtl_rate_")))
+dd <- d[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(setdiff(outstrata, "mc"))]
+setnames(dd, c(setdiff(outstrata, "mc"), "disease", percent(prbl, prefix = "mrtl_rate_")))
 
-impact_disease <- d[disease != "popsize"]
+ddd <- d[, lapply(.SD, mean), .SDcols = "value", by = eval(c("variable", setdiff(outstrata, "mc")))]
+setnames(ddd, "value", "mrtl_rate_Mean")
+ddd[, disease := as.character(variable)]
+
+d <- merge(dd[disease != "popsize"], ddd[variable != "popsize"], by = c("disease", "agegrp", "sex", "year"))
+
+d[, variable := NULL]
+
+impact_disease <- copy(d)
 
 ## Load original and forecast mortality data ## ----
 
@@ -185,6 +201,16 @@ data_orig[, `:=`(mx_all = deaths_all/pops,
 data_fdm <- data_fdm[reg == "Overall" & cause %in% c("all", "stroke", "chd", "other")]
 data_fdm[, `:=`(reg = NULL, disease = fifelse(cause == "all", "all_cause_mrtl", cause))][, cause := NULL]
 
+data_fdm_new_all <- data_fdm[disease != "all_cause_mrtl"]
+
+# Save FDM mortality rate as baseline for calibration
+write_fst(data_fdm_new_all, "G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT NCD Germany/inputs/mortality/mort_prcjt.fst")
+
+data_fdm_new_all <- data_fdm_new_all[, lapply(.SD, sum), .SDcols = "mx_total_mean", by = .(year, agegrp, sex)]
+data_fdm_new_all[, disease := "all_cause_mrtl_recalc"]
+
+data_fdm <- rbind(data_fdm, data_fdm_new_all)
+
 data_orig <- data_orig[reg == "Overall"]
 data_orig <- melt(data_orig, measure.vars = c("mx_all", "mx_diab", "mx_chd", "mx_stroke", "mx_other", "mx_other_w_diab"),
                                               id.vars = c("year", "agegrp", "sex"))
@@ -211,10 +237,13 @@ ggplot(data_orig[sex == "men" & disease == "other"],
             aes(x = year, y = `mrtl_rate_50.0%`), col = "blue") +
   geom_line(data = data_fdm[sex == "men" & disease == "other"],
             aes(x = year, y = mx_total_mean), col = "red") +
+  geom_ribbon(data = impact_disease[sex == "men" & disease == "nonmodelled"], 
+              aes(x = year, y = `mrtl_rate_50.0%`, ymin = `mrtl_rate_2.5%`, ymax= `mrtl_rate_97.5%`),
+              fill = "blue", alpha = 0.3) +
   ggtitle("Non-modelled (men)")
 
-ggsave("./outputs/plots/validation_nonmodelled_mortality_men.tiff",
-       height = 9, width = 16)
+# ggsave("./outputs/plots/validation_nonmodelled_mortality_men.tiff",
+#        height = 9, width = 16)
 ggsave("./outputs/plots/validation_nonmodelled_mortality_men.jpeg",
        height = 9, width = 16)
 
@@ -228,11 +257,14 @@ ggplot(data_orig[sex == "women" & disease == "other"],
             aes(x = year, y = `mrtl_rate_50.0%`), col = "blue") +
   geom_line(data = data_fdm[sex == "women" & disease == "other"],
             aes(x = year, y = mx_total_mean), col = "red") +
+  geom_ribbon(data = impact_disease[sex == "women" & disease == "nonmodelled"], 
+              aes(x = year, y = `mrtl_rate_50.0%`, ymin = `mrtl_rate_2.5%`, ymax= `mrtl_rate_97.5%`),
+              fill = "blue", alpha = 0.3) +
   ggtitle("Non-modelled (women)")
 
 
-ggsave("./outputs/plots/validation_nonmodelled_mortality_women.tiff",
-       height = 9, width = 16)
+# ggsave("./outputs/plots/validation_nonmodelled_mortality_women.tiff",
+#        height = 9, width = 16)
 ggsave("./outputs/plots/validation_nonmodelled_mortality_women.jpeg",
        height = 9, width = 16)
 
@@ -248,10 +280,13 @@ ggplot(data_orig[sex == "men" & disease == "other_w_diab"],
             aes(x = year, y = `mrtl_rate_50.0%`), col = "blue") +
   geom_line(data = data_fdm[sex == "men" & disease == "other"],
             aes(x = year, y = mx_total_mean), col = "red") +
+  geom_ribbon(data = impact_disease[sex == "men" & disease == "nonmodelled"], 
+              aes(x = year, y = `mrtl_rate_50.0%`, ymin = `mrtl_rate_2.5%`, ymax= `mrtl_rate_97.5%`),
+              fill = "blue", alpha = 0.3) +
   ggtitle("Non-modelled (men)")
 
-ggsave("./outputs/plots/validation_nonmodelled_w_diab_mortality_men.tiff",
-       height = 9, width = 16)
+# ggsave("./outputs/plots/validation_nonmodelled_w_diab_mortality_men.tiff",
+#        height = 9, width = 16)
 ggsave("./outputs/plots/validation_nonmodelled_w_diab_mortality_men.jpeg",
        height = 9, width = 16)
 
@@ -265,49 +300,58 @@ ggplot(data_orig[sex == "women" & disease == "other_w_diab"],
             aes(x = year, y = `mrtl_rate_50.0%`), col = "blue") +
   geom_line(data = data_fdm[sex == "women" & disease == "other"],
             aes(x = year, y = mx_total_mean), col = "red") +
+  geom_ribbon(data = impact_disease[sex == "women" & disease == "nonmodelled"], 
+              aes(x = year, y = `mrtl_rate_50.0%`, ymin = `mrtl_rate_2.5%`, ymax= `mrtl_rate_97.5%`),
+              fill = "blue", alpha = 0.3) +
   ggtitle("Non-modelled (women)")
 
 
-ggsave("./outputs/plots/validation_nonmodelled_w_diab_mortality_women.tiff",
-       height = 9, width = 16)
+# ggsave("./outputs/plots/validation_nonmodelled_w_diab_mortality_women.tiff",
+#        height = 9, width = 16)
 ggsave("./outputs/plots/validation_nonmodelled_w_diab_mortality_women.jpeg",
        height = 9, width = 16)
 
-## All-cause mortality ##
-
-# Men #
-
-ggplot(data_orig[sex == "men" & disease == "all_cause_mrtl"],
-       aes(x = year, y = mx_total_mean)) +
-  facet_wrap(~ agegrp, scales = "free") + 
-  geom_point() +
-  geom_line(data = impact_all_cause[sex == "men" & disease == "all_cause_mrtl"],
-            aes(x = year, y = `mrtl_rate_50.0%`), col = "blue") +
-  geom_line(data = data_fdm[sex == "men" & disease == "all_cause_mrtl"],
-            aes(x = year, y = mx_total_mean), col = "red") +
-  ggtitle("All-cause mortality (men)")
-
-ggsave("./outputs/plots/validation_all_cause_mortality_men.tiff",
-       height = 9, width = 16)
-ggsave("./outputs/plots/validation_all_cause_mortality_men.jpeg",
-       height = 9, width = 16)
-
-# Women #
-
-ggplot(data_orig[sex == "women" & disease == "all_cause_mrtl"],
-       aes(x = year, y = mx_total_mean)) +
-  facet_wrap(~ agegrp, scales = "free") + 
-  geom_point() +
-  geom_line(data = impact_all_cause[sex == "women" & disease == "all_cause_mrtl"],
-            aes(x = year, y = `mrtl_rate_50.0%`), col = "blue") +
-  geom_line(data = data_fdm[sex == "women" & disease == "all_cause_mrtl"],
-            aes(x = year, y = mx_total_mean), col = "red") +
-  ggtitle("All-cause mortality (women)")
-
-ggsave("./outputs/plots/validation_all_cause_mortality_women.tiff",
-       height = 9, width = 16)
-ggsave("./outputs/plots/validation_all_cause_mortality_women.jpeg",
-       height = 9, width = 16)
+# ## All-cause mortality ##
+# 
+# # Men #
+# 
+# ggplot(data_orig[sex == "men" & disease == "all_cause_mrtl"],
+#        aes(x = year, y = mx_total_mean)) +
+#   facet_wrap(~ agegrp, scales = "free") + 
+#   geom_point() +
+#   geom_line(data = impact_all_cause[sex == "men" & disease == "all_cause_mrtl"],
+#             aes(x = year, y = `mrtl_rate_50.0%`), col = "blue") +
+#   geom_line(data = data_fdm[sex == "men" & disease == "all_cause_mrtl_recalc"],
+#             aes(x = year, y = mx_total_mean), col = "red") +
+#   geom_ribbon(data = impact_all_cause[sex == "men" & disease == "all_cause_mrtl"], 
+#               aes(x = year, y = `mrtl_rate_50.0%`, ymin = `mrtl_rate_2.5%`, ymax= `mrtl_rate_97.5%`),
+#               fill = "blue", alpha = 0.3) +
+#   ggtitle("All-cause mortality (men)")
+# 
+# # ggsave("./outputs/plots/validation_all_cause_mortality_men.tiff",
+# #        height = 9, width = 16)
+# ggsave("./outputs/plots/validation_all_cause_mortality_men.jpeg",
+#        height = 9, width = 16)
+# 
+# # Women #
+# 
+# ggplot(data_orig[sex == "women" & disease == "all_cause_mrtl"],
+#        aes(x = year, y = mx_total_mean)) +
+#   facet_wrap(~ agegrp, scales = "free") + 
+#   geom_point() +
+#   geom_line(data = impact_all_cause[sex == "women" & disease == "all_cause_mrtl"],
+#             aes(x = year, y = `mrtl_rate_50.0%`), col = "blue") +
+#   geom_line(data = data_fdm[sex == "women" & disease == "all_cause_mrtl_recalc"],
+#             aes(x = year, y = mx_total_mean), col = "red") +
+#   geom_ribbon(data = impact_all_cause[sex == "women" & disease == "all_cause_mrtl"], 
+#               aes(x = year, y = `mrtl_rate_50.0%`, ymin = `mrtl_rate_2.5%`, ymax= `mrtl_rate_97.5%`),
+#               fill = "blue", alpha = 0.3) +
+#   ggtitle("All-cause mortality (women)")
+# 
+# # ggsave("./outputs/plots/validation_all_cause_mortality_women.tiff",
+# #        height = 9, width = 16)
+# ggsave("./outputs/plots/validation_all_cause_mortality_women.jpeg",
+#        height = 9, width = 16)
 
 ## Disease-specific mortality ##
 
@@ -323,10 +367,13 @@ ggplot(data_orig[sex == "men" & disease == "chd"],
             aes(x = year, y = `mrtl_rate_50.0%`), col = "blue") +
   geom_line(data = data_fdm[sex == "men" & disease == "chd"],
             aes(x = year, y = mx_total_mean), col = "red") +
+  geom_ribbon(data = impact_disease[sex == "men" & disease == "chd"], 
+              aes(x = year, y = `mrtl_rate_50.0%`, ymin = `mrtl_rate_2.5%`, ymax= `mrtl_rate_97.5%`),
+              fill = "blue", alpha = 0.3) +
   ggtitle("CHD mortality (men)")
 
-ggsave("./outputs/plots/validation_chd_mortality_men.tiff",
-       height = 9, width = 16)
+# ggsave("./outputs/plots/validation_chd_mortality_men.tiff",
+#        height = 9, width = 16)
 ggsave("./outputs/plots/validation_chd_mortality_men.jpeg",
        height = 9, width = 16)
 
@@ -340,10 +387,13 @@ ggplot(data_orig[sex == "women" & disease == "chd"],
             aes(x = year, y = `mrtl_rate_50.0%`), col = "blue") +
   geom_line(data = data_fdm[sex == "women" & disease == "chd"],
             aes(x = year, y = mx_total_mean), col = "red") +
+  geom_ribbon(data = impact_disease[sex == "women" & disease == "chd"], 
+              aes(x = year, y = `mrtl_rate_50.0%`, ymin = `mrtl_rate_2.5%`, ymax= `mrtl_rate_97.5%`),
+              fill = "blue", alpha = 0.3) +
   ggtitle("CHD mortality (women)")
 
-ggsave("./outputs/plots/validation_chd_mortality_women.tiff",
-       height = 9, width = 16)
+# ggsave("./outputs/plots/validation_chd_mortality_women.tiff",
+#        height = 9, width = 16)
 ggsave("./outputs/plots/validation_chd_mortality_women.jpeg",
        height = 9, width = 16)
 
@@ -360,10 +410,13 @@ ggplot(data_orig[sex == "men" & disease == "stroke"],
             aes(x = year, y = `mrtl_rate_50.0%`), col = "blue") +
   geom_line(data = data_fdm[sex == "men" & disease == "stroke"],
             aes(x = year, y = mx_total_mean), col = "red") +
+  geom_ribbon(data = impact_disease[sex == "men" & disease == "stroke"], 
+              aes(x = year, y = `mrtl_rate_50.0%`, ymin = `mrtl_rate_2.5%`, ymax= `mrtl_rate_97.5%`),
+              fill = "blue", alpha = 0.3) +
   ggtitle("Stroke mortality (men)")
 
-ggsave("./outputs/plots/validation_stroke_mortality_men.tiff",
-       height = 9, width = 16)
+# ggsave("./outputs/plots/validation_stroke_mortality_men.tiff",
+#        height = 9, width = 16)
 ggsave("./outputs/plots/validation_stroke_mortality_men.jpeg",
        height = 9, width = 16)
 
@@ -377,12 +430,92 @@ ggplot(data_orig[sex == "women" & disease == "stroke"],
             aes(x = year, y = `mrtl_rate_50.0%`), col = "blue") +
   geom_line(data = data_fdm[sex == "women" & disease == "stroke"],
             aes(x = year, y = mx_total_mean), col = "red") +
+  geom_ribbon(data = impact_disease[sex == "women" & disease == "stroke"], 
+              aes(x = year, y = `mrtl_rate_50.0%`, ymin = `mrtl_rate_2.5%`, ymax= `mrtl_rate_97.5%`),
+              fill = "blue", alpha = 0.3) +
   ggtitle("Stroke mortality (women)")
 
-ggsave("./outputs/plots/validation_stroke_mortality_women.tiff",
-       height = 9, width = 16)
+# ggsave("./outputs/plots/validation_stroke_mortality_women.tiff",
+#        height = 9, width = 16)
 ggsave("./outputs/plots/validation_stroke_mortality_women.jpeg",
        height = 9, width = 16)
+
+
+
+#### Calculate ratio between FDM and IMPACT ####
+
+impact <- rbind(impact_all_cause, impact_disease)
+
+impact[, mx_total_median_IMPACT := `mrtl_rate_50.0%`]
+impact[, mx_total_mean_IMPACT := mrtl_rate_Mean]
+
+data_fdm[, disease := ifelse(disease == "other", "nonmodelled", disease)]
+
+dt <- merge(impact, data_fdm, all.y = TRUE)
+
+dt[, mx_mean_ratio := mx_total_mean_IMPACT/mx_total_mean]
+dt[, mx_median_ratio := mx_total_median_IMPACT/mx_total_mean]
+
+dt[is.na(mx_mean_ratio), mx_mean_ratio := 1]
+dt[is.na(mx_median_ratio), mx_median_ratio := 1]
+
+for(i in unique(dt$disease)){
+
+  ## Using the mean ##
+  
+  ggplot(dt[sex == "women" & disease == i],
+         aes(x = year, y = mx_mean_ratio)) +
+    facet_wrap(~ agegrp) + 
+    geom_line() +
+    geom_hline(yintercept = 1, linetype = "dashed") +
+    ggtitle(paste0("Mortality calibration ", i," (women)"))
+
+  # ggsave(paste0("./outputs/plots/validation_", i, "_mortality_ratio_women_mean.tiff"),
+  #        height = 9, width = 16)
+  ggsave(paste0("./outputs/plots/validation_", i, "_mortality_ratio_women_mean.jpeg"),
+         height = 9, width = 16)
+  
+  ggplot(dt[sex == "men" & disease == i],
+         aes(x = year, y = mx_mean_ratio)) +
+    facet_wrap(~ agegrp) + 
+    geom_line() +
+    geom_hline(yintercept = 1, linetype = "dashed") +
+    ggtitle(paste0("Mortality calibration ", i," (men)"))
+  
+  # ggsave(paste0("./outputs/plots/validation_", i, "_mortality_ratio_men_mean.tiff"),
+  #        height = 9, width = 16)
+  ggsave(paste0("./outputs/plots/validation_", i, "_mortality_ratio_men_mean.jpeg"),
+         height = 9, width = 16)
+  
+  
+  ## Using the median ##
+  
+  # ggplot(dt[sex == "women" & disease == i],
+  #        aes(x = year, y = mx_median_ratio)) +
+  #   facet_wrap(~ agegrp) + 
+  #   geom_line() +
+  #   geom_hline(yintercept = 1, linetype = "dashed") +
+  #   ggtitle(paste0("Mortality calibration ", i," (women)"))
+  # 
+  # ggsave(paste0("./outputs/plots/validation_", i, "_mortality_ratio_women_median.tiff"),
+  #        height = 9, width = 16)
+  # ggsave(paste0("./outputs/plots/validation_", i, "_mortality_ratio_women_median.jpeg"),
+  #        height = 9, width = 16)
+  # 
+  # ggplot(dt[sex == "men" & disease == i],
+  #        aes(x = year, y = mx_median_ratio)) +
+  #   facet_wrap(~ agegrp) + 
+  #   geom_line() +
+  #   geom_hline(yintercept = 1, linetype = "dashed") +
+  #   ggtitle(paste0("Mortality calibration ", i," (men)"))
+  # 
+  # ggsave(paste0("./outputs/plots/validation_", i, "_mortality_ratio_men_median.tiff"),
+  #        height = 9, width = 16)
+  # ggsave(paste0("./outputs/plots/validation_", i, "_mortality_ratio_men_median.jpeg"),
+  #        height = 9, width = 16)
+  
+}
+
 
 
 
