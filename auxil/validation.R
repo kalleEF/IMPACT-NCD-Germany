@@ -86,10 +86,10 @@ age_width <- 5
 agg_age <- 90
 min_age <- 30
 max_age <- 90
-hor <- 16
+hor <- 30
 agegroups <- agegrp_name(min_age = min_age, max_age = agg_age, grp_width = age_width) # Define agegroups
 
-setwd("G:/Meine Ablage/PhD/Publications/2021_Mortality_Projection_Germany/R/")
+setwd("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Preparation/Updated Mortality Forecast/R/")
 
 ##########################
 #### Read in datasets ####
