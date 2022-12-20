@@ -1267,7 +1267,7 @@ Disease <-
               risk_product <- 1
             }
             
-            if (TRUE) {
+            if (design_$sim_prm$init_ftlt_calibration) {
             # Calibrate estimated fatality prbl to init year incidence
             tbl <- self$get_ftlt(design_$sim_prm$init_year, mc_ = sp$mc_aggr
             )[between(age, design_$sim_prm$ageL,
@@ -1298,6 +1298,46 @@ Disease <-
             absorb_dt(sp$pop, tbl)
             setnafill(sp$pop, "c", 1, cols = "clbfctr")
 
+            if(design_$sim_prm$mortality_calibration){
+              # Mortality calibration #
+  
+              clbtrend <- 1 # Calibration trend parameter
+              clbintrc <- 1 # Calibration intercept parameter
+              
+              if(self$name == "chd"){
+                
+                tbl <- read_fst("./inputs/mortality/mrtl_clbr_chd.fst",
+                                as.data.table = TRUE)
+                
+                absorb_dt(sp$pop, tbl)
+                setnafill(sp$pop, "c", 1, cols = "mrtl_clbr")
+                
+              } else if(self$name == "stroke"){
+                
+                tbl <- read_fst("./inputs/mortality/mrtl_clbr_stroke.fst",
+                                as.data.table = TRUE)
+                
+                absorb_dt(sp$pop, tbl)
+                setnafill(sp$pop, "c", 1, cols = "mrtl_clbr")
+                
+              } else if(self$name == "nonmodelled"){
+                
+                tbl <- read_fst("./inputs/mortality/mrtl_clbr_nonmodelled.fst",
+                                as.data.table = TRUE)
+                
+                absorb_dt(sp$pop, tbl)
+                setnafill(sp$pop, "c", 1, cols = "mrtl_clbr")
+                
+              } else {
+                
+                sp$pop[, mrtl_clbr := 1]
+                
+              }
+              
+              sp$pop[year >= design_$sim_prm$init_year,
+                     clbfctr := clbfctr * mrtl_clbr * clbintrc *
+                       (clbtrend^(year - design_$sim_prm$init_year))]
+            }
             # End of calibration
 
             set(sp$pop, NULL, private$mrtl_colnam2,
@@ -1307,6 +1347,13 @@ Disease <-
             # sp$pop[, (paste0(self$name, "_risk_product_mrtl")) := risk_product]
             # sp$pop[, (paste0(self$name, "_m0")) := private$parf$m0]
             sp$pop[, c("mu2", "rp", "clbfctr") := NULL]
+            
+            if("mrtl_clbr" %in% names(sp$pop)){
+              
+              sp$pop[, mrtl_clbr := NULL]
+              
+            }
+            
             } else {
               set(sp$pop, NULL, private$mrtl_colnam2,
                   clamp(private$parf$m0 * risk_product))
