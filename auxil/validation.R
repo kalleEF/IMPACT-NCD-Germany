@@ -50,10 +50,10 @@ theme_update(axis.text.x = element_text(size = 9), plot.title = element_text(hju
 ## Disease-specific Mortality ## ----
 
 # WARNING: For some reason some iteration have trailing comma!
-file_lines <- readLines("./outputs/summaries/dis_mrtl_scaled_up.csv.gz")
-writeLines(gsub(",+$", "", file_lines), "./outputs/summaries/dis_mrtl_scaled_up.csv.gz")
+file_lines <- readLines("./outputs/summaries/with_SSB/dis_mrtl_scaled_up.csv.gz")
+writeLines(gsub(",+$", "", file_lines), "./outputs/summaries/with_SSB/dis_mrtl_scaled_up.csv.gz")
 
-tt <- fread("./outputs/summaries/dis_mrtl_scaled_up.csv.gz", fill = TRUE,
+tt <- fread("./outputs/summaries/with_SSB/dis_mrtl_scaled_up.csv.gz", fill = TRUE,
 )[, `:=` (year = year + 2000)]
 
 tt[, agegrp := fifelse(agegrp == "90-94", "90+", agegrp)]
@@ -242,9 +242,9 @@ ggplot(data_orig[sex == "men" & disease == "other"],
               fill = "blue", alpha = 0.3) +
   ggtitle("Non-modelled (men)")
 
-# ggsave("./outputs/plots/validation_nonmodelled_mortality_men.tiff",
+# ggsave("./outputs/plots/validation/validation_nonmodelled_mortality_men.tiff",
 #        height = 9, width = 16)
-ggsave("./outputs/plots/validation_nonmodelled_mortality_men.jpeg",
+ggsave("./outputs/plots/validation/validation_nonmodelled_mortality_men.jpeg",
        height = 9, width = 16)
 
 # Women #
@@ -263,9 +263,9 @@ ggplot(data_orig[sex == "women" & disease == "other"],
   ggtitle("Non-modelled (women)")
 
 
-# ggsave("./outputs/plots/validation_nonmodelled_mortality_women.tiff",
+# ggsave("./outputs/plots/validation/validation_nonmodelled_mortality_women.tiff",
 #        height = 9, width = 16)
-ggsave("./outputs/plots/validation_nonmodelled_mortality_women.jpeg",
+ggsave("./outputs/plots/validation/validation_nonmodelled_mortality_women.jpeg",
        height = 9, width = 16)
 
 ## Non-modelled mortality (with deaths from diabetes included in non-modelled) ##
@@ -285,9 +285,9 @@ ggplot(data_orig[sex == "men" & disease == "other_w_diab"],
               fill = "blue", alpha = 0.3) +
   ggtitle("Non-modelled (men)")
 
-# ggsave("./outputs/plots/validation_nonmodelled_w_diab_mortality_men.tiff",
+# ggsave("./outputs/plots/validation/validation_nonmodelled_w_diab_mortality_men.tiff",
 #        height = 9, width = 16)
-ggsave("./outputs/plots/validation_nonmodelled_w_diab_mortality_men.jpeg",
+ggsave("./outputs/plots/validation/validation_nonmodelled_w_diab_mortality_men.jpeg",
        height = 9, width = 16)
 
 # Women #
@@ -306,9 +306,9 @@ ggplot(data_orig[sex == "women" & disease == "other_w_diab"],
   ggtitle("Non-modelled (women)")
 
 
-# ggsave("./outputs/plots/validation_nonmodelled_w_diab_mortality_women.tiff",
+# ggsave("./outputs/plots/validation/validation_nonmodelled_w_diab_mortality_women.tiff",
 #        height = 9, width = 16)
-ggsave("./outputs/plots/validation_nonmodelled_w_diab_mortality_women.jpeg",
+ggsave("./outputs/plots/validation/validation_nonmodelled_w_diab_mortality_women.jpeg",
        height = 9, width = 16)
 
 # ## All-cause mortality ##
@@ -328,9 +328,9 @@ ggsave("./outputs/plots/validation_nonmodelled_w_diab_mortality_women.jpeg",
 #               fill = "blue", alpha = 0.3) +
 #   ggtitle("All-cause mortality (men)")
 # 
-# # ggsave("./outputs/plots/validation_all_cause_mortality_men.tiff",
+# # ggsave("./outputs/plots/validation/validation_all_cause_mortality_men.tiff",
 # #        height = 9, width = 16)
-# ggsave("./outputs/plots/validation_all_cause_mortality_men.jpeg",
+# ggsave("./outputs/plots/validation/validation_all_cause_mortality_men.jpeg",
 #        height = 9, width = 16)
 # 
 # # Women #
@@ -348,9 +348,9 @@ ggsave("./outputs/plots/validation_nonmodelled_w_diab_mortality_women.jpeg",
 #               fill = "blue", alpha = 0.3) +
 #   ggtitle("All-cause mortality (women)")
 # 
-# # ggsave("./outputs/plots/validation_all_cause_mortality_women.tiff",
+# # ggsave("./outputs/plots/validation/validation_all_cause_mortality_women.tiff",
 # #        height = 9, width = 16)
-# ggsave("./outputs/plots/validation_all_cause_mortality_women.jpeg",
+# ggsave("./outputs/plots/validation/validation_all_cause_mortality_women.jpeg",
 #        height = 9, width = 16)
 
 ## Disease-specific mortality ##
@@ -372,9 +372,9 @@ ggplot(data_orig[sex == "men" & disease == "chd"],
               fill = "blue", alpha = 0.3) +
   ggtitle("CHD mortality (men)")
 
-# ggsave("./outputs/plots/validation_chd_mortality_men.tiff",
+# ggsave("./outputs/plots/validation/validation_chd_mortality_men.tiff",
 #        height = 9, width = 16)
-ggsave("./outputs/plots/validation_chd_mortality_men.jpeg",
+ggsave("./outputs/plots/validation/validation_chd_mortality_men.jpeg",
        height = 9, width = 16)
 
 # Women #
@@ -392,9 +392,9 @@ ggplot(data_orig[sex == "women" & disease == "chd"],
               fill = "blue", alpha = 0.3) +
   ggtitle("CHD mortality (women)")
 
-# ggsave("./outputs/plots/validation_chd_mortality_women.tiff",
+# ggsave("./outputs/plots/validation/validation_chd_mortality_women.tiff",
 #        height = 9, width = 16)
-ggsave("./outputs/plots/validation_chd_mortality_women.jpeg",
+ggsave("./outputs/plots/validation/validation_chd_mortality_women.jpeg",
        height = 9, width = 16)
 
 
@@ -415,9 +415,9 @@ ggplot(data_orig[sex == "men" & disease == "stroke"],
               fill = "blue", alpha = 0.3) +
   ggtitle("Stroke mortality (men)")
 
-# ggsave("./outputs/plots/validation_stroke_mortality_men.tiff",
+# ggsave("./outputs/plots/validation/validation_stroke_mortality_men.tiff",
 #        height = 9, width = 16)
-ggsave("./outputs/plots/validation_stroke_mortality_men.jpeg",
+ggsave("./outputs/plots/validation/validation_stroke_mortality_men.jpeg",
        height = 9, width = 16)
 
 # Women #
@@ -435,16 +435,16 @@ ggplot(data_orig[sex == "women" & disease == "stroke"],
               fill = "blue", alpha = 0.3) +
   ggtitle("Stroke mortality (women)")
 
-# ggsave("./outputs/plots/validation_stroke_mortality_women.tiff",
+# ggsave("./outputs/plots/validation/validation_stroke_mortality_women.tiff",
 #        height = 9, width = 16)
-ggsave("./outputs/plots/validation_stroke_mortality_women.jpeg",
+ggsave("./outputs/plots/validation/validation_stroke_mortality_women.jpeg",
        height = 9, width = 16)
 
 
 
 #### Calculate ratio between FDM and IMPACT ####
 
-impact <- rbind(impact_all_cause, impact_disease)
+impact <- impact_disease
 
 impact[, mx_total_median_IMPACT := `mrtl_rate_50.0%`]
 impact[, mx_total_mean_IMPACT := mrtl_rate_Mean]
@@ -470,9 +470,9 @@ for(i in unique(dt$disease)){
     geom_hline(yintercept = 1, linetype = "dashed") +
     ggtitle(paste0("Mortality calibration ", i," (women)"))
 
-  # ggsave(paste0("./outputs/plots/validation_", i, "_mortality_ratio_women_mean.tiff"),
+  # ggsave(paste0("./outputs/plots/validation/validation_", i, "_mortality_ratio_women_mean.tiff"),
   #        height = 9, width = 16)
-  ggsave(paste0("./outputs/plots/validation_", i, "_mortality_ratio_women_mean.jpeg"),
+  ggsave(paste0("./outputs/plots/validation/validation_", i, "_mortality_ratio_women_mean.jpeg"),
          height = 9, width = 16)
   
   ggplot(dt[sex == "men" & disease == i],
@@ -482,9 +482,9 @@ for(i in unique(dt$disease)){
     geom_hline(yintercept = 1, linetype = "dashed") +
     ggtitle(paste0("Mortality calibration ", i," (men)"))
   
-  # ggsave(paste0("./outputs/plots/validation_", i, "_mortality_ratio_men_mean.tiff"),
+  # ggsave(paste0("./outputs/plots/validation/validation_", i, "_mortality_ratio_men_mean.tiff"),
   #        height = 9, width = 16)
-  ggsave(paste0("./outputs/plots/validation_", i, "_mortality_ratio_men_mean.jpeg"),
+  ggsave(paste0("./outputs/plots/validation/validation_", i, "_mortality_ratio_men_mean.jpeg"),
          height = 9, width = 16)
   
   

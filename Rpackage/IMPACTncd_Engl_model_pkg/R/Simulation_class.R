@@ -320,7 +320,7 @@ Simulation <-
       #' Process the lifecourse files
       #' @param multicore If TRUE run the simulation in parallel.
       #' @return The invisible self for chaining.
-      export_summaries = function(multicore = TRUE, type = c("le",
+      export_summaries = function(multicore = TRUE, type = c("le", "ly",
                                                              "prvl", "incd",
                                                              "mrtl",  "dis_mrtl",
                                                              "cea")) {
@@ -329,6 +329,7 @@ Simulation <-
         # logic to avoid inappropriate dual processing of already processed mcs
         # TODO take into account scenarios
         if ("le" %in% type) file_pth <- private$output_dir("summaries/le_scaled_up.csv.gz") else
+        if ("ly" %in% type) file_pth <- private$output_dir("summaries/ly_scaled_up.csv.gz") else
         if ("mrtl" %in% type) file_pth <- private$output_dir("summaries/mrtl_scaled_up.csv.gz") else
         if ("dis_mrtl" %in% type) file_pth <- private$output_dir("summaries/dis_mrtl_scaled_up.csv.gz") else
         if ("incd" %in% type) file_pth <- private$output_dir("summaries/incd_scaled_up.csv.gz") else
@@ -758,7 +759,7 @@ Simulation <-
 
       # function to export summaries from lifecourse files
       # lc is a lifecourse file
-      export_summaries_hlpr = function(lc, type = c("le",
+      export_summaries_hlpr = function(lc, type = c("le", "ly",
                                                   "prvl", "incd",
                                                   "mrtl",  "dis_mrtl",
                                                   "cea")) {
@@ -796,6 +797,20 @@ Simulation <-
           # Note: for less aggregation use wtd.mean with popsize i.e le_out[, weighted.mean(LE, popsize), keyby = year]
         }
         
+        if("ly" %in% type){
+          
+          if (self$design$sim_prm$logs) message("Exporting life years...")
+
+          fwrite_safe(lc[all_cause_mrtl == 0, .(LY = sum(wt)),  keyby = strata],
+                      private$output_dir(paste0("summaries/", "ly_scaled_up.csv.gz"
+                      )))
+          fwrite_safe(lc[all_cause_mrtl == 0, .(LY = sum(wt_esp)),  keyby = strata],
+                      private$output_dir(paste0("summaries/", "ly_esp.csv.gz"
+                      )))
+          }
+          # Note: for less aggregation use wtd.mean with popsize i.e le_out[, weighted.mean(LE, popsize), keyby = year]
+        
+        
         # Healthy life expectancy
         # TODO currently some individuals are counted more than once because
         # disease counter and score can be reduced. Ideally only the first reach
@@ -830,7 +845,7 @@ Simulation <-
         #             private$output_dir(paste0("summaries/", "hle_cmsmm1.5_esp.csv.gz"
         #             )))
         
-        strata <- c("agegrp", strata) # Need to be after LE
+      strata <- c("agegrp", strata) # Need to be after LE
         
         if("prvl" %in% type){
           
@@ -1039,6 +1054,13 @@ Simulation <-
           
           lc[, health_util := util_incpt + age * util_age + util_sex + bmi_curr_xps * util_bmi + util_disease]
           
+          # Set discount value #
+          
+          discount_rate <- self$design$sim_prm$discount_rate
+          
+          lc[year <= (self$design$sim_prm$init_year_intv - 2000), dcv := 1]
+          lc[year >  (self$design$sim_prm$init_year_intv - 2000), dcv := 1/(1 + discount_rate)^(year - (self$design$sim_prm$init_year_intv - 2000))]
+          
           # Setup results object #
           
           cea <- CJ(scenario = unique(lc$scenario),
@@ -1050,11 +1072,11 @@ Simulation <-
             
             if(length(x) > 1) {
               
-              q <- MESS::auc(c(1:length(x)), x * wt)
+              q <- MESS::auc(c(1:length(x)), x * wt * dcv, type = "spline")
               
             } else {
               
-              q <- x * wt # For individuals with only one year per scenario
+              q <- x * wt * dcv # For individuals with only one year per scenario
               
             }
             
@@ -1070,11 +1092,11 @@ Simulation <-
             
             if(length(x) > 1) {
               
-              q <- MESS::auc(c(1:length(x)), x * wt_esp)
+              q <- MESS::auc(c(1:length(x)), x * wt_esp * dcv, type = "spline")
               
             } else {
               
-              q <- x * wt_esp # For individuals with only one year per scenario
+              q <- x * wt_esp * dcv # For individuals with only one year per scenario
               
             }
             
@@ -1093,7 +1115,7 @@ Simulation <-
           
           costs_scl <- lc[, lapply(.SD, function(x){
             
-            x <- sum(x * wt)
+            x <- sum(x * wt * dcv)
             
             return(x)
             
@@ -1108,7 +1130,7 @@ Simulation <-
           
           costs_esp <- lc[, lapply(.SD, function(x){
             
-            x <- sum(x * wt_esp)
+            x <- sum(x * wt_esp * dcv)
             
             return(x)
             
@@ -1119,7 +1141,6 @@ Simulation <-
                    c("cost_esp", "cost_t2dm_esp", "cost_chd_esp", "cost_stroke_esp"))
           
           absorb_dt(cea, costs_esp)
-          
           
           cea[, `:=`(
             disease_costs_scl = cost_t2dm_scl + cost_chd_scl + cost_stroke_scl,

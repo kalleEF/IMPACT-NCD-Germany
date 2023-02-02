@@ -7,7 +7,9 @@ scenario_1_fn <- function(sp) {
   
   # Set scenario variables #
   tax <- 20
-  pass_through <- 0.82 # Based on meta-analysis Adreyeva et al. JAMA 2022
+  
+  tbl <- read_fst("./inputs/other_parameters/tax_pass_through.fst", as.data.table = TRUE)
+  pass_through <- as.numeric(tbl[mc == sp$mc_aggr, "tax_pth"])  # Based on meta-analysis Adreyeva et al. JAMA 2022
 
   tbl <- read_fst("./inputs/other_parameters/oPE_ssb.fst", as.data.table = TRUE)
   oPE_ssb <- as.numeric(tbl[mc == sp$mc_aggr, "oPE_ssb"]) # Own-price elasticity of SSBs
@@ -27,11 +29,11 @@ scenario_1_fn <- function(sp) {
   
   # Change in SSB consumption after tax #
   sp$pop[, ssb_delta_xps := ssb_curr_xps - (ssb_curr_xps * (1 + oPE_ssb * ((tax/100) * pass_through)))]
-  sp$pop[year > 13, ssb_curr_xps := ssb_curr_xps - (ssb_delta_xps)]
+  sp$pop[year > (self$design$sim_prm$init_year_intv - 2000), ssb_curr_xps := ssb_curr_xps - (ssb_delta_xps)]
   
   # Change in fruit juice consumption after tax (substitution) #
   sp$pop[, juice_delta_xps := juice_curr_xps - (juice_curr_xps * (1 + cPE_ssb_juice * ((tax/100) * pass_through)))]
-  sp$pop[year > 13, juice_curr_xps := juice_curr_xps - (juice_delta_xps)]
+  sp$pop[year > (self$design$sim_prm$init_year_intv - 2000), juice_curr_xps := juice_curr_xps - (juice_delta_xps)]
   
   # Change in consumption of sugar from SSBs after tax #
   sp$pop[, sugar_delta := (ssb_delta_xps * sugar_per_ssb) + (juice_delta_xps * sugar_per_juice)]
@@ -43,12 +45,12 @@ scenario_1_fn <- function(sp) {
   
   # Lagged effect of BMI #
   sp$pop[, bmi_mod := 0]
-  sp$pop[year > 13, bmi_mod := fifelse(year > (13 + policy_lag) & year <= (13 + policy_lag + bmi_lag),
-                                      (year - (13 + policy_lag)) * bmi_steps,
+  sp$pop[year > (self$design$sim_prm$init_year_intv - 2000), bmi_mod := fifelse(year > ((self$design$sim_prm$init_year_intv - 2000) + policy_lag) & year <= ((self$design$sim_prm$init_year_intv - 2000) + policy_lag + bmi_lag),
+                                      (year - ((self$design$sim_prm$init_year_intv - 2000) + policy_lag)) * bmi_steps,
                                        1)]
   
   # New BMI under taxation scenario #
-  sp$pop[year > (13 + policy_lag), bmi_curr_xps := bmi_curr_xps - (bmi_delta * bmi_mod)]
+  sp$pop[year > ((self$design$sim_prm$init_year_intv - 2000) + policy_lag), bmi_curr_xps := bmi_curr_xps - (bmi_delta * bmi_mod)]
   
   # Delete unnecessary variables from synthpop #
   sp$pop[, c("ssb_delta_xps", "juice_delta_xps", "sugar_delta", "bmi_delta", "bmi_mod") := NULL]
@@ -61,7 +63,9 @@ scenario_2_fn <- function(sp) {
   
   # Set scenario variables #
   tax <- 20
-  pass_through <- 0.82 # Based on meta-analysis Adreyeva et al. JAMA 2022
+  
+  tbl <- read_fst("./inputs/other_parameters/tax_pass_through.fst", as.data.table = TRUE)
+  pass_through <- as.numeric(tbl[mc == sp$mc_aggr, "tax_pth"])  # Based on meta-analysis Adreyeva et al. JAMA 2022
   
   tbl <- read_fst("./inputs/other_parameters/oPE_ssb.fst", as.data.table = TRUE)
   oPE_ssb <- as.numeric(tbl[mc == sp$mc_aggr, "oPE_ssb"]) # Own-price elasticity of SSBs
@@ -81,11 +85,11 @@ scenario_2_fn <- function(sp) {
   
   # Change in SSB consumption after tax #
   sp$pop[, ssb_delta_xps := ssb_curr_xps - (ssb_curr_xps * (1 + oPE_ssb * ((tax/100) * pass_through)))]
-  sp$pop[year > 13, ssb_curr_xps := ssb_curr_xps - (ssb_delta_xps)]
+  sp$pop[year > (self$design$sim_prm$init_year_intv - 2000), ssb_curr_xps := ssb_curr_xps - (ssb_delta_xps)]
   
   # Change in fruit juice consumption after tax #
   sp$pop[, juice_delta_xps := juice_curr_xps - (juice_curr_xps * (1 + oPE_juice * ((tax/100) * pass_through)))]
-  sp$pop[year > 13, juice_curr_xps := juice_curr_xps - (juice_delta_xps)]
+  sp$pop[year > (self$design$sim_prm$init_year_intv - 2000), juice_curr_xps := juice_curr_xps - (juice_delta_xps)]
   
   # Change in consumption of sugar from SSBs after tax #
   sp$pop[, sugar_delta := (ssb_delta_xps * sugar_per_ssb) + (juice_delta_xps * sugar_per_juice)]
@@ -97,12 +101,12 @@ scenario_2_fn <- function(sp) {
   
   # Lagged effect of BMI #
   sp$pop[, bmi_mod := 0]
-  sp$pop[year > 13, bmi_mod := fifelse(year > (13 + policy_lag) & year <= (13 + policy_lag + bmi_lag),
-                                       (year - (13 + policy_lag)) * bmi_steps,
+  sp$pop[year > (self$design$sim_prm$init_year_intv - 2000), bmi_mod := fifelse(year > ((self$design$sim_prm$init_year_intv - 2000) + policy_lag) & year <= ((self$design$sim_prm$init_year_intv - 2000) + policy_lag + bmi_lag),
+                                       (year - ((self$design$sim_prm$init_year_intv - 2000) + policy_lag)) * bmi_steps,
                                        1)]
   
   # New BMI under taxation scenario #
-  sp$pop[year > (13 + policy_lag), bmi_curr_xps := bmi_curr_xps - (bmi_delta * bmi_mod)]
+  sp$pop[year > ((self$design$sim_prm$init_year_intv - 2000) + policy_lag), bmi_curr_xps := bmi_curr_xps - (bmi_delta * bmi_mod)]
   
   # Delete unnecessary variables from synthpop #
   sp$pop[, c("ssb_delta_xps", "juice_delta_xps", "sugar_delta", "bmi_delta", "bmi_mod") := NULL]
@@ -130,11 +134,11 @@ scenario_3_fn <- function(sp) {
   ref_steps <- 1/ref_lag
   
   sp$pop[, ref_mod := 1]
-  sp$pop[year > 13, ref_mod := fifelse(year > 13 & year <= (13 + ref_lag),
-                                       1 - (year - 13) * (1 - ref) * ref_steps,
+  sp$pop[year > (self$design$sim_prm$init_year_intv - 2000), ref_mod := fifelse(year > (self$design$sim_prm$init_year_intv - 2000) & year <= ((self$design$sim_prm$init_year_intv - 2000) + ref_lag),
+                                       1 - (year - (self$design$sim_prm$init_year_intv - 2000)) * (1 - ref) * ref_steps,
                                        ref)]
   
-  sp$pop[year > 13, sugar_per_ssb := sugar_per_ssb * ref_mod]
+  sp$pop[year > (self$design$sim_prm$init_year_intv - 2000), sugar_per_ssb := sugar_per_ssb * ref_mod]
 
   # Change in consumption of sugar from SSBs after tax #
   sp$pop[, sugar_delta := ssb_sugar - (ssb_curr_xps * sugar_per_ssb)]
@@ -146,12 +150,12 @@ scenario_3_fn <- function(sp) {
   
   # Lagged effect of BMI #
   sp$pop[, bmi_mod := 0]
-  sp$pop[year > 13, bmi_mod := fifelse(year > 13 & year <= (13 + bmi_lag),
-                                       (year - 13) * bmi_steps,
+  sp$pop[year > (self$design$sim_prm$init_year_intv - 2000), bmi_mod := fifelse(year > (self$design$sim_prm$init_year_intv - 2000) & year <= ((self$design$sim_prm$init_year_intv - 2000) + bmi_lag),
+                                       (year - (self$design$sim_prm$init_year_intv - 2000)) * bmi_steps,
                                        1)]
   
   # New BMI under taxation scenario #
-  sp$pop[year > 13, bmi_curr_xps := bmi_curr_xps - (bmi_delta * bmi_mod)]
+  sp$pop[year > (self$design$sim_prm$init_year_intv - 2000), bmi_curr_xps := bmi_curr_xps - (bmi_delta * bmi_mod)]
   
   # Delete unnecessary variables from synthpop #
   sp$pop[, c("sugar_delta", "bmi_delta", "ref_mod", "bmi_mod") := NULL]
@@ -167,7 +171,9 @@ scenario_4_fn <- function(sp) {
   # Set scenario variables #
   ref <- 1 - 0.3
   tax <- 20
-  pass_through <- 0.82 # Based on meta-analysis Adreyeva et al. JAMA 2022
+  
+  tbl <- read_fst("./inputs/other_parameters/tax_pass_through.fst", as.data.table = TRUE)
+  pass_through <- as.numeric(tbl[mc == sp$mc_aggr, "tax_pth"])  # Based on meta-analysis Adreyeva et al. JAMA 2022
   
   tbl <- read_fst("./inputs/other_parameters/oPE_ssb.fst", as.data.table = TRUE)
   oPE_ssb <- as.numeric(tbl[mc == sp$mc_aggr, "oPE_ssb"]) # Own-price elasticity of SSBs
@@ -190,19 +196,19 @@ scenario_4_fn <- function(sp) {
   ref_steps <- 1/ref_lag
   
   sp$pop[, ref_mod := 1]
-  sp$pop[year > 13, ref_mod := fifelse(year > 13 & year <= (13 + ref_lag),
-                                       1 - (year - 13) * (1 - ref) * ref_steps,
+  sp$pop[year > (self$design$sim_prm$init_year_intv - 2000), ref_mod := fifelse(year > (self$design$sim_prm$init_year_intv - 2000) & year <= ((self$design$sim_prm$init_year_intv - 2000) + ref_lag),
+                                       1 - (year - (self$design$sim_prm$init_year_intv - 2000)) * (1 - ref) * ref_steps,
                                        ref)]
   
-  sp$pop[year > 13, sugar_per_ssb := sugar_per_ssb * ref_mod]
+  sp$pop[year > (self$design$sim_prm$init_year_intv - 2000), sugar_per_ssb := sugar_per_ssb * ref_mod]
   
   # Change in SSB consumption after tax #
   sp$pop[, ssb_delta_xps := ssb_curr_xps - (ssb_curr_xps * (1 + oPE_ssb * ((tax/100) * pass_through)))]
-  sp$pop[year > 13, ssb_curr_xps := ssb_curr_xps - (ssb_delta_xps)]
+  sp$pop[year > (self$design$sim_prm$init_year_intv - 2000), ssb_curr_xps := ssb_curr_xps - (ssb_delta_xps)]
   
   # Change in fruit juice consumption after tax #
   sp$pop[, juice_delta_xps := juice_curr_xps - (juice_curr_xps * (1 + cPE_ssb_juice * ((tax/100) * pass_through)))]
-  sp$pop[year > 13, juice_curr_xps := juice_curr_xps - (juice_delta_xps)]
+  sp$pop[year > (self$design$sim_prm$init_year_intv - 2000), juice_curr_xps := juice_curr_xps - (juice_delta_xps)]
   
   # Change in consumption of sugar from SSBs and juice after tax #
   sp$pop[, sugar_delta := (ssb_sugar - ssb_curr_xps * sugar_per_ssb) + (juice_delta_xps * sugar_per_juice)]
@@ -214,12 +220,12 @@ scenario_4_fn <- function(sp) {
   
   # Lagged effect of BMI #
   sp$pop[, bmi_mod := 0]
-  sp$pop[year > 13, bmi_mod := fifelse(year > 13 & year <= (13 + bmi_lag),
-                                       (year - 13) * bmi_steps,
+  sp$pop[year > (self$design$sim_prm$init_year_intv - 2000), bmi_mod := fifelse(year > (self$design$sim_prm$init_year_intv - 2000) & year <= ((self$design$sim_prm$init_year_intv - 2000) + bmi_lag),
+                                       (year - (self$design$sim_prm$init_year_intv - 2000)) * bmi_steps,
                                        1)]
   
   # New BMI under taxation scenario #
-  sp$pop[year > (13 + policy_lag), bmi_curr_xps := bmi_curr_xps - (bmi_delta * bmi_mod)]
+  sp$pop[year > ((self$design$sim_prm$init_year_intv - 2000) + policy_lag), bmi_curr_xps := bmi_curr_xps - (bmi_delta * bmi_mod)]
   
   # Delete unnecessary variables from synthpop #
   sp$pop[, c("ssb_delta_xps", "juice_delta_xps", "sugar_delta", "bmi_delta", "bmi_mod", "ref_mod") := NULL]

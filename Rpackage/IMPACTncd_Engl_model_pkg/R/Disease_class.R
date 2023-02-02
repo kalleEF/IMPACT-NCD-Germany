@@ -221,7 +221,7 @@ Disease <-
       #' @return The PARF data.table if it was created, otherwise `NULL`.
 
       gen_parf_files = function(design_ = design, diseases_ = diseases,
-                                popsize = 10000, check = design_$sim_prm$logs, #TODO: Right pop size?
+                                popsize = 500000, check = design_$sim_prm$logs, #TODO: Right pop size?
                                 keep_intermediate_file = TRUE) {
 
         if ((is.numeric(self$meta$incidence$type) &&
@@ -399,7 +399,7 @@ Disease <-
 
       gen_parf = function(sp = sp, design_ = design, diseases_ = diseases,
                           scenario_p_zero = 1, perc_change_m0 = 1, 
-                          popsize = 10000, check = design_$sim_prm$logs, #TODO: Right pop size?
+                          popsize = 500000, check = design_$sim_prm$logs, #TODO: Right pop size?
                           keep_intermediate_file = TRUE) {
 
         # TODO add logic to delete the intermediate synthpop file outside this
@@ -1075,7 +1075,7 @@ Disease <-
               risk_product <- 1
             }
             
-            if (TRUE) {
+            if (design_$sim_prm$calibrate_incd_prb_to_init_year) {
             # Calibrate estimated incidence prbl to init year incidence
             tbl <- self$get_incd(design_$sim_prm$init_year, mc_ = sp$mc_aggr
             )[between(age, design_$sim_prm$ageL,
@@ -1301,9 +1301,6 @@ Disease <-
             if(design_$sim_prm$mortality_calibration){
               # Mortality calibration #
   
-              clbtrend <- 1 # Calibration trend parameter
-              clbintrc <- 1 # Calibration intercept parameter
-              
               if(self$name == "chd"){
                 
                 tbl <- read_fst("./inputs/mortality/mrtl_clbr_chd.fst",
@@ -1311,6 +1308,12 @@ Disease <-
                 
                 absorb_dt(sp$pop, tbl)
                 setnafill(sp$pop, "c", 1, cols = "mrtl_clbr")
+                
+                sp$pop[, clbtrend := 1] # Calibration trend parameter
+                sp$pop[, clbintrc := 1] # Calibration intercept parameter
+
+                # Modifications based on ratios after initial calibration:
+                sp$pop[sex == "men" & age >= 67 & year >= 20, clbtrend := 1.0015] # next values: 1.002, 1.003
                 
               } else if(self$name == "stroke"){
                 
@@ -1320,6 +1323,9 @@ Disease <-
                 absorb_dt(sp$pop, tbl)
                 setnafill(sp$pop, "c", 1, cols = "mrtl_clbr")
                 
+                sp$pop[, clbtrend := 1]
+                sp$pop[, clbintrc := 1]
+                
               } else if(self$name == "nonmodelled"){
                 
                 tbl <- read_fst("./inputs/mortality/mrtl_clbr_nonmodelled.fst",
@@ -1328,9 +1334,17 @@ Disease <-
                 absorb_dt(sp$pop, tbl)
                 setnafill(sp$pop, "c", 1, cols = "mrtl_clbr")
                 
+                sp$pop[, clbtrend := 1]
+                sp$pop[, clbintrc := 1]
+                # TODO
+                # # Modifications based on ratios after initial calibration:
+                # sp$pop[sex == "men" & age >= 70 & age < 80, clbintrc := 1.01]
+                # sp$pop[sex == "men" & age >= 80 & age < 85, clbintrc := 0.99]
+                # sp$pop[year >= 25 & sex == "men" & age >= 85, clbintrc := 0.975]
+                
               } else {
                 
-                sp$pop[, mrtl_clbr := 1]
+                sp$pop[, `:=`(mrtl_clbr = 1, clbintrc = 1, clbtrend = 1)]
                 
               }
               

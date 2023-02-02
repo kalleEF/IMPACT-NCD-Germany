@@ -1,8 +1,9 @@
 
-new_runs <- TRUE
-new_calibration <- FALSE
+new_runs <- FALSE
+new_calibration <- FALSE # SET CALIBRATION IN DESIGN FILE TO "NO" BEFORE ATTEMPT
+check_runs <- TRUE
 
-if(new_runs){
+if(new_runs || check_runs){
   
   source("./global.R")
   
@@ -23,13 +24,15 @@ if(new_runs){
 
 if(new_runs){
   
-  IMPACTncd <- Simulation$new("./inputs/sim_design.yaml")
+  runif(1)
   
-  #IMPACTncd$del_outputs()$del_logs()
+  IMPACTncd <- Simulation$new("./inputs/sim_design_mrtl_clbr.yaml")
+  
+  IMPACTncd$del_outputs()$del_logs()
   
   # Original iterations #
   batch_size <- 4
-  iterations <- 200
+  iterations <- 100
   batches <- split(seq(1, iterations),
                    f = findInterval(seq(1, iterations),
                                     vec = seq(1, iterations, batch_size)))
@@ -75,7 +78,7 @@ if(new_calibration){
   
   setkeyv(e, c("year", "age", "sex"))
   
-  if(exists("IMPACTncdEngl")){
+  if(exists("IMPACTncd")){
     IMPACTncdEngl::is_valid_lookup_tbl(e, c("year", "age", "sex"))
   }
   write_fst(e, "./inputs/mortality/mrtl_clbr_nonmodelled.fst")
@@ -101,7 +104,7 @@ if(new_calibration){
   
   setkeyv(e, c("year", "age", "sex"))
   
-  if(exists("IMPACTncdEngl")){
+  if(exists("IMPACTncd")){
     IMPACTncdEngl::is_valid_lookup_tbl(e, c("year", "age", "sex"))
   }
   write_fst(e, "./inputs/mortality/mrtl_clbr_chd.fst")
@@ -127,9 +130,35 @@ if(new_calibration){
   
   setkeyv(e, c("year", "age", "sex"))
   
-  if(exists("IMPACTncdEngl")){
+  if(exists("IMPACTncd")){
     IMPACTncdEngl::is_valid_lookup_tbl(e, c("year", "age", "sex"))
   }
   write_fst(e, "./inputs/mortality/mrtl_clbr_stroke.fst")
+  
+}
+
+if(check_runs){
+  
+  runif(1)
+  
+  IMPACTncd <- Simulation$new("./inputs/sim_design.yaml")
+  
+  IMPACTncd$del_outputs()$del_logs()
+  
+  # Original iterations #
+  batch_size <- 4
+  iterations <- 50
+  batches <- split(seq(1, iterations),
+                   f = findInterval(seq(1, iterations),
+                                    vec = seq(1, iterations, batch_size)))
+  for(i in batches){
+    
+    scenario_fn <- function(sp) NULL
+    
+    IMPACTncd$
+      run(i, multicore = TRUE, "sc0", m_zero_trend = -0.03, p_zero_trend = 0)
+    
+  }
+  IMPACTncd$export_summaries(multicore = TRUE, type = c("dis_mrtl"))
   
 }

@@ -207,6 +207,13 @@ SynthPop <-
           
           t0 <- fread(x, select = list(integer = c("pid", "year"), character = "scenario", numeric = "wt"),
                       key = c("scenario", "pid", "year"))[scenario == "sc0", ] # wt for sc0
+          
+          # For some reason pid and year get read incorrectly as character sometimes
+          t0[, pid := as.integer(pid)]
+          self$pop[, pid := as.integer(pid)]
+          t0[, year := as.integer(year)]
+          self$pop[, year := as.integer(year)]
+          
           self$pop[t0, on = c("pid", "year"), wt := i.wt]
           self$pop[is.na(all_cause_mrtl), wt := 0]
           self$pop[is.na(wt), wt := wt_immrtl]
@@ -1034,7 +1041,6 @@ SynthPop <-
             dt[, rankstat_juice_sug := NULL]
             dt[, (col_nam) := NULL]
 
-            ####### sugar per ml + total bev sugar MISSING!
             # Calculate sugar from beverages ----
             dt[, bev_sugar := juice_sugar + ssb_sugar]
 
