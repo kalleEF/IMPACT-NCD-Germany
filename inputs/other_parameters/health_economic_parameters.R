@@ -1,18 +1,20 @@
 
+##### Health economic parameters ----
+
+# Load packages
 library(fst)
 library(data.table)
 library(ggplot2)
 library(CKutils)
 
+# Set global vars
 mc_s <- 1000 # Number of MC samples
 
 par_s <- 10 # Paramters
 
 #### Health utility values ----
-# Source: Laxy et al. 2021 Value in Health #
 
-# TODO: Check whether needs to be reestimated to get marginals independent of smoking, education etc.!
-# -> Reestimate old analysis to get actual heterogeneity and appropriate uncertainty!
+# Source: Laxy et al. 2021 Value in Health #
 
 util_combine <- data.table(NULL)
 

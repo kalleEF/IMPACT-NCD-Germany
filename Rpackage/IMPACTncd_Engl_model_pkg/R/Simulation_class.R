@@ -1002,19 +1002,19 @@ Simulation <-
           
           # Load health utility data #
           
-          util_indx <- read_fst("./inputs/other_parameters/health_utility_indx.fst", as.data.table = TRUE)
-          
-          ro <- util_indx[
-            mc %in% mc_, 
-            .("from" = min(from), "to" = max(to))
-          ]
-          
-          util <- read_fst(
-            "./inputs/other_parameters/health_utility.fst",
-            as.data.table = TRUE,
-            from = ro$from,
-            to = ro$to
-          )
+          # util_indx <- read_fst("./inputs/other_parameters/health_utility_indx.fst", as.data.table = TRUE)
+          # 
+          # ro <- util_indx[
+          #   mc %in% mc_, 
+          #   .("from" = min(from), "to" = max(to))
+          # ]
+          # 
+          # util <- read_fst(
+          #   "./inputs/other_parameters/health_utility.fst",
+          #   as.data.table = TRUE,
+          #   from = ro$from,
+          #   to = ro$to
+          # )
           
           # Load healthcare cost data #
           
@@ -1045,14 +1045,83 @@ Simulation <-
           to_agegrp(lc, grp_width = 10, min_age = 50, max_age = 80, agegrp_colname = "age_cost")
           lc[is.na(age_cost), age_cost := fifelse(age < 50, "<50", "80+")]
           
-          absorb_dt(lc, util)
+          #absorb_dt(lc, util)
           absorb_dt(lc, cost)
           
           # Calculate health utility #
           
           if (self$design$sim_prm$logs) message("Calculating QALYs...")
           
-          lc[, health_util := util_incpt + age * util_age + util_sex + bmi_curr_xps * util_bmi + util_disease]
+          # lc[, health_util := util_incpt + age * util_age + util_sex + bmi_curr_xps * util_bmi + util_disease]
+          
+          ### New utility estimation ###
+
+          cov <- read_fst("/inputs/other_parameters/health_util_covariance.fst", as.data.table = TRUE)
+          est <- read_fst("/inputs/other_parameters/health_util_estimates.fst", as.data.table = TRUE)
+
+          lc[, `:=`(Intercept = 1,
+                    sex_num = ifelse(sex == "men", 0, 1),
+                    copd = 0,
+                    cancer = 0,
+                    asthma = 0,
+                    bronchitis = 0,
+                    t2dm = ifelse(t2dm_prvl > 0, 1, 0),
+                    hypertension = 0,
+                    t2dm_hypt = 0,
+                    stroke = ifelse(stroke_prvl > 0, 1, 0),
+                    t2dm_stroke = ifelse(t2dm_prvl > 0 & stroke_prvl > 0, 1, 0),
+                    arrhythmia = 0,
+                    t2dm_arythm = 0,
+                    chd = ifelse(chd_prvl > 0, 1, 0),
+                    t2dm_chd = ifelse(t2dm_prvl > 0 & chd_prvl > 0, 1, 0))]
+
+          est_utility <- function(Intercept, age, sex_num, bmi_curr_xps,
+                                  copd, cancer, asthma, bronchitis, t2dm, hypertension, t2dm_hypt,
+                                  stroke, t2dm_stroke, arrhythmia, t2dm_arythm, chd, t2dm_chd){
+
+            utility_se <- sqrt(
+              c(Intercept, age, sex_num, bmi_curr_xps,
+                copd, cancer, asthma, bronchitis, t2dm, hypertension, t2dm_hypt,
+                stroke, t2dm_stroke, arrhythmia, t2dm_arythm, chd, t2dm_chd)
+
+              %*%
+
+                as.matrix(cov)
+
+              %*%
+
+                c(Intercept, age, sex_num, bmi_curr_xps,
+                  copd, cancer, asthma, bronchitis, t2dm, hypertension, t2dm_hypt,
+                  stroke, t2dm_stroke, arrhythmia, t2dm_arythm, chd, t2dm_chd)
+            )
+
+            return(utility_se)
+
+          }
+
+          lc[, utility_se := mapply(est_utility, Intercept, age, sex_num, bmi_curr_xps,
+                                    copd, cancer, asthma, bronchitis, t2dm, hypertension, t2dm_hypt,
+                                    stroke, t2dm_stroke, arrhythmia, t2dm_arythm, chd, t2dm_chd)]
+
+          lc[, (names(est)) := est]
+
+          lc[, utility :=
+               Intercept +
+               age * coef_age +
+               sex_num * coef_sex_num +
+               bmi_curr_xps * coef_bmi_curr_xps +
+               t2dm * coef_t2dm +
+               stroke * coef_stroke +
+               t2dm_stroke * coef_t2dm_stroke +
+               chd * coef_chd +
+               t2dm_chd * coef_t2dm_chd]
+
+          set.seed(mc_ * 1337)
+
+          lc[, q_util := runif(1, min = 0.001, max = 0.999), by = pid]
+
+          lc[, health_util := qnorm(q_util, utility, utility_se)]
+
           
           # Set discount value #
           
