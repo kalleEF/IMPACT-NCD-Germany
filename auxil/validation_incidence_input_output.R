@@ -12,9 +12,11 @@ prbl = c(0.5, 0.025, 0.975, 0.1, 0.9)
 theme_set(new = theme_economist())
 theme_update(axis.text.x = element_text(size = 9), plot.title = element_text(hjust = 0.5))
 
+analysis <- "calibration_test_with_SSB"
+
 ## Incidence ## ----
 
-tt <- fread("./outputs/summaries/with_SSB/incd_scaled_up.csv.gz"
+tt <- fread(paste0("./outputs/summaries/", analysis, "/incd_scaled_up.csv.gz")
 )[, `:=` (year = year + 2000)]
 tt[, grep("cms", names(tt), value = TRUE) := NULL]
 
@@ -40,13 +42,17 @@ d[, disease := gsub("_prvl", "", disease)]
 e <- fst::read_fst("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Preparation/R/output/disease_epidemiology/disease_epi_l.fst", as.data.table = TRUE)
 e <- e[, c("age", "sex", "mc", "value_chd_incidence_rates", "value_stroke_incidence_rates", "value_diabetes_incidence_rates")]
 
+
+
 to_agegrp(e, max_age = 100)
 
-e <- melt(e, id.vars = c("sex", "age", "agegrp", "mc"))
-e[, disease := gsub("_incidence_rates", "", variable)]
-e[, disease := gsub("value_", "", disease)][, incidence_rate := value]
+e <- melt(e[mc != 0], id.vars = c("sex", "age", "agegrp", "mc"))
 
+e <- e[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("sex", "agegrp")]
+setnames(e, c("sex", "agegrp", "disease", percent(prbl, prefix = "prvl_rate_")))
 
+e[, disease := gsub("_incidence_rates", "", disease)]
+e[, disease := gsub("value_", "", disease)]
 
 model_ages <- unique(d$agegrp)
 
@@ -61,19 +67,22 @@ if(i == "t2dm"){j = "diabetes"}
   
 ggplot(d[disease == i], aes(x = agegrp, y = `prvl_rate_50.0%`, ymin = `prvl_rate_2.5%`,
                                     ymax = `prvl_rate_97.5%`,
-                                    linetype = sex)) +
+                                    )) +
   facet_wrap(~ sex) +
   geom_errorbar() +
   geom_line() +
-  geom_point(data = e[disease == j & agegrp %in% model_ages],
-            aes(x = agegrp, y = incidence_rate, ymin = NULL, ymax = NULL), col = "red") +
+  geom_line(data = e[disease == j & agegrp %in% model_ages],
+            aes(x = agegrp, y = `prvl_rate_50.0%`), col = "red", linetype = "dashed") +
+  geom_errorbar(data = e[disease == j & agegrp %in% model_ages],
+                aes(x = agegrp, ymin = `prvl_rate_2.5%`,
+                ymax = `prvl_rate_97.5%`), col = "red", linetype = "dashed") +
   scale_x_discrete(name = "Age") +
-  scale_y_continuous(name = "Prevalence") +
+  scale_y_continuous(name = "Incidence") +
   ggtitle("Comparison of input and output incidence rates") +
   expand_limits(y = 0) +
   theme(legend.title = element_blank(), legend.position = "none")
 
-cowplot::ggsave2(paste0("withSSB_validation_i_o_incidence_", i, ".png"), width = 16, height = 9, units = "cm", 
+cowplot::ggsave2(paste0("validation_i_o_incidence_", i, "_", analysis, ".png"), width = 16, height = 9, units = "cm", 
                  scale = 2, dpi = 300, path = "./outputs/plots/validation")
 
 }

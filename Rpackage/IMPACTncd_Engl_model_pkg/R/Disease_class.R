@@ -221,7 +221,7 @@ Disease <-
       #' @return The PARF data.table if it was created, otherwise `NULL`.
 
       gen_parf_files = function(design_ = design, diseases_ = diseases,
-                                popsize = 500000, check = design_$sim_prm$logs, #TODO: Right pop size?
+                                popsize = 50000, check = design_$sim_prm$logs, #TODO: Right pop size?
                                 keep_intermediate_file = TRUE) {
 
         if ((is.numeric(self$meta$incidence$type) &&
