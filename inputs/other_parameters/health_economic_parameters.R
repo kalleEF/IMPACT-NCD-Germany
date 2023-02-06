@@ -8,7 +8,7 @@ library(ggplot2)
 library(CKutils)
 
 # Set global vars
-mc_s <- 10000 # Number of MC samples
+mc_s <- 3000 # Number of MC samples
 
 
 
