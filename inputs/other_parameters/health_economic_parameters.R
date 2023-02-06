@@ -10,70 +10,69 @@ library(CKutils)
 # Set global vars
 mc_s <- 1000 # Number of MC samples
 
-par_s <- 10 # Paramters
-
-#### Health utility values ----
-
-# Source: Laxy et al. 2021 Value in Health #
-
-util_combine <- data.table(NULL)
-
-for(i in 1:mc_s){
- 
-  ## Ensure replicability #  
-  set.seed(log(i) * 42/2 + 1337) # Seed is parameter-specific!
-  
-  ## Draw quantiles #
-  quantiles <- runif(par_s, min = 0, max = 1) * 0.9999
-  
-  ## Create data shell #
-  util_data <- CJ(sex =         c(1, 0), # 1 = women, 0 = men
-                  t2dm_stat =   c(1, 0),
-                  chd_stat =    c(3, 2, 1, 0),
-                  stroke_stat = c(3, 2, 1, 0))
-  
-  ## Age and sex utility decrements #
-  util_data[, `:=`(util_incpt = qnorm(quantiles[1], mean = 1.187, sd = 0.019),
-                   util_age = qnorm(quantiles[2], mean = -0.003, sd = 0.0001),
-                   util_sex = sex * qnorm(quantiles[3], mean = -0.029, sd = 0.004))]
-  
-  ## BMI decrement #
-  util_data[, util_bmi := qnorm(quantiles[4], mean = -0.003, sd = 0.0001)]
-  
-  ## Disease-specific utility decrements #
-  # Type 2 Diabetes
-  util_data[, util_disease := fifelse(t2dm_stat == 1 & chd_stat == 0 & stroke_stat == 0,
-                                      qnorm(quantiles[5], mean = -0.028, sd = 0.014), # Only Diabetes
-                              fifelse(t2dm_stat == 1 & chd_stat >= 1 & stroke_stat == 0,
-                                      qnorm(quantiles[5], mean = -0.028, sd = 0.014), ## TBD! Diabetes and CHD
-                              fifelse(t2dm_stat == 1 & chd_stat == 0 & stroke_stat >= 1,
-                                      qnorm(quantiles[6], mean = -0.122, sd = 0.018) +
-                                        qnorm(quantiles[5], mean = -0.028, sd = 0.014), # Diabetes and Stroke
-                              fifelse(t2dm_stat == 1 & chd_stat >= 1 & stroke_stat >= 1,
-                                      qnorm(quantiles[6], mean = -0.122, sd = 0.018) +
-                                        qnorm(quantiles[5], mean = -0.028, sd = 0.014), 0))))] # Diabetes, CHD and Stroke
-  
-  # Coronary Heart Disease and Stroke
-  util_data[, util_disease := fifelse(t2dm_stat == 0 & chd_stat >= 1 & stroke_stat == 0,
-                                      qnorm(quantiles[7], mean = -0.028, sd = 0.010), # Only CHD
-                              fifelse(t2dm_stat == 0 & chd_stat >= 1 & stroke_stat >= 1,
-                                      qnorm(quantiles[8], mean = -0.070, sd = 0.010) +
-                                        qnorm(quantiles[7], mean = -0.028, sd = 0.010), ## TBD! CHD and Stroke
-                              fifelse(t2dm_stat == 0 & chd_stat == 0 & stroke_stat >= 1,
-                                      qnorm(quantiles[8], mean = -0.070, sd = 0.010), util_disease)))] # Only Stroke 
-  
-  util_data[, `:=`(sex = ifelse(sex == 1, "women", "men"),
-                   mc = i)]
-  
-  util_combine <- rbind(util_data, util_combine)
-
-}
-
-write_fst(util_combine, "./inputs/other_parameters/health_utility.fst")
-
-util_combine[, rn := .I]
-tt <- util_combine[, .(from = min(rn), to = max(rn)), keyby = mc]
-write_fst(tt, "./inputs/other_parameters/health_utility_indx.fst", 100L)
+# 
+# #### OLD/DEPRECEATED: Health utility values ----
+# 
+# # Source: Laxy et al. 2021 Value in Health #
+# 
+# util_combine <- data.table(NULL)
+# 
+# for(i in 1:mc_s){
+#  
+#   ## Ensure replicability #  
+#   set.seed(log(i) * 42/2 + 1337) # Seed is parameter-specific!
+#   
+#   ## Draw quantiles #
+#   quantiles <- runif(par_s, min = 0, max = 1) * 0.9999
+#   
+#   ## Create data shell #
+#   util_data <- CJ(sex =         c(1, 0), # 1 = women, 0 = men
+#                   t2dm_stat =   c(1, 0),
+#                   chd_stat =    c(3, 2, 1, 0),
+#                   stroke_stat = c(3, 2, 1, 0))
+#   
+#   ## Age and sex utility decrements #
+#   util_data[, `:=`(util_incpt = qnorm(quantiles[1], mean = 1.187, sd = 0.019),
+#                    util_age = qnorm(quantiles[2], mean = -0.003, sd = 0.0001),
+#                    util_sex = sex * qnorm(quantiles[3], mean = -0.029, sd = 0.004))]
+#   
+#   ## BMI decrement #
+#   util_data[, util_bmi := qnorm(quantiles[4], mean = -0.003, sd = 0.0001)]
+#   
+#   ## Disease-specific utility decrements #
+#   # Type 2 Diabetes
+#   util_data[, util_disease := fifelse(t2dm_stat == 1 & chd_stat == 0 & stroke_stat == 0,
+#                                       qnorm(quantiles[5], mean = -0.028, sd = 0.014), # Only Diabetes
+#                               fifelse(t2dm_stat == 1 & chd_stat >= 1 & stroke_stat == 0,
+#                                       qnorm(quantiles[5], mean = -0.028, sd = 0.014), ## TBD! Diabetes and CHD
+#                               fifelse(t2dm_stat == 1 & chd_stat == 0 & stroke_stat >= 1,
+#                                       qnorm(quantiles[6], mean = -0.122, sd = 0.018) +
+#                                         qnorm(quantiles[5], mean = -0.028, sd = 0.014), # Diabetes and Stroke
+#                               fifelse(t2dm_stat == 1 & chd_stat >= 1 & stroke_stat >= 1,
+#                                       qnorm(quantiles[6], mean = -0.122, sd = 0.018) +
+#                                         qnorm(quantiles[5], mean = -0.028, sd = 0.014), 0))))] # Diabetes, CHD and Stroke
+#   
+#   # Coronary Heart Disease and Stroke
+#   util_data[, util_disease := fifelse(t2dm_stat == 0 & chd_stat >= 1 & stroke_stat == 0,
+#                                       qnorm(quantiles[7], mean = -0.028, sd = 0.010), # Only CHD
+#                               fifelse(t2dm_stat == 0 & chd_stat >= 1 & stroke_stat >= 1,
+#                                       qnorm(quantiles[8], mean = -0.070, sd = 0.010) +
+#                                         qnorm(quantiles[7], mean = -0.028, sd = 0.010), ## TBD! CHD and Stroke
+#                               fifelse(t2dm_stat == 0 & chd_stat == 0 & stroke_stat >= 1,
+#                                       qnorm(quantiles[8], mean = -0.070, sd = 0.010), util_disease)))] # Only Stroke 
+#   
+#   util_data[, `:=`(sex = ifelse(sex == 1, "women", "men"),
+#                    mc = i)]
+#   
+#   util_combine <- rbind(util_data, util_combine)
+# 
+# }
+# 
+# write_fst(util_combine, "./inputs/other_parameters/health_utility.fst")
+# 
+# util_combine[, rn := .I]
+# tt <- util_combine[, .(from = min(rn), to = max(rn)), keyby = mc]
+# write_fst(tt, "./inputs/other_parameters/health_utility_indx.fst", 100L)
 
 #### Healthcare costs ----
 # Source: Kähm et al. 2020 Diabetic Medicine; Kähm et al. 2018 Diabetes Care #
@@ -83,10 +82,17 @@ write_fst(tt, "./inputs/other_parameters/health_utility_indx.fst", 100L)
 #           CHD and Stroke costs for people with diabetes from Kähm 2018.
 #           CHD and Stroke costs for people without diabetes using above - uncomplicated diabetes costs
 #           from Kähm 2018.
+# Assumptions:  - Costs of CHD in people with T2DM are comparable with costs in people without T2DM!
+#               - Assumption: Standard error of mean estimate is 2% due to very high sample size and based on SEs in paper!
 
-# TODO: make variable for SD parameter!
+# TODO: make variable for SD parameter! Necessary?
 
 par_s <- 80 # Paramters
+
+# Inflation factors:
+
+infl_2018 <- 107.3/103.4 # G:\Meine Ablage\PhD\Publications\2021_Diet_simulation_modeling_Germany\Preparation\data\indirect_cost
+infl_2020 <- 107.3/105.3
 
 cost_combine <- data.table(NULL)
 
@@ -98,7 +104,7 @@ for(i in 1:mc_s){
   ## Draw quantiles #
   quantiles <- runif(par_s, min = 0, max = 1) * 0.9999
     
-  cost_data <- CJ(age_cost =         c("<50", "50-59", "60-69", "70-79", "80+"),
+  cost_data <- CJ(age_cost =    c("<50", "50-59", "60-69", "70-79", "80+"),
                   sex =         c(1, 0), # 1 = women, 0 = men
                   t2dm_stat =   c(1, 0), # 2 = prevalent year, 1 = incident year, 0 = no disease
                   chd_stat =    c(3, 2, 1, 0),
@@ -117,6 +123,8 @@ for(i in 1:mc_s){
                               fifelse(age_cost == "70-79", qnorm(quantiles[9], mean = 3156, sd = (3156 - 3127)/1.96),
                                                       qnorm(quantiles[10], mean = 3975, sd = (3975 - 3899)/1.96)))))]
   
+  cost_data[, cost := cost * infl_2020]
+  
   ## Uncomplicated diabetes costs #
   
   cost_data[sex == 1 & t2dm_stat %in% c(1, 2),
@@ -134,6 +142,9 @@ for(i in 1:mc_s){
                                                  qnorm(quantiles[20], mean = 2558, sd = 2558 * 0.02)))))]
   
   cost_data[t2dm_stat == 0, cost_t2dm := 0]
+  
+  cost_data[, cost_t2dm := cost_t2dm * infl_2018]
+  
   
   ## Incident CHD and stroke costs for people without diabetes = (- uncomplicated diabetes costs) #
   
@@ -378,6 +389,9 @@ for(i in 1:mc_s){
   cost_data[chd_stat == 0, cost_chd := 0]
   cost_data[stroke_stat == 0, cost_stroke := 0]
   
+  cost_data[, cost_chd := cost_chd * infl_2018]
+  cost_data[, cost_stroke := cost_stroke * infl_2018]
+  
   
   cost_data[, `:=`(sex = ifelse(sex == 1, "women", "men"),
                    mc = i)]
@@ -391,6 +405,131 @@ write_fst(cost_combine, "./inputs/other_parameters/healthcare_costs.fst")
 cost_combine[, rn := .I]
 tt <- cost_combine[, .(from = min(rn), to = max(rn)), keyby = mc]
 write_fst(tt, "./inputs/other_parameters/healthcare_costs_indx.fst", 100L)
+
+
+
+#### Indirect and productivity costs ----
+# Source: Winter et al. 2008, Ulrich et al. 2016, Icks et al. 2020,
+#         Icks et al. 2013, DeStatis ~ Verdienststrukturerhebung, Arbeitskosten, Sozialbeiträge der Arbeitnehmer
+
+# Approach: Detailed in Productivity Cost Estimation document.
+#           Categories: Premature death cost, Early retirement, Sick leave, T2DM self-management + time cost for health services
+# Assumptions:  - 
+
+# TODO: make variable for SD parameter! Necessary?
+
+par_s <- 80 # Paramters
+
+# Inflation factors:
+
+infl_2018 <- 107.3/103.4 # G:\Meine Ablage\PhD\Publications\2021_Diet_simulation_modeling_Germany\Preparation\data\indirect_cost
+infl_2020 <- 107.3/105.3
+
+indir_cost_combine <- data.table(NULL)
+
+age_groups <- c("<25", agegrp_name(min_age = 25, max_age = 65))
+
+for(i in 1:mc_s){
+  
+  ## Ensure replicability #  
+  set.seed(log(i) * 42 + 1337) # Seed is parameter-specific!
+  
+  ## Draw quantiles #
+  quantiles <- runif(par_s, min = 0, max = 1) * 0.9999
+  
+  indir_cost_data <- CJ(age_cost =    age_groups,
+                        sex =         c(1, 0), # 1 = women, 0 = men
+                        t2dm_stat =   c(2, 0), # 2 = prevalent year, 1 = premature death, 0 = no disease
+                        stroke_stat = c(2, 0),
+                        chd_mort =    c(1, 0),
+                        stroke_mort = c(1, 0),
+                        other_mort =  c(1, 0))
+  
+  indir_cost_data <- indir_cost_data[!(chd_mort == 1 & stroke_mort == 1)]
+  indir_cost_data <- indir_cost_data[!(chd_mort == 1 & other_mort == 1)]
+  indir_cost_data <- indir_cost_data[!(stroke_mort == 1 & other_mort == 1)]
+  
+  ## Premature death costs #
+  
+  # Women
+  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
+                    age_cost == "<25" & sex == 1,
+                  cost_death := 13067]
+  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
+                    age_cost == "25-29" & sex == 1,
+                  cost_death := 28293]
+  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
+                    age_cost == "30-34" & sex == 1,
+                  cost_death := 29700]
+  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
+                    age_cost == "35-39" & sex == 1,
+                  cost_death := 26133]
+  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
+                    age_cost == "40-44" & sex == 1,
+                  cost_death := 25107]
+  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
+                    age_cost == "45-49" & sex == 1,
+                  cost_death := 25431]
+  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
+                    age_cost == "50-54" & sex == 1,
+                  cost_death := 25939]
+  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
+                    age_cost == "55-59" & sex == 1,
+                  cost_death := 25367]
+  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
+                    age_cost == "60-64" & sex == 1,
+                  cost_death := 24168]
+  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
+                    age_cost == "65+" & sex == 1,
+                  cost_death := 5304]
+  
+  # Women
+  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
+                    age_cost == "<25" & sex == 0,
+                  cost_death := 14094]
+  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
+                    age_cost == "25-29" & sex == 0,
+                  cost_death := 32431]
+  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
+                    age_cost == "30-34" & sex == 0,
+                  cost_death := 38100]
+  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
+                    age_cost == "35-39" & sex == 0,
+                  cost_death := 41147]
+  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
+                    age_cost == "40-44" & sex == 0,
+                  cost_death := 42241]
+  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
+                    age_cost == "45-49" & sex == 0,
+                  cost_death := 43841]
+  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
+                    age_cost == "50-54" & sex == 0,
+                  cost_death := 45026]
+  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
+                    age_cost == "55-59" & sex == 0,
+                  cost_death := 43790]
+  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
+                    age_cost == "60-64" & sex == 0,
+                  cost_death := 40812]
+  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
+                    age_cost == "65+" & sex == 0,
+                  cost_death := 5400]
+  
+  
+  indir_cost_data[, `:=`(sex = ifelse(sex == 1, "women", "men"),
+                   mc = i)]
+  
+  indir_cost_combine <- rbind(indir_cost_data, indir_cost_combine)
+  
+}  
+
+
+
+
+
+
+
+
 
 ### TESTING FOR COST DATA ###
 
