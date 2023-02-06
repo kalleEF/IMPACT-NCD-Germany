@@ -9,7 +9,7 @@ IMPACTncd$del_outputs()$del_logs()
 #g <- IMPACTncd$get_causal_structure(print_plot = T)
 
 # Original iterations #
-batch_size <- 10
+batch_size <- 18
 iterations <- 100
 batches <- split(seq(1, iterations),
                  f = findInterval(seq(1, iterations),

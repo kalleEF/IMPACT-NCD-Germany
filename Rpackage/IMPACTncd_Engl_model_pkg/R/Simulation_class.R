@@ -1056,8 +1056,8 @@ Simulation <-
           
           ### New utility estimation ###
 
-          cov <- read_fst("/inputs/other_parameters/health_util_covariance.fst", as.data.table = TRUE)
-          est <- read_fst("/inputs/other_parameters/health_util_estimates.fst", as.data.table = TRUE)
+          cov <- read_fst("./inputs/other_parameters/health_util_covariance.fst", as.data.table = TRUE)
+          est <- read_fst("./inputs/other_parameters/health_util_estimates.fst", as.data.table = TRUE)
 
           lc[, `:=`(Intercept = 1,
                     sex_num = ifelse(sex == "men", 0, 1),
