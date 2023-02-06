@@ -10,20 +10,24 @@ library(scales)
 
 ## SET ANALYSIS + IN AND OUT PATHS BEFORE USE ##
 
-analysis <- "with_SSB"
+analysis <- "workstation_test"
 
-if(!file.exists(paste0("./outputs/summaries/", analysis, "/"))){
-  dir.create(paste0("./outputs/summaries/", analysis, "/"))
+if(!file.exists(paste0("/media/php-workstation/Storage 1/IMPACT_Storage/outputs/tables/", analysis, "/"))){
+  dir.create(paste0("/media/php-workstation/Storage 1/IMPACT_Storage/outputs/tables/", analysis, "/"))
+}
+
+if(!file.exists(paste0("/media/php-workstation/Storage 1/IMPACT_Storage/outputs/plots/", analysis, "/"))){
+  dir.create(paste0("/media/php-workstation/Storage 1/IMPACT_Storage/outputs/plots/", analysis, "/"))
 }
 
 # Input path for IMPACT results
-in_path <- paste0("./outputs/summaries/", analysis, "/")
+in_path <- paste0("/media/php-workstation/Storage 1/IMPACT_Storage/outputs/summaries/")
 
 # Output path for tables
-out_path_tables <- paste0("./outputs/tables/", analysis, "/")
+out_path_tables <- paste0("/media/php-workstation/Storage 1/IMPACT_Storage/outputs/tables/", analysis, "/")
 
 # Output path for plots
-out_path_plots <- paste0("./outputs/plots/", analysis, "/")
+out_path_plots <- paste0("/media/php-workstation/Storage 1/IMPACT_Storage/outputs/plots/", analysis, "/")
 
 plot_format <- "tiff"
 
@@ -2703,7 +2707,7 @@ ggsave(paste0(out_path_plots, "life_years_diff_by_year_sex.", plot_format),
 ## Life years lived total ## ----
 
 tt <- fread(paste0(in_path, "ly_scaled_up.csv.gz")
-)[, `:=` (year = year + 2000, popsize = NULL)]
+)[, `:=` (year = year + 2000)]
 
 outstrata <- c("mc", "year")
 
@@ -2722,9 +2726,9 @@ fwrite(d[(scenario %in% grep("_diff", unique(d$scenario), value = TRUE))],
        paste0(out_path_tables, "life_years_diff_by_year.csv"), sep = ";")
 
 ggplot(d[!(scenario %in% grep("_diff", unique(d$scenario), value = TRUE))],
-       aes(x = year, y = `LE_diff_50.0%`,
-           ymin = `LE_diff_2.5%`,
-           ymax = `LE_diff_97.5%`,
+       aes(x = year, y = `LY_diff_50.0%`,
+           ymin = `LY_diff_2.5%`,
+           ymax = `LY_diff_97.5%`,
            col = scenario, fill = scenario)) +
   geom_ribbon(alpha = 0.5/5, colour = NA) +
   geom_line() +
@@ -2737,9 +2741,9 @@ ggsave(paste0(out_path_plots, "life_years_by_year.", plot_format),
        height = 9, width = 16)
 
 ggplot(d[(scenario %in% grep("_diff", unique(d$scenario), value = TRUE))],
-       aes(x = year, y = `LE_diff_50.0%`,
-           ymin = `LE_diff_2.5%`,
-           ymax = `LE_diff_97.5%`,
+       aes(x = year, y = `LY_diff_50.0%`,
+           ymin = `LY_diff_2.5%`,
+           ymax = `LY_diff_97.5%`,
            col = scenario, fill = scenario)) +
   geom_ribbon(alpha = 0.5/5, colour = NA) +
   geom_line() +
