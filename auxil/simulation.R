@@ -5,7 +5,7 @@ source("./auxil/scenarios.R")
 runif(1)
 
 IMPACTncd <- Simulation$new("./inputs/sim_design.yaml") 
-IMPACTncd$del_outputs()$del_logs()
+#IMPACTncd$del_outputs()$del_logs()
 #g <- IMPACTncd$get_causal_structure(print_plot = T)
 
 # Original iterations #
