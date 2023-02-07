@@ -485,7 +485,7 @@ Disease <-
             parf_dt[, (nam) := (mu * (1 - parf))]
             parf_dt[, "mu" := NULL]
 
-            if (!design_$sim_prm$model_trends_in_redidual_incd) {
+            if (!design_$sim_prm$model_trends_in_residual_incd) {
 
               parf_dt <- clone_dt(parf_dt, design_$sim_prm$sim_horizon_max + 1)
               parf_dt[, `:=` (
