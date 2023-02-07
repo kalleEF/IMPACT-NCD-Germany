@@ -2653,7 +2653,7 @@ ggsave(paste0(out_path_plots, "life_expectancy_diff_by_year.", plot_format),
 ## Life years lived by sex ## ----
 
 tt <- fread(paste0(in_path, "ly_scaled_up.csv.gz")
-)[, `:=` (year = year + 2000, popsize = NULL)]
+)[, `:=` (year = year + 2000)]
 
 outstrata <- c("mc", "sex", "year")
 
@@ -2672,9 +2672,9 @@ fwrite(d[(scenario %in% grep("_diff", unique(d$scenario), value = TRUE))],
        paste0(out_path_tables, "life_years_diff_by_year_sex.csv"), sep = ";")
 
 ggplot(d[!(scenario %in% grep("_diff", unique(d$scenario), value = TRUE))],
-       aes(x = year, y = `LE_diff_50.0%`,
-           ymin = `LE_diff_2.5%`,
-           ymax = `LE_diff_97.5%`,
+       aes(x = year, y = `LY_diff_50.0%`,
+           ymin = `LY_diff_2.5%`,
+           ymax = `LY_diff_97.5%`,
            col = scenario, fill = scenario)) +
   facet_wrap(~ sex, scales = "free") +
   geom_ribbon(alpha = 0.5/5, colour = NA) +
@@ -2688,9 +2688,9 @@ ggsave(paste0(out_path_plots, "life_years_by_year_sex.", plot_format),
        height = 9, width = 16)
 
 ggplot(d[(scenario %in% grep("_diff", unique(d$scenario), value = TRUE))],
-       aes(x = year, y = `LE_diff_50.0%`,
-           ymin = `LE_diff_2.5%`,
-           ymax = `LE_diff_97.5%`,
+       aes(x = year, y = `LY_diff_50.0%`,
+           ymin = `LY_diff_2.5%`,
+           ymax = `LY_diff_97.5%`,
            col = scenario, fill = scenario)) +
   facet_wrap(~ sex, scales = "free") +
   geom_ribbon(alpha = 0.5/5, colour = NA) +
