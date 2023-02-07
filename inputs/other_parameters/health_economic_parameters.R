@@ -364,6 +364,92 @@ indir_cost_combine <- data.table(NULL)
 
 age_groups <- c("<25", agegrp_name(min_age = 25, max_age = 65))
 
+# Construct shell for costs in premature death years beyond age group of death
+# (IMPACT lifecourse does not include "dead" years)
+
+indir_cost_pre_mort_shell <- CJ(age_indir_cost = age_groups,
+                                sex =            c(1, 0)) # 1 = women, 0 = men
+
+indir_cost_pre_mort_shell[age_indir_cost == "<25" & sex == 1,
+                cost_death := 13067]
+indir_cost_pre_mort_shell[age_indir_cost == "25-29" & sex == 1,
+                cost_death := 28293]
+indir_cost_pre_mort_shell[age_indir_cost == "30-34" & sex == 1,
+                cost_death := 29700]
+indir_cost_pre_mort_shell[age_indir_cost == "35-39" & sex == 1,
+                cost_death := 26133]
+indir_cost_pre_mort_shell[age_indir_cost == "40-44" & sex == 1,
+                cost_death := 25107]
+indir_cost_pre_mort_shell[age_indir_cost == "45-49" & sex == 1,
+                cost_death := 25431]
+indir_cost_pre_mort_shell[age_indir_cost == "50-54" & sex == 1,
+                cost_death := 25939]
+indir_cost_pre_mort_shell[age_indir_cost == "55-59" & sex == 1,
+                cost_death := 25367]
+indir_cost_pre_mort_shell[age_indir_cost == "60-64" & sex == 1,
+                cost_death := 24168]
+indir_cost_pre_mort_shell[age_indir_cost == "65+" & sex == 1,
+                cost_death := 5304]
+
+indir_cost_pre_mort_shell[age_indir_cost == "<25" & sex == 0,
+                cost_death := 14094]
+indir_cost_pre_mort_shell[age_indir_cost == "25-29" & sex == 0,
+                cost_death := 32431]
+indir_cost_pre_mort_shell[age_indir_cost == "30-34" & sex == 0,
+                cost_death := 38100]
+indir_cost_pre_mort_shell[age_indir_cost == "35-39" & sex == 0,
+                cost_death := 41147]
+indir_cost_pre_mort_shell[age_indir_cost == "40-44" & sex == 0,
+                cost_death := 42241]
+indir_cost_pre_mort_shell[age_indir_cost == "45-49" & sex == 0,
+                cost_death := 43841]
+indir_cost_pre_mort_shell[age_indir_cost == "50-54" & sex == 0,
+                cost_death := 45026]
+indir_cost_pre_mort_shell[age_indir_cost == "55-59" & sex == 0,
+                cost_death := 43790]
+indir_cost_pre_mort_shell[age_indir_cost == "60-64" & sex == 0,
+                cost_death := 40812]
+indir_cost_pre_mort_shell[age_indir_cost == "65+" & sex == 0,
+                cost_death := 5400]
+
+# Add fringe benefits (Sozialbeiträge der Arbeitgeber; Tabelle Seite 16 in Arbeits und Lohnkosten 2020)
+
+fringe_rate <- 1 - 48038/62273
+
+indir_cost_pre_mort_shell[, cost_death := cost_death/(1-fringe_rate)]
+
+# Inflate to 2022
+
+infl_2018 <- 116.00733/105.8160 # Arbeitskosten index 2022/2018
+
+indir_cost_pre_mort_shell[, cost_death := cost_death * infl_2018][is.na(cost_death), cost_death := 0]
+
+
+setkey(indir_cost_pre_mort_shell, "sex")
+
+indir_cost_pre_mort_shell[, age_id := rep(c(seq(2, 10, 1), 1), 2)]
+
+setkey(indir_cost_pre_mort_shell, "sex", "age_id")
+
+indir_cost_pre_mort <- CJ(age_indir_cost = age_groups,
+                          sex =            c(1, 0)) # 1 = women, 0 = men
+
+for(i in unique(indir_cost_pre_mort_shell$age_id)){
+  for(j in unique(indir_cost_pre_mort_shell$sex)){
+  
+    age_grp <- as.character(indir_cost_pre_mort_shell[age_id == i & sex == j, "age_indir_cost"])
+    
+    cost_death_ij <- 5 * as.numeric(indir_cost_pre_mort_shell[age_id > i & age_id < 10 &
+                                                         sex == j, lapply(.SD, sum), .SDcols = "cost_death"])
+    
+    indir_cost_pre_mort[age_indir_cost == age_grp & sex == j, cost_death_cum := cost_death_ij]
+    
+  }
+}
+
+indir_cost_pre_mort[is.na(cost_death_cum), cost_death_cum := 0]
+
+
 for(i in 1:mc_s){
   
   ## Ensure replicability #  
@@ -372,85 +458,85 @@ for(i in 1:mc_s){
   ## Draw quantiles #
   quantiles <- runif(par_s, min = 0, max = 1) * 0.9999
   
-  indir_cost_data <- CJ(age_cost =    age_groups,
-                        sex =         c(1, 0), # 1 = women, 0 = men
-                        t2dm_stat =   c(2, 0), # 2 = prevalent year, 1 = premature death, 0 = no disease
-                        stroke_stat = c(2, 0),
-                        chd_mort =    c(1, 0),
-                        stroke_mort = c(1, 0),
-                        other_mort =  c(1, 0))
+  indir_cost_data <- CJ(age_indir_cost =  age_groups,
+                        sex =             c(1, 0), # 1 = women, 0 = men
+                        t2dm_stat =       c(1, 0), # 1 = prevalent year, 0 = no disease
+                        stroke_stat =     c(2, 1, 0), # 1/2 = prevalent year, 0 = no disease
+                        chd_pre_mort =    c(1, 0), # 1 = premature death, 0 = no disease
+                        stroke_pre_mort = c(1, 0),
+                        other_pre_mort =  c(1, 0))
   
-  indir_cost_data <- indir_cost_data[!(chd_mort == 1 & stroke_mort == 1)]
-  indir_cost_data <- indir_cost_data[!(chd_mort == 1 & other_mort == 1)]
-  indir_cost_data <- indir_cost_data[!(stroke_mort == 1 & other_mort == 1)]
+  indir_cost_data <- indir_cost_data[!(chd_pre_mort == 1 & stroke_pre_mort == 1)]
+  indir_cost_data <- indir_cost_data[!(chd_pre_mort == 1 & other_pre_mort == 1)]
+  indir_cost_data <- indir_cost_data[!(stroke_pre_mort == 1 & other_pre_mort == 1)]
   
-  
+
   
   
   ## Premature death costs (Tabelle 3.3.1 Bruttojahresverdientse in Verdienststrukturerhebung 2018) #
   
   # Women
-  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
-                    age_cost == "<25" & sex == 1,
+  indir_cost_data[(chd_pre_mort == 1 | stroke_pre_mort == 1 | other_pre_mort == 1) &
+                    age_indir_cost == "<25" & sex == 1,
                   cost_death := 13067]
-  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
-                    age_cost == "25-29" & sex == 1,
+  indir_cost_data[(chd_pre_mort == 1 | stroke_pre_mort == 1 | other_pre_mort == 1) &
+                    age_indir_cost == "25-29" & sex == 1,
                   cost_death := 28293]
-  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
-                    age_cost == "30-34" & sex == 1,
+  indir_cost_data[(chd_pre_mort == 1 | stroke_pre_mort == 1 | other_pre_mort == 1) &
+                    age_indir_cost == "30-34" & sex == 1,
                   cost_death := 29700]
-  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
-                    age_cost == "35-39" & sex == 1,
+  indir_cost_data[(chd_pre_mort == 1 | stroke_pre_mort == 1 | other_pre_mort == 1) &
+                    age_indir_cost == "35-39" & sex == 1,
                   cost_death := 26133]
-  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
-                    age_cost == "40-44" & sex == 1,
+  indir_cost_data[(chd_pre_mort == 1 | stroke_pre_mort == 1 | other_pre_mort == 1) &
+                    age_indir_cost == "40-44" & sex == 1,
                   cost_death := 25107]
-  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
-                    age_cost == "45-49" & sex == 1,
+  indir_cost_data[(chd_pre_mort == 1 | stroke_pre_mort == 1 | other_pre_mort == 1) &
+                    age_indir_cost == "45-49" & sex == 1,
                   cost_death := 25431]
-  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
-                    age_cost == "50-54" & sex == 1,
+  indir_cost_data[(chd_pre_mort == 1 | stroke_pre_mort == 1 | other_pre_mort == 1) &
+                    age_indir_cost == "50-54" & sex == 1,
                   cost_death := 25939]
-  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
-                    age_cost == "55-59" & sex == 1,
+  indir_cost_data[(chd_pre_mort == 1 | stroke_pre_mort == 1 | other_pre_mort == 1) &
+                    age_indir_cost == "55-59" & sex == 1,
                   cost_death := 25367]
-  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
-                    age_cost == "60-64" & sex == 1,
+  indir_cost_data[(chd_pre_mort == 1 | stroke_pre_mort == 1 | other_pre_mort == 1) &
+                    age_indir_cost == "60-64" & sex == 1,
                   cost_death := 24168]
-  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
-                    age_cost == "65+" & sex == 1,
+  indir_cost_data[(chd_pre_mort == 1 | stroke_pre_mort == 1 | other_pre_mort == 1) &
+                    age_indir_cost == "65+" & sex == 1,
                   cost_death := 5304]
   
   # Men
-  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
-                    age_cost == "<25" & sex == 0,
+  indir_cost_data[(chd_pre_mort == 1 | stroke_pre_mort == 1 | other_pre_mort == 1) &
+                    age_indir_cost == "<25" & sex == 0,
                   cost_death := 14094]
-  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
-                    age_cost == "25-29" & sex == 0,
+  indir_cost_data[(chd_pre_mort == 1 | stroke_pre_mort == 1 | other_pre_mort == 1) &
+                    age_indir_cost == "25-29" & sex == 0,
                   cost_death := 32431]
-  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
-                    age_cost == "30-34" & sex == 0,
+  indir_cost_data[(chd_pre_mort == 1 | stroke_pre_mort == 1 | other_pre_mort == 1) &
+                    age_indir_cost == "30-34" & sex == 0,
                   cost_death := 38100]
-  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
-                    age_cost == "35-39" & sex == 0,
+  indir_cost_data[(chd_pre_mort == 1 | stroke_pre_mort == 1 | other_pre_mort == 1) &
+                    age_indir_cost == "35-39" & sex == 0,
                   cost_death := 41147]
-  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
-                    age_cost == "40-44" & sex == 0,
+  indir_cost_data[(chd_pre_mort == 1 | stroke_pre_mort == 1 | other_pre_mort == 1) &
+                    age_indir_cost == "40-44" & sex == 0,
                   cost_death := 42241]
-  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
-                    age_cost == "45-49" & sex == 0,
+  indir_cost_data[(chd_pre_mort == 1 | stroke_pre_mort == 1 | other_pre_mort == 1) &
+                    age_indir_cost == "45-49" & sex == 0,
                   cost_death := 43841]
-  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
-                    age_cost == "50-54" & sex == 0,
+  indir_cost_data[(chd_pre_mort == 1 | stroke_pre_mort == 1 | other_pre_mort == 1) &
+                    age_indir_cost == "50-54" & sex == 0,
                   cost_death := 45026]
-  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
-                    age_cost == "55-59" & sex == 0,
+  indir_cost_data[(chd_pre_mort == 1 | stroke_pre_mort == 1 | other_pre_mort == 1) &
+                    age_indir_cost == "55-59" & sex == 0,
                   cost_death := 43790]
-  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
-                    age_cost == "60-64" & sex == 0,
+  indir_cost_data[(chd_pre_mort == 1 | stroke_pre_mort == 1 | other_pre_mort == 1) &
+                    age_indir_cost == "60-64" & sex == 0,
                   cost_death := 40812]
-  indir_cost_data[(chd_mort == 1 | stroke_mort == 1 | other_mort == 1) &
-                    age_cost == "65+" & sex == 0,
+  indir_cost_data[(chd_pre_mort == 1 | stroke_pre_mort == 1 | other_pre_mort == 1) &
+                    age_indir_cost == "65+" & sex == 0,
                   cost_death := 5400]
   
   # Add fringe benefits (Sozialbeiträge der Arbeitgeber; Tabelle Seite 16 in Arbeits und Lohnkosten 2020)
@@ -465,6 +551,11 @@ for(i in 1:mc_s){
   
   indir_cost_data[, cost_death := cost_death * infl_2018][is.na(cost_death), cost_death := 0]
   
+  # Costs in premature death years beyond age group of death (IMPACT lifecourse does not include "dead" years)
+  
+  absorb_dt(indir_cost_data, indir_cost_pre_mort)
+  
+  indir_cost_data[cost_death == 0, cost_death_cum := 0]
   
   
   
@@ -474,7 +565,7 @@ for(i in 1:mc_s){
   
   # SE from paper: (4103-3024)/1.96 = 550.5102 => 13.41726% of mean estimate => Assumption: Variation of 15%
   
-  indir_cost_data[, cost_rtr_t2dm := ifelse(t2dm_stat == 2,
+  indir_cost_data[, cost_rtr_t2dm := ifelse(t2dm_stat == 1,
                                             qnorm(quantiles[1], mean = 4103 - 3344, sd = (4103 - 3344) * 0.15),
                                             0)]
   
@@ -489,7 +580,7 @@ for(i in 1:mc_s){
   shape <- 1130**2/1170**2
   scale <- 1170**2/1130
   
-  indir_cost_data[, cost_rtr_stroke := ifelse(stroke_stat == 2,
+  indir_cost_data[, cost_rtr_stroke := ifelse(stroke_stat %in% c(1, 2),
                                               qgamma(quantiles[2], shape = shape, scale = scale),
                                               0)]
   
@@ -504,7 +595,7 @@ for(i in 1:mc_s){
   
   # Type 2 Diabetes (Ulrich et al. 2016) #
   
-  indir_cost_data[, cost_scklv_t2dm := ifelse(t2dm_stat == 2,
+  indir_cost_data[, cost_scklv_t2dm := ifelse(t2dm_stat == 1,
                                               qnorm(quantiles[3], mean = 3344, sd = (3344 - 1995)/1.96),
                                                     0)]
   
@@ -516,7 +607,7 @@ for(i in 1:mc_s){
   shape <- 130**2/870**2
   scale <- 870**2/130
   
-  indir_cost_data[, cost_scklv_stroke := ifelse(stroke_stat == 2,
+  indir_cost_data[, cost_scklv_stroke := ifelse(stroke_stat %in% c(1, 2),
                                                 qgamma(quantiles[4], shape = shape, scale = scale),
                                                 0)]
   
@@ -527,7 +618,7 @@ for(i in 1:mc_s){
   
   ## Type 2 Diabetes Self-Management #
   
-  indir_cost_data[, cost_slfmgt_t2dm := ifelse(t2dm_stat == 2,
+  indir_cost_data[, cost_slfmgt_t2dm := ifelse(t2dm_stat == 1,
                                               qnorm(quantiles[5], mean = 2068, sd = (2068 - 1658)/1.96),
                                               0)]
 
@@ -538,7 +629,7 @@ for(i in 1:mc_s){
   
   ## Health Services Time Cost for People with and without Diabetes #
   
-  indir_cost_data[, cost_time_t2dm := ifelse(t2dm_stat == 2,
+  indir_cost_data[, cost_time_t2dm := ifelse(t2dm_stat == 1,
                                              qnorm(quantiles[6], mean = 2447.1, sd = (2447.1 - 804.5)/1.96),
                                              0)]
   
@@ -559,7 +650,7 @@ for(i in 1:mc_s){
   
 }  
 
-indir_cost_combine <- indir_cost_combine[age_cost != "65+"]
+indir_cost_combine[age_indir_cost == "65+", (grep("cost_", names(indir_cost_combine), value = TRUE)) := 0]
 
 write_fst(indir_cost_combine, "./inputs/other_parameters/indirect_costs.fst")
 

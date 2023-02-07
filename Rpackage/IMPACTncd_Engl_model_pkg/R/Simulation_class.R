@@ -1000,22 +1000,6 @@ Simulation <-
           
           cea_strata <- c("scenario", "sex", "agegrp_start")
           
-          # Load health utility data #
-          
-          # util_indx <- read_fst("./inputs/other_parameters/health_utility_indx.fst", as.data.table = TRUE)
-          # 
-          # ro <- util_indx[
-          #   mc %in% mc_, 
-          #   .("from" = min(from), "to" = max(to))
-          # ]
-          # 
-          # util <- read_fst(
-          #   "./inputs/other_parameters/health_utility.fst",
-          #   as.data.table = TRUE,
-          #   from = ro$from,
-          #   to = ro$to
-          # )
-          
           # Load healthcare cost data #
           
           cost_indx <- read_fst("./inputs/other_parameters/healthcare_costs_indx.fst", as.data.table = TRUE)
@@ -1032,6 +1016,22 @@ Simulation <-
             to = ro$to
           )
           
+          # Load indirect cost data #
+          
+          indir_cost_indx <- read_fst("./inputs/other_parameters/indirect_costs_indx.fst", as.data.table = TRUE)
+          
+          ro <- indir_cost_indx[
+            mc %in% mc_, 
+            .("from" = min(from), "to" = max(to))
+          ]
+          
+          indir_cost <- read_fst(
+            "./inputs/other_parameters/indirect_costs.fst",
+            as.data.table = TRUE,
+            from = ro$from,
+            to = ro$to
+          )
+          
           # Setup lifecourse #
           
           lc[, `:=`(t2dm_stat = fifelse(t2dm_prvl > 1, 1, 0),
@@ -1040,13 +1040,26 @@ Simulation <-
                                                fifelse(chd_prvl > 0 & all_cause_mrtl == 2, 3, 0))), # Mortality from CHD
                     stroke_stat = fifelse(stroke_prvl == 1, 1,
                                           fifelse(stroke_prvl > 1, 2,
-                                                  fifelse(stroke_prvl > 0 & all_cause_mrtl == 3, 3, 0))))] # Mortality from stroke
+                                                  fifelse(stroke_prvl > 0 & all_cause_mrtl == 3, 3, 0))), # Mortality from stroke
+                    chd_pre_mort = fifelse(age < 65 & chd_prvl > 0 & all_cause_mrtl == 2, 1, 0), # Premature mortality
+                    stroke_pre_mort = fifelse(age < 65 & stroke_prvl > 0 & all_cause_mrtl == 3, 1, 0),
+                    other_pre_mort = fifelse(age < 65 & all_cause_mrtl == 1, 1, 0))] 
           
           to_agegrp(lc, grp_width = 10, min_age = 50, max_age = 80, agegrp_colname = "age_cost")
-          lc[is.na(age_cost), age_cost := fifelse(age < 50, "<50", "80+")]
+          to_agegrp(lc, grp_width = 5, min_age = 25, max_age = 65, agegrp_colname = "age_indir_cost")
           
-          #absorb_dt(lc, util)
+          lc[is.na(age_cost), age_cost := fifelse(age < 50, "<50", "80+")]
+          lc[is.na(age_indir_cost), age_indir_cost := fifelse(age < 25, "<25", "65+")]
+          
           absorb_dt(lc, cost)
+          absorb_dt(lc, indir_cost)
+          
+          # Calculate correct costs due to premature death #
+          
+          lc[, age_pre_mort := as.numeric(stringr::str_sub(age_indir_cost, - 2, - 1)) + 1]
+          lc[is.na(age_pre_mort), age_pre_mort := 0]
+          lc[, cost_death := (0.5 * cost_death + (age_pre_mort - age - 1) * cost_death) + cost_death_cum][, `:=`(age_pre_mort = NULL,
+                                                                                                                 cost_death_cum = NULL)]
           
           # Calculate health utility #
           
@@ -1122,34 +1135,6 @@ Simulation <-
                                         hypertension * tmp154 + t2dm_hypt * tmp171 +
                                         stroke * tmp188 + t2dm_stroke * tmp205 + arrhythmia * tmp222 +
                                         t2dm_arythm * tmp239 + chd * tmp256 + t2dm_chd * tmp273)][, (grep("tmp", names(lc))) := NULL]
-          # 
-          # est_utility <- function(Intercept, age, sex_num, bmi_curr_xps,
-          #                         copd, cancer, asthma, bronchitis, t2dm, hypertension, t2dm_hypt,
-          #                         stroke, t2dm_stroke, arrhythmia, t2dm_arythm, chd, t2dm_chd){
-          # 
-          #   utility_se <- sqrt(
-          #     c(Intercept, age, sex_num, bmi_curr_xps,
-          #       copd, cancer, asthma, bronchitis, t2dm, hypertension, t2dm_hypt,
-          #       stroke, t2dm_stroke, arrhythmia, t2dm_arythm, chd, t2dm_chd)
-          # 
-          #     %*%
-          # 
-          #       as.matrix(cov)
-          # 
-          #     %*%
-          # 
-          #       c(Intercept, age, sex_num, bmi_curr_xps,
-          #         copd, cancer, asthma, bronchitis, t2dm, hypertension, t2dm_hypt,
-          #         stroke, t2dm_stroke, arrhythmia, t2dm_arythm, chd, t2dm_chd)
-          #   )
-          # 
-          #   return(utility_se)
-          # 
-          # }
-          # 
-          # lc[, utility_se := mapply(est_utility, Intercept, age, sex_num, bmi_curr_xps,
-          #                           copd, cancer, asthma, bronchitis, t2dm, hypertension, t2dm_hypt,
-          #                           stroke, t2dm_stroke, arrhythmia, t2dm_arythm, chd, t2dm_chd)]
 
           lc[, (names(est)) := est]
 
@@ -1259,19 +1244,80 @@ Simulation <-
           
           absorb_dt(cea, costs_esp)
           
+          
+          # Calculate Indirect Costs #
+          
+          indir_costs_scl <- lc[, lapply(.SD, function(x){
+            
+            x <- sum(x * wt * dcv)
+            
+            return(x)
+            
+          }), .SDcols = c("cost_death", "cost_rtr_t2dm", "cost_rtr_stroke", "cost_scklv_t2dm",
+                          "cost_scklv_stroke", "cost_slfmgt_t2dm", "cost_time_t2dm", "cost_time"),
+          keyby = c("pid", cea_strata)]
+          
+          setnames(indir_costs_scl, c("cost_death", "cost_rtr_t2dm", "cost_rtr_stroke", "cost_scklv_t2dm",
+                                      "cost_scklv_stroke", "cost_slfmgt_t2dm", "cost_time_t2dm", "cost_time"),
+                   paste0(c("cost_death", "cost_rtr_t2dm", "cost_rtr_stroke", "cost_scklv_t2dm",
+                            "cost_scklv_stroke", "cost_slfmgt_t2dm", "cost_time_t2dm", "cost_time"), "_scl"))
+          
+          absorb_dt(cea, indir_costs_scl)
+          
+          
+          indir_costs_esp <- lc[, lapply(.SD, function(x){
+            
+            x <- sum(x * wt_esp * dcv)
+            
+            return(x)
+            
+          }), .SDcols = c("cost_death", "cost_rtr_t2dm", "cost_rtr_stroke", "cost_scklv_t2dm",
+                          "cost_scklv_stroke", "cost_slfmgt_t2dm", "cost_time_t2dm", "cost_time"),
+          keyby = c("pid", cea_strata)]
+          
+          setnames(indir_costs_esp, c("cost_death", "cost_rtr_t2dm", "cost_rtr_stroke", "cost_scklv_t2dm",
+                                      "cost_scklv_stroke", "cost_slfmgt_t2dm", "cost_time_t2dm", "cost_time"),
+                   paste0(c("cost_death", "cost_rtr_t2dm", "cost_rtr_stroke", "cost_scklv_t2dm",
+                            "cost_scklv_stroke", "cost_slfmgt_t2dm", "cost_time_t2dm", "cost_time"), "_esp"))
+          
+          absorb_dt(cea, indir_costs_esp)
+          
+          
           cea[, `:=`(
             disease_costs_scl = cost_t2dm_scl + cost_chd_scl + cost_stroke_scl,
             disease_costs_esp = cost_t2dm_esp + cost_chd_esp + cost_stroke_esp,
-            tot_costs_scl = cost_scl + cost_t2dm_scl + cost_chd_scl + cost_stroke_scl,
-            tot_costs_esp = cost_esp + cost_t2dm_esp + cost_chd_esp + cost_stroke_esp
+            retire_costs_scl = cost_rtr_t2dm_scl + cost_rtr_stroke_scl,
+            retire_costs_esp = cost_rtr_t2dm_esp + cost_rtr_stroke_esp,
+            sickleave_costs_scl = cost_scklv_t2dm_scl + cost_scklv_stroke_scl,
+            sickleave_costs_esp = cost_scklv_t2dm_esp + cost_scklv_stroke_esp,
+            time_costs_scl = cost_slfmgt_t2dm_scl + cost_time_t2dm_scl + cost_time_scl,
+            time_costs_esp = cost_slfmgt_t2dm_esp + cost_time_t2dm_esp + cost_time_esp,
+            tot_indir_costs_no_mort_scl = cost_rtr_t2dm_scl + cost_rtr_stroke_scl +
+                                    cost_scklv_t2dm_scl + cost_scklv_stroke_scl + 
+                                    cost_slfmgt_t2dm_scl + cost_time_t2dm_scl + cost_time_scl,
+            tot_indir_costs_no_mort_esp = cost_rtr_t2dm_esp + cost_rtr_stroke_esp +
+                                    cost_scklv_t2dm_esp + cost_scklv_stroke_esp + 
+                                    cost_slfmgt_t2dm_esp + cost_time_t2dm_esp + cost_time_esp,
+            tot_indir_costs_scl = cost_death_scl + cost_rtr_t2dm_scl + cost_rtr_stroke_scl +
+                                    cost_scklv_t2dm_scl + cost_scklv_stroke_scl + 
+                                    cost_slfmgt_t2dm_scl + cost_time_t2dm_scl + cost_time_scl,
+            tot_indir_costs_esp = cost_death_esp + cost_rtr_t2dm_esp + cost_rtr_stroke_esp +
+                                    cost_scklv_t2dm_esp + cost_scklv_stroke_esp + 
+                                    cost_slfmgt_t2dm_esp + cost_time_t2dm_esp + cost_time_esp,
+            tot_dir_costs_scl = cost_scl + cost_t2dm_scl + cost_chd_scl + cost_stroke_scl,
+            tot_dir_costs_esp = cost_esp + cost_t2dm_esp + cost_chd_esp + cost_stroke_esp,
+            tot_costs_scl = cost_scl + cost_t2dm_scl + cost_chd_scl + cost_stroke_scl +
+                            cost_death_scl + cost_rtr_t2dm_scl + cost_rtr_stroke_scl +
+                            cost_scklv_t2dm_scl + cost_scklv_stroke_scl + 
+                            cost_slfmgt_t2dm_scl + cost_time_t2dm_scl + cost_time_scl,
+            tot_costs_esp = cost_esp + cost_t2dm_esp + cost_chd_esp + cost_stroke_esp +
+                            cost_death_esp + cost_rtr_t2dm_esp + cost_rtr_stroke_esp +
+                            cost_scklv_t2dm_esp + cost_scklv_stroke_esp + 
+                            cost_slfmgt_t2dm_esp + cost_time_t2dm_esp + cost_time_esp
           )]
           
           cea_agg <- cea[, lapply(.SD, sum),
-                         .SDcols = c("tot_costs_esp", "tot_costs_scl",
-                                     "disease_costs_scl", "disease_costs_esp",
-                                     "cost_t2dm_scl", "cost_t2dm_esp",
-                                     "cost_chd_scl", "cost_chd_esp",
-                                     "cost_stroke_scl", "cost_stroke_esp",
+                         .SDcols = c(grep("cost", names(cea), value = TRUE),
                                      "qalys_esp", "qalys_scl"),
                          keyby = cea_strata]
           
@@ -1294,20 +1340,12 @@ Simulation <-
               
               setkeyv(xx, cea_strata[cea_strata != "scenario"])
               
-              xx[, `:=`(
-                incr_qaly_scl = qalys_scl - shift(qalys_scl),
-                incr_cost_scl = tot_costs_scl - shift(tot_costs_scl),
-                incr_dis_cost_scl = disease_costs_scl - shift(disease_costs_scl),
-                incr_t2dm_cost_scl = cost_t2dm_scl - shift(cost_t2dm_scl),
-                incr_chd_cost_scl = cost_chd_scl - shift(cost_chd_scl),
-                incr_stroke_cost_scl = cost_stroke_scl - shift(cost_stroke_scl),
-                incr_qaly_esp = qalys_esp - shift(qalys_esp),
-                incr_cost_esp = tot_costs_esp - shift(tot_costs_esp),
-                incr_dis_cost_esp = disease_costs_esp - shift(disease_costs_esp),
-                incr_t2dm_cost_esp = cost_t2dm_esp - shift(cost_t2dm_esp),
-                incr_chd_cost_esp = cost_chd_esp - shift(cost_chd_esp),
-                incr_stroke_cost_esp = cost_stroke_esp - shift(cost_stroke_esp)
-              ), keyby = .(agegrp_start, sex)]
+              xx[, (paste0("incr_",
+                           c(grep("cost", names(xx), value = TRUE),
+                             "qaly_scl", "qaly_esp")) := lapply(.SD, function(var){var - shift(var)}),
+                 .SDcols = c(grep("cost", names(xx), value = TRUE),
+                             "qaly_scl", "qaly_esp"),
+                 keyby = .(agegrp_start, sex)]
               
               cea_diff <- rbind(cea_diff, xx)
               
