@@ -43,7 +43,7 @@ IMPACTncd$
   run(i, multicore = TRUE, "sc4", m_zero_trend = -0.03, p_zero_trend = 0)
 
 }
-IMPACTncd$export_summaries(multicore = TRUE)
+IMPACTncd$export_summaries(multicore = TRUE, type = "cea")
 
 #source("./validation_internal/internal_validation_plots.R")
 

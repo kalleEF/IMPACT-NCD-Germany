@@ -1342,7 +1342,7 @@ Simulation <-
               
               xx[, (paste0("incr_",
                            c(grep("cost", names(xx), value = TRUE),
-                             "qaly_scl", "qaly_esp")) := lapply(.SD, function(var){var - shift(var)}),
+                             "qaly_scl", "qaly_esp"))) := lapply(.SD, function(var){var - shift(var)}),
                  .SDcols = c(grep("cost", names(xx), value = TRUE),
                              "qaly_scl", "qaly_esp"),
                  keyby = .(agegrp_start, sex)]
