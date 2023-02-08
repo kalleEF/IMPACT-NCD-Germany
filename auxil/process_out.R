@@ -2864,7 +2864,7 @@ ggsave(paste0(out_path_plots, "life_expectancy_at_60_diff_by_year.", plot_format
        height = 9, width = 16)
 
 
-## Costs and QALYs, total, by sex and by agegrp (at model start) ## ----
+         ## Costs and QALYs, total, by sex and by agegrp (at model start) ## ----
 
 cea <- fread(paste0(in_path, "cea_results.csv.gz"))
 cea[, analysis := analysis]

@@ -126,7 +126,7 @@ Disease <-
         private$chksum <-
           digest(list(
             design_$sim_prm[c("init_year", "ageL", "ageH", "apply_RR_to_mrtl2",
-                              "model_trends_in_redidual_incd")],
+                              "model_trends_in_residual_incd")],
             lapply(private$rr, function(x)
               x$get_input_rr()),
             lapply(private$rr, `[[`, "lag"),
@@ -461,7 +461,7 @@ Disease <-
           if (sum(dim(private$incd_indx)) > 0) {
             if (design_$sim_prm$logs) message("Estimating p0.")
 
-            if (design_$sim_prm$model_trends_in_redidual_incd) {
+            if (design_$sim_prm$model_trends_in_residual_incd) {
               # TODO calculate PARF per year. Now it is assumed static as in init year
               yrs <- seq(
                 design_$sim_prm$init_year,
@@ -628,7 +628,7 @@ Disease <-
           if (sum(dim(private$incd_indx)) > 0) {
             if (design_$sim_prm$logs) message("Estimating p0.")
 
-            if (design_$sim_prm$model_trends_in_redidual_incd) {
+            if (design_$sim_prm$model_trends_in_residual_incd) {
               # TODO calculate PARF per year. Now it is assumed static as in init year
               yrs <- seq(
                 design_$sim_prm$init_year,
@@ -652,7 +652,7 @@ Disease <-
             parf_dt[, (nam) := (mu * (1 - parf))]
             parf_dt[, "mu" := NULL]
             
-            if (!design_$sim_prm$model_trends_in_redidual_incd) {
+            if (!design_$sim_prm$model_trends_in_residual_incd) {
               
               parf_dt <- clone_dt(parf_dt, design_$sim_prm$sim_horizon_max + 1)
               parf_dt[, `:=` (
