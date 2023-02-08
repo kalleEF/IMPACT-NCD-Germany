@@ -57,8 +57,6 @@ fwrite(bmi_synthpop_table, "media/php-workstation/Storage 1/IMPACT_Storage/PRIME
 
 ## SSB distribution ##
 
-#TODO include final synthpops from IMPACT model
-
 dat_mean <- dat_bind[, lapply(.SD, wtd.mean, weights = wt),
                      .SDcols = "ssb_curr_xps",
                      by = .(sex, age)]
