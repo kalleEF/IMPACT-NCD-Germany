@@ -996,9 +996,7 @@ Simulation <-
           
           mc_ <- as.integer(unique(lc$mc))
           
-          lc[, agegrp_start := first(agegrp), by = "pid"]
-          
-          cea_strata <- c("scenario", "sex", "agegrp_start")
+          cea_strata <- c("scenario", "sex", "agegrp", "year")
           
           # Load healthcare cost data #
           
@@ -1065,10 +1063,6 @@ Simulation <-
           
           if (self$design$sim_prm$logs) message("Calculating QALYs...")
           
-          # lc[, health_util := util_incpt + age * util_age + util_sex + bmi_curr_xps * util_bmi + util_disease]
-          
-          ### New utility estimation ###
-
           cov <- read_fst("./inputs/other_parameters/health_util_covariance.fst")
           est <- read_fst("./inputs/other_parameters/health_util_estimates.fst", as.data.table = TRUE)
           
@@ -1170,39 +1164,26 @@ Simulation <-
           
           setkeyv(lc, c("pid", cea_strata))
           
+          # Calculate QALYs as weighted and discounted sum per year #
+          
           qalys_scaled <- lc[, lapply(.SD, function(x){
+
+            x <- sum(x * wt * dcv)
             
-            if(length(x) > 1) {
-              
-              q <- MESS::auc(c(1:length(x)), x * wt * dcv, type = "spline")
-              
-            } else {
-              
-              q <- x * wt * dcv # For individuals with only one year per scenario
-              
-            }
-            
-            return(q) 
-            
+            return(x)
+
           }), .SDcols = "health_util", keyby = c("pid", cea_strata)]
           
           setnames(qalys_scaled, "health_util", "qalys_scl")
           
           absorb_dt(cea, qalys_scaled)
           
+          
           qalys_esp <- lc[, lapply(.SD, function(x){
             
-            if(length(x) > 1) {
-              
-              q <- MESS::auc(c(1:length(x)), x * wt_esp * dcv, type = "spline")
-              
-            } else {
-              
-              q <- x * wt_esp * dcv # For individuals with only one year per scenario
-              
-            }
+            x <- sum(x * wt_esp * dcv)
             
-            return(q)
+            return(x)
             
           }), .SDcols = "health_util", keyby = c("pid", cea_strata)]
           
