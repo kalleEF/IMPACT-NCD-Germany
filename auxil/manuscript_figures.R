@@ -25,19 +25,19 @@ cea_w[, analysis := "incl. direct SSB effects"]
 
 cea <- rbind(cea_w, cea_wo)
 
-cea_agg <- cea[, lapply(.SD, sum), .SDcols = !c("analysis", "scenario", "sex", "agegrp_start", "mc"),
+cea_agg <- cea[, lapply(.SD, sum), .SDcols = !c("analysis", "scenario", "sex", "agegrp", "mc"),
                by = c("scenario", "mc", "analysis")]
 
 #TODO: Eventually extend by error bars!
-cea_point <- data.table(x = cea_agg[scenario != "sc0", mean(incr_qaly_scl, na.rm = T), by = .(scenario, analysis)],
-                        y = cea_agg[scenario != "sc0", mean(incr_cost_scl, na.rm = T), by = .(scenario, analysis)])
+cea_point <- data.table(x = cea_agg[scenario != "sc0", mean(incr_qalys_scl, na.rm = T), by = .(scenario, analysis)],
+                        y = cea_agg[scenario != "sc0", mean(incr_tot_costs_scl, na.rm = T), by = .(scenario, analysis)])
 
 cea_point[, `:=`(scenario = x.scenario, y.scenario = NULL,
                  analysis = x.analysis, y.analysis = NULL,
                  mean_qaly = x.V1, mean_cost = y.V1)]
 
-ggplot(cea_agg[scenario != "sc0"], aes(x = incr_qaly_scl,
-                                       y = incr_cost_scl,
+ggplot(cea_agg[scenario != "sc0"], aes(x = incr_qalys_scl,
+                                       y = incr_tot_costs_scl,
                                        col = scenario)) +
   facet_wrap(~ analysis) +
   geom_point(shape = 16, alpha = 0.7, size = 3) +

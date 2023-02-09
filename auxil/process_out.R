@@ -29,7 +29,7 @@ out_path_tables <- paste0("/media/php-workstation/Storage 1/IMPACT_Storage/outpu
 # Output path for plots
 out_path_plots <- paste0("/media/php-workstation/Storage 1/IMPACT_Storage/outputs/plots/", analysis, "/")
 
-plot_format <- "tiff"
+plot_format <- "png"
 
 theme_set(new = theme_economist())
 theme_update(axis.text.x = element_text(size = 9), plot.title = element_text(hjust = 0.5))
@@ -2864,7 +2864,7 @@ ggsave(paste0(out_path_plots, "life_expectancy_at_60_diff_by_year.", plot_format
        height = 9, width = 16)
 
 
-         ## Costs and QALYs, total, by sex and by agegrp (at model start) ## ----
+## Costs and QALYs, total, by sex and by agegrp ## ----
 
 cea <- fread(paste0(in_path, "cea_results.csv.gz"))
 cea[, analysis := analysis]
@@ -2872,16 +2872,16 @@ cea[, analysis := analysis]
 export_vars <- grep("^incr_.*_scl$", names(cea), value = TRUE)
 
 ## Total ##
-cea_tot <- cea[, lapply(.SD, sum), .SDcols = !c("analysis", "scenario", "sex", "agegrp_start", "mc"),
+cea_tot <- cea[, lapply(.SD, sum), .SDcols = !c("analysis", "scenario", "sex", "agegrp", "mc"),
                by = c("scenario", "mc", "analysis")]
 
 ## Sex ##
-cea_sex <- cea[, lapply(.SD, sum), .SDcols = !c("analysis", "scenario", "sex", "agegrp_start", "mc"),
+cea_sex <- cea[, lapply(.SD, sum), .SDcols = !c("analysis", "scenario", "sex", "agegrp", "mc"),
                by = c("scenario", "mc", "analysis", "sex")]
 
 ## Age ##
-cea_age <- cea[, lapply(.SD, sum), .SDcols = !c("analysis", "scenario", "sex", "agegrp_start", "mc"),
-               by = c("scenario", "mc", "analysis", "agegrp_start")]
+cea_age <- cea[, lapply(.SD, sum), .SDcols = !c("analysis", "scenario", "sex", "agegrp", "mc"),
+               by = c("scenario", "mc", "analysis", "agegrp")]
 
 for(i in export_vars){
   
@@ -2904,8 +2904,8 @@ for(i in export_vars){
   
   # QALYs Scaled #
   
-  dd <- cea_age[, fquantile_byid(get(i), prbl, id = analysis), keyby = c("agegrp_start", "scenario")]
-  setnames(dd, c("agegrp_start", "scenario", "analysis", percent(prbl, prefix = paste0(i, "_"))))
+  dd <- cea_age[, fquantile_byid(get(i), prbl, id = analysis), keyby = c("agegrp", "scenario")]
+  setnames(dd, c("agegrp", "scenario", "analysis", percent(prbl, prefix = paste0(i, "_"))))
   
   dd <- na.omit(dd)
   

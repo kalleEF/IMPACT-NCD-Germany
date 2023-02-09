@@ -853,6 +853,8 @@ Simulation <-
           # Note: for less aggregation use wtd.mean with popsize i.e le_out[, weighted.mean(LE, popsize), keyby = year]
         }
         
+        strata <- c("agegrp", strata) # Need to be after LE
+        
         if("ly" %in% type){
           
           if (self$design$sim_prm$logs) message("Exporting life years...")
@@ -901,7 +903,6 @@ Simulation <-
         #             private$output_dir(paste0("summaries/", "hle_cmsmm1.5_esp.csv.gz"
         #             )))
         
-      strata <- c("agegrp", strata) # Need to be after LE
         
         if("prvl" %in% type){
           
@@ -1216,9 +1217,11 @@ Simulation <-
           # Setup results object #
           
           cea <- CJ(scenario = unique(lc$scenario),
-                    pid = unique(lc$pid))
+                    sex = unique(lc$sex),
+                    agegrp = unique(lc$agegrp),
+                    year = unique(lc$year))
           
-          setkeyv(lc, c("pid", cea_strata))
+          # setkeyv(lc, c("pid", cea_strata))
           
           # Calculate QALYs as weighted and discounted sum per year #
           
@@ -1228,7 +1231,7 @@ Simulation <-
             
             return(x)
 
-          }), .SDcols = "health_util", keyby = c("pid", cea_strata)]
+          }), .SDcols = "health_util", keyby = c(cea_strata)]
           
           setnames(qalys_scaled, "health_util", "qalys_scl")
           
@@ -1241,7 +1244,7 @@ Simulation <-
             
             return(x)
             
-          }), .SDcols = "health_util", keyby = c("pid", cea_strata)]
+          }), .SDcols = "health_util", keyby = c(cea_strata)]
           
           setnames(qalys_esp, "health_util", "qalys_esp")
           
@@ -1259,7 +1262,7 @@ Simulation <-
             return(x)
             
           }), .SDcols = c("cost", "cost_t2dm", "cost_chd", "cost_stroke"),
-          keyby = c("pid", cea_strata)]
+          keyby = c(cea_strata)]
           
           setnames(costs_scl, c("cost", "cost_t2dm", "cost_chd", "cost_stroke"),
                    c("cost_scl", "cost_t2dm_scl", "cost_chd_scl", "cost_stroke_scl"))
@@ -1274,7 +1277,7 @@ Simulation <-
             return(x)
             
           }), .SDcols = c("cost", "cost_t2dm", "cost_chd", "cost_stroke"),
-          keyby = c("pid", cea_strata)]
+          keyby = c(cea_strata)]
           
           setnames(costs_esp, c("cost", "cost_t2dm", "cost_chd", "cost_stroke"),
                    c("cost_esp", "cost_t2dm_esp", "cost_chd_esp", "cost_stroke_esp"))
@@ -1292,7 +1295,7 @@ Simulation <-
             
           }), .SDcols = c("cost_death", "cost_rtr_t2dm", "cost_rtr_stroke", "cost_scklv_t2dm",
                           "cost_scklv_stroke", "cost_slfmgt_t2dm", "cost_time_t2dm", "cost_time"),
-          keyby = c("pid", cea_strata)]
+          keyby = c(cea_strata)]
           
           setnames(indir_costs_scl, c("cost_death", "cost_rtr_t2dm", "cost_rtr_stroke", "cost_scklv_t2dm",
                                       "cost_scklv_stroke", "cost_slfmgt_t2dm", "cost_time_t2dm", "cost_time"),
@@ -1310,7 +1313,7 @@ Simulation <-
             
           }), .SDcols = c("cost_death", "cost_rtr_t2dm", "cost_rtr_stroke", "cost_scklv_t2dm",
                           "cost_scklv_stroke", "cost_slfmgt_t2dm", "cost_time_t2dm", "cost_time"),
-          keyby = c("pid", cea_strata)]
+          keyby = c(cea_strata)]
           
           setnames(indir_costs_esp, c("cost_death", "cost_rtr_t2dm", "cost_rtr_stroke", "cost_scklv_t2dm",
                                       "cost_scklv_stroke", "cost_slfmgt_t2dm", "cost_time_t2dm", "cost_time"),
@@ -1382,7 +1385,7 @@ Simulation <-
                              "qalys_scl", "qalys_esp"))) := lapply(.SD, function(var){var - shift(var)}),
                  .SDcols = c(grep("cost", names(xx), value = TRUE),
                              "qalys_scl", "qalys_esp"),
-                 keyby = .(agegrp_start, sex)]
+                 keyby = c(cea_strata[cea_strata != "scenario"])]
               
               cea_diff <- rbind(cea_diff, xx)
               
