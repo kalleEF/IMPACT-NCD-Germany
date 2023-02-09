@@ -203,7 +203,8 @@ SynthPop <-
           self$pop[, tmp := NULL]
         } else if (scenario_nam != "sc0" && !"wt" %in% names(self$pop)) {
           # For policy scenarios.
-          x <- file.path(private$design$sim_prm$output_dir, paste0("lifecourse/", self$mc_aggr, "_lifecourse.csv.gz"))
+          x <- file.path(private$design$sim_prm$output_dir,
+                         private$design$sim_prm$analysis_name, paste0("lifecourse/", self$mc_aggr, "_lifecourse.csv.gz"))
           
           t0 <- fread(x, select = list(integer = c("pid", "year"), character = "scenario", numeric = "wt"),
                       key = c("scenario", "pid", "year"))[scenario == "sc0", ] # wt for sc0
