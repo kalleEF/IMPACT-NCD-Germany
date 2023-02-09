@@ -1,3 +1,4 @@
+analysis_name: workstation_test
 iteration_n: 15
 iteration_n_final: 100
 clusternumber: 36 # explicit parallelisation

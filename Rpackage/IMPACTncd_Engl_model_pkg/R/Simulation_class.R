@@ -74,56 +74,112 @@ Simulation <-
         }
 
         pth <- private$output_dir("summaries/")
+        anal_pth <- paste0(pth, "/", self$design$sim_prm$analysis_name, "/")
+        
         if (!dir.exists(pth)) {
           dir.create(pth)
           if (self$design$sim_prm$logs)
             message(paste0("Folder ", pth, " was created"))
+        }
+        
+        if (!dir.exists(anal_pth)) {
+          dir.create(ptanal_pthh)
+          if (self$design$sim_prm$logs)
+            message(paste0("Folder ", anal_pth, " was created"))
         }
 
         pth <- private$output_dir("tables/")
+        anal_pth <- paste0(pth, "/", self$design$sim_prm$analysis_name, "/") 
+        
         if (!dir.exists(pth)) {
           dir.create(pth)
           if (self$design$sim_prm$logs)
             message(paste0("Folder ", pth, " was created"))
+        }
+        
+        if (!dir.exists(anal_pth)) {
+          dir.create(ptanal_pthh)
+          if (self$design$sim_prm$logs)
+            message(paste0("Folder ", anal_pth, " was created"))
         }
 
         pth <- private$output_dir("plots/")
+        anal_pth <- paste0(pth, "/", self$design$sim_prm$analysis_name, "/") 
+        
         if (!dir.exists(pth)) {
           dir.create(pth)
           if (self$design$sim_prm$logs)
             message(paste0("Folder ", pth, " was created"))
         }
+        
+        if (!dir.exists(anal_pth)) {
+          dir.create(ptanal_pthh)
+          if (self$design$sim_prm$logs)
+            message(paste0("Folder ", anal_pth, " was created"))
+        }
 
-          pth <- private$output_dir("lifecourse/")
+        pth <- private$output_dir("lifecourse/")
+        anal_pth <- paste0(pth, "/", self$design$sim_prm$analysis_name, "/") 
+        
+        if (!dir.exists(pth)) {
+          dir.create(pth)
+          if (self$design$sim_prm$logs)
+            message(paste0("Folder ", pth, " was created"))
+        }
+        
+        if (!dir.exists(anal_pth)) {
+          dir.create(ptanal_pthh)
+          if (self$design$sim_prm$logs)
+            message(paste0("Folder ", anal_pth, " was created"))
+        }
+
+        if (self$design$sim_prm$export_PARF) {
+          pth <- private$output_dir("parf/")
+          anal_pth <- paste0(pth, "/", self$design$sim_prm$analysis_name, "/") 
+          
           if (!dir.exists(pth)) {
             dir.create(pth)
             if (self$design$sim_prm$logs)
               message(paste0("Folder ", pth, " was created"))
           }
-
-        if (self$design$sim_prm$export_PARF) {
-          pth <- private$output_dir("parf/")
-          if (!dir.exists(pth)) {
-            dir.create(pth)
+          
+          if (!dir.exists(anal_pth)) {
+            dir.create(ptanal_pthh)
             if (self$design$sim_prm$logs)
-              message(paste0("Folder ", pth, " was created"))
+              message(paste0("Folder ", anal_pth, " was created"))
           }
         }
 
         if (self$design$sim_prm$export_xps) {
           pth <- private$output_dir("xps/")
+          anal_pth <- paste0(pth, "/", self$design$sim_prm$analysis_name, "/") 
+          
           if (!dir.exists(pth)) {
             dir.create(pth)
             if (self$design$sim_prm$logs)
               message(paste0("Folder ", pth, " was created"))
           }
+          
+          if (!dir.exists(anal_pth)) {
+            dir.create(ptanal_pthh)
+            if (self$design$sim_prm$logs)
+              message(paste0("Folder ", anal_pth, " was created"))
+          }
         }
 
         if (self$design$sim_prm$logs) {
           pth <- private$output_dir("logs/")
+          anal_pth <- paste0(pth, "/", self$design$sim_prm$analysis_name, "/") 
+          
           if (!dir.exists(pth)) {
             dir.create(pth)
             message(paste0("Folder ", pth, " was created"))
+          }
+          
+          if (!dir.exists(anal_pth)) {
+            dir.create(ptanal_pthh)
+            if (self$design$sim_prm$logs)
+              message(paste0("Folder ", anal_pth, " was created"))
           }
         }
 
@@ -776,10 +832,10 @@ Simulation <-
           #             private$output_dir(paste0("summaries/", "le_out.csv.gz"
           #             )))
           fwrite_safe(lc[all_cause_mrtl > 0, .("popsize" = sum(wt), LE = weighted.mean(age, wt)),  keyby = strata],
-                      private$output_dir(paste0("summaries/", "le_scaled_up.csv.gz"
+                      private$output_dir(paste0("summaries/", self$design$sim_prm$analysis_name, "/le_scaled_up.csv.gz"
                       )))
           fwrite_safe(lc[all_cause_mrtl > 0, .("popsize" = sum(wt_esp), LE = weighted.mean(age, wt_esp)),  keyby = strata],
-                      private$output_dir(paste0("summaries/", "le_esp.csv.gz"
+                      private$output_dir(paste0("summaries/", self$design$sim_prm$analysis_name, "/le_esp.csv.gz"
                       )))
           # Life expectancy at 60
           
@@ -788,10 +844,10 @@ Simulation <-
             #             private$output_dir(paste0("summaries/", "le60_out.csv.gz"
             #             )))
             fwrite_safe(lc[all_cause_mrtl > 0 & age > 60, .("popsize" = sum(wt), LE60 = weighted.mean(age, wt)),  keyby = strata],
-                        private$output_dir(paste0("summaries/", "le60_scaled_up.csv.gz"
+                        private$output_dir(paste0("summaries/", self$design$sim_prm$analysis_name, "/le60_scaled_up.csv.gz"
                         )))
             fwrite_safe(lc[all_cause_mrtl > 0 & age > 60, .("popsize" = sum(wt_esp), LE60 = weighted.mean(age, wt_esp)),  keyby = strata],
-                        private$output_dir(paste0("summaries/", "le60_esp.csv.gz"
+                        private$output_dir(paste0("summaries/", self$design$sim_prm$analysis_name, "/le60_esp.csv.gz"
                         )))
           }
           # Note: for less aggregation use wtd.mean with popsize i.e le_out[, weighted.mean(LE, popsize), keyby = year]
@@ -802,10 +858,10 @@ Simulation <-
           if (self$design$sim_prm$logs) message("Exporting life years...")
 
           fwrite_safe(lc[all_cause_mrtl == 0, .(LY = sum(wt)),  keyby = strata],
-                      private$output_dir(paste0("summaries/", "ly_scaled_up.csv.gz"
+                      private$output_dir(paste0("summaries/", self$design$sim_prm$analysis_name, "/ly_scaled_up.csv.gz"
                       )))
           fwrite_safe(lc[all_cause_mrtl == 0, .(LY = sum(wt_esp)),  keyby = strata],
-                      private$output_dir(paste0("summaries/", "ly_esp.csv.gz"
+                      private$output_dir(paste0("summaries/", self$design$sim_prm$analysis_name, "/ly_esp.csv.gz"
                       )))
           }
           # Note: for less aggregation use wtd.mean with popsize i.e le_out[, weighted.mean(LE, popsize), keyby = year]
@@ -859,12 +915,12 @@ Simulation <-
           fwrite_safe(lc[, c("popsize" = sum(wt),
                              lapply(.SD, function(x, wt) sum((x > 0) * wt), wt)),
                          .SDcols = patterns("_prvl$"), keyby = strata],
-                      private$output_dir(paste0("summaries/", "prvl_scaled_up.csv.gz"
+                      private$output_dir(paste0("summaries/", self$design$sim_prm$analysis_name, "/prvl_scaled_up.csv.gz"
                       )))
           fwrite_safe(lc[, c("popsize" = sum(wt_esp),
                              lapply(.SD, function(x, wt) sum((x > 0) * wt), wt_esp)),
                          .SDcols = patterns("_prvl$"), keyby = strata],
-                      private$output_dir(paste0("summaries/", "prvl_esp.csv.gz"
+                      private$output_dir(paste0("summaries/", self$design$sim_prm$analysis_name, "/prvl_esp.csv.gz"
                       )))
           
         }
@@ -883,12 +939,12 @@ Simulation <-
           fwrite_safe(lc[, c("popsize" = sum(wt),
                              lapply(.SD, function(x, wt) sum((x == 1) * wt), wt)),
                          .SDcols = patterns("_prvl$"), keyby = strata],
-                      private$output_dir(paste0("summaries/", "incd_scaled_up.csv.gz"
+                      private$output_dir(paste0("summaries/", self$design$sim_prm$analysis_name, "/incd_scaled_up.csv.gz"
                       )))
           fwrite_safe(lc[, c("popsize" = sum(wt_esp),
                              lapply(.SD, function(x, wt) sum((x == 1) * wt), wt_esp)),
                          .SDcols = patterns("_prvl$"), keyby = strata],
-                      private$output_dir(paste0("summaries/", "incd_esp.csv.gz"
+                      private$output_dir(paste0("summaries/", self$design$sim_prm$analysis_name, "/incd_esp.csv.gz"
                       )))
           
         }
@@ -906,12 +962,12 @@ Simulation <-
           fwrite_safe(lc[, .("popsize" = sum(wt),
                              "all_cause_mrtl" = sum((all_cause_mrtl > 0) * wt)),
                          keyby = strata],
-                      private$output_dir(paste0("summaries/", "mrtl_scaled_up.csv.gz"
+                      private$output_dir(paste0("summaries/", self$design$sim_prm$analysis_name, "/mrtl_scaled_up.csv.gz"
                       )))
           fwrite_safe(lc[, .("popsize" = sum(wt_esp),
                              "all_cause_mrtl" = sum((all_cause_mrtl > 0) * wt_esp)),
                          keyby = strata],
-                      private$output_dir(paste0("summaries/", "mrtl_esp.csv.gz"
+                      private$output_dir(paste0("summaries/", self$design$sim_prm$analysis_name, "/mrtl_esp.csv.gz"
                       )))
           
         }
@@ -960,7 +1016,7 @@ Simulation <-
             alive = NULL
           ), .SDcols = !strata]
           fwrite_safe(dis_mrtl_out,
-                      private$output_dir(paste0("summaries/", "dis_mrtl_scaled_up.csv.gz"
+                      private$output_dir(paste0("summaries/", self$design$sim_prm$analysis_name, "/dis_mrtl_scaled_up.csv.gz"
                       )))
   
           dis_mrtl_out <- # scale up esp
@@ -981,7 +1037,7 @@ Simulation <-
             alive = NULL
           ), .SDcols = !strata]
           fwrite_safe(dis_mrtl_out,
-                      private$output_dir(paste0("summaries/", "dis_mrtl_esp.csv.gz"
+                      private$output_dir(paste0("summaries/", self$design$sim_prm$analysis_name, "/dis_mrtl_esp.csv.gz"
                       )))
         
         }
@@ -1305,7 +1361,7 @@ Simulation <-
           cea_agg[, mc := mc_]
           
           fwrite_safe(cea_agg,
-                      private$output_dir(paste0("summaries/", "health_economic_results.csv.gz")))
+                      private$output_dir(paste0("summaries/", self$design$sim_prm$analysis_name, "/health_economic_results.csv.gz")))
           
           scenarios <- unique(cea_agg$scenario)[unique(cea_agg$scenario) != "sc0"] # Exclude baseline scenario
           
@@ -1340,7 +1396,7 @@ Simulation <-
             cea_diff[, mc := mc_]
             
             fwrite_safe(cea_diff,
-                        private$output_dir(paste0("summaries/", "cea_results.csv.gz")))
+                        private$output_dir(paste0("summaries/", self$design$sim_prm$analysis_name, "/cea_results.csv.gz")))
           }
         }
         
