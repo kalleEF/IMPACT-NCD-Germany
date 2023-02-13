@@ -115,6 +115,94 @@ for(i in batches){
 IMPACTncd$export_summaries(multicore = TRUE)
 
 
+### Policy sensitivity analyses (no changes in modelled pathways) ----
+
+load_RRs(c("bmi~chd", "bmi~obesity", "bmi~stroke", "bmi~t2dm",
+           "ssb~chd", "ssb~t2dm",
+           "t2dm_prvl~chd", "t2dm_prvl~nonmodelled", "t2dm_prvl~stroke"))
+
+analysis_name <- "policy_sensitivity_analyses"
+
+IMPACTncd <- Simulation$new("./inputs/sim_design.yaml")
+
+IMPACTncd$design$sim_prm$analysis_name <- analysis_name
+
+for(i in batches){
+  
+  scenario_fn <- function(sp) NULL
+  
+  IMPACTncd$
+    run(i, multicore = TRUE, "sc0", m_zero_trend = -0.03, p_zero_trend = 0)
+  
+  scenario_fn <- scenario_sens_1_fn
+  
+  IMPACTncd$
+    run(i, multicore = TRUE, "sens_1", m_zero_trend = -0.03, p_zero_trend = 0)
+
+  scenario_fn <- scenario_sens_2_fn
+  
+  IMPACTncd$
+    run(i, multicore = TRUE, "sens_2", m_zero_trend = -0.03, p_zero_trend = 0)
+  
+  scenario_fn <- scenario_sens_3_fn
+  
+  IMPACTncd$
+    run(i, multicore = TRUE, "sens_3", m_zero_trend = -0.03, p_zero_trend = 0)
+  
+  scenario_fn <- scenario_sens_4_fn
+  
+  IMPACTncd$
+    run(i, multicore = TRUE, "sens_4", m_zero_trend = -0.03, p_zero_trend = 0)
+    
+}
+
+IMPACTncd$export_summaries(multicore = TRUE)
+
+
+### Other sensitivity analyses (no changes in modelled pathways) ----
+
+load_RRs(c("bmi~chd", "bmi~obesity", "bmi~stroke", "bmi~t2dm",
+           "ssb~chd", "ssb~t2dm",
+           "t2dm_prvl~chd", "t2dm_prvl~nonmodelled", "t2dm_prvl~stroke"))
+
+analysis_name <- "other_sensitivity"
+
+IMPACTncd <- Simulation$new("./inputs/sim_design.yaml")
+
+IMPACTncd$design$sim_prm$analysis_name <- analysis_name
+
+for(i in batches){
+  
+  scenario_fn <- function(sp) NULL
+  
+  IMPACTncd$
+    run(i, multicore = TRUE, "sc0", m_zero_trend = -0.03, p_zero_trend = 0)
+  
+  scenario_fn <- scenario_1_fn
+  
+  IMPACTncd$
+    run(i, multicore = TRUE, "sc1", m_zero_trend = -0.03, p_zero_trend = 0)
+  
+  scenario_fn <- scenario_2_fn
+  
+  IMPACTncd$
+    run(i, multicore = TRUE, "sc2", m_zero_trend = -0.03, p_zero_trend = 0)
+  
+  scenario_fn <- scenario_3_fn
+  
+  IMPACTncd$
+    run(i, multicore = TRUE, "sc3", m_zero_trend = -0.03, p_zero_trend = 0)
+  
+  scenario_fn <- scenario_4_fn
+  
+  IMPACTncd$
+    run(i, multicore = TRUE, "sc4", m_zero_trend = -0.03, p_zero_trend = 0)
+  
+}
+
+IMPACTncd$export_summaries(multicore = TRUE)
+
+
 ### Alternative analysis: Excluding direct SSB effects ----
 
 load_RRs(c("bmi~chd", "bmi~obesity", "bmi~stroke", "bmi~t2dm",
