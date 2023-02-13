@@ -11,19 +11,18 @@ library(cowplot)
 
 options(scipen = 999)
 
-## SET ANALYSIS + IN AND OUT PATHS BEFORE USE ##
-analysis <- "workstation_test"
+# ## SET ANALYSIS + IN AND OUT PATHS BEFORE USE ##
 
-if(!file.exists(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/", analysis, "/plots/manuscript/"))){
-  dir.create(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/", analysis, "/plots/manuscript/"))
+if(!file.exists(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/manuscript/"))){
+  dir.create(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/manuscript/"))
 }
 
 ## Figure 2: Cost-effectiveness ## ----
 
-cea_wo <- fread(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/", analysis, "/summaries/cea_results.csv.gz"))
+cea_wo <- fread(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/", "without_direct_SSB_effects", "/summaries/cea_results.csv.gz"))
 cea_wo[, analysis := "only BMI-mediated effects"]
 
-cea_w <- fread(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/", analysis, "/summaries/cea_results.csv.gz"))
+cea_w <- fread(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/", "with_direct_SSB_effects", "/summaries/cea_results.csv.gz"))
 cea_w[, analysis := "incl. direct SSB effects"]
 
 cea <- rbind(cea_w, cea_wo)
@@ -64,7 +63,7 @@ ggplot(cea_agg[scenario != "sc0"], aes(x = incr_qalys_scl,
                      legend.title = element_text(size = 15), legend.text = element_text(size = 13))
 
 
-ggsave("/media/php-workstation/Storage 1/IMPACT_Storage/outputs/plots/manuscript/Figure_1_cost_effectiveness_plane.tiff",
+ggsave("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/manuscript/Figure_1_cost_effectiveness_plane.tiff",
        height = 9, width = 16, dpi = 300)
 
 
@@ -76,7 +75,7 @@ prbl = c(0.5, 0.025, 0.975, 0.1, 0.9)
 
 # Epi Results ENTER CORRECT ANALYSIS IN PATH!!!!!
 
-impact_epi <- fread("/media/php-workstation/Storage 1/IMPACT_Storage/outputs/tables/workstation_test/cases_prev_post_by_scenario.csv")
+impact_epi <- fread("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/without_direct_SSB_effects/tables/cases_prev_post_by_scenario.csv")
 
 #fwrite(impact_epi, "G:/Meine Ablage/PhD/Presentations/2022_EUPHA/impact_epi_results.csv", sep = ";", dec = ".")
 
@@ -89,7 +88,7 @@ impact_epi <- na.omit(impact_epi)
 
 # CEA Results
 
-impact_cea <- fread("/media/php-workstation/Storage 1/IMPACT_Storage/outputs/summaries/cea_results.csv.gz")
+impact_cea <- fread("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/without_direct_SSB_effects/summaries/cea_results.csv.gz")
 
 impact_cea[, model := "IMPACT NCD"]
 
@@ -107,14 +106,12 @@ impact <- rbind(impact_cea, impact_epi)
 
 ## PRIMEtime Results
 
-prime <- fread("G:/Meine Ablage/PhD/Publications/2022_Comparative_diet_modeling/PRIMEtime CE/outputs/cea_results.csv")
+prime <- fread("/home/php-workstation/Schreibtisch/IMPACT/2022_SSB_Tax_Model_Germany/PRIMEtime-CE/PRIMEtime_results.csv")
 
 prime <- melt(prime, id.vars = c("mc", "sex"))
 
 prime <- prime[, CKutils:::fquantile_byid(value, prbl, id = as.character(variable))]
 setnames(prime, c("outcome", scales:::percent(prbl, prefix = "prvl_rate_")))
-
-#fwrite(prime, "G:/Meine Ablage/PhD/Presentations/2022_EUPHA/prime_results.csv", sep = ";", dec = ".")
 
 prime[, model := "PRIMEtime CE"][, scenario := "sc1"]
 
