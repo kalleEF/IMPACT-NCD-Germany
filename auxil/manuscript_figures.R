@@ -11,16 +11,19 @@ library(cowplot)
 
 options(scipen = 999)
 
-if(!file.exists(paste0("/media/php-workstation/Storage 1/IMPACT_Storage/outputs/plots/manuscript/"))){
-  dir.create(paste0("/media/php-workstation/Storage 1/IMPACT_Storage/outputs/plots/manuscript/"))
+## SET ANALYSIS + IN AND OUT PATHS BEFORE USE ##
+analysis <- "workstation_test"
+
+if(!file.exists(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/", analysis, "/plots/manuscript/"))){
+  dir.create(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/", analysis, "/plots/manuscript/"))
 }
 
 ## Figure 2: Cost-effectiveness ## ----
 
-cea_wo <- fread("/media/php-workstation/Storage 1/IMPACT_Storage/outputs/summaries/cea_results.csv.gz")
+cea_wo <- fread(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/", analysis, "/summaries/cea_results.csv.gz"))
 cea_wo[, analysis := "only BMI-mediated effects"]
 
-cea_w <- fread("/media/php-workstation/Storage 1/IMPACT_Storage/outputs/summaries/cea_results.csv.gz")
+cea_w <- fread(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/", analysis, "/summaries/cea_results.csv.gz"))
 cea_w[, analysis := "incl. direct SSB effects"]
 
 cea <- rbind(cea_w, cea_wo)
@@ -47,7 +50,7 @@ ggplot(cea_agg[scenario != "sc0"], aes(x = incr_qalys_scl,
   geom_vline(xintercept = 0) +
   geom_hline(yintercept = 0) +
   #expand_limits(x = -8e4, y = 2e9) +
-  scale_y_continuous(name = "Incremental healthcare costs (in millions)", c(seq(0,80000000000,1000000000)*-1),
+  scale_y_continuous(name = "Incremental costs (in millions)", c(seq(0,80000000000,1000000000)*-1),
                      labels = function(y) format(y/1000000)) +
   scale_x_continuous(name = "Incremental QALYs (in thousands)", c(seq(-1000000,500000,50000)), labels = function(y) format(y/1000)) +
   scale_color_viridis_d(name = "Scenario", option = "viridis",
