@@ -1,4 +1,4 @@
-analysis_name: workstation_test
+analysis_name: without_direct_SSB_effects
 iteration_n: 15
 iteration_n_final: 100
 clusternumber: 24 # explicit parallelisation
