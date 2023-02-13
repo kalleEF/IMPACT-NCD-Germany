@@ -75,7 +75,7 @@ prbl = c(0.5, 0.025, 0.975, 0.1, 0.9)
 
 # Epi Results ENTER CORRECT ANALYSIS IN PATH!!!!!
 
-impact_epi <- fread("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/without_direct_SSB_effects/tables/cases_prev_post_by_scenario.csv")
+impact_epi <- fread("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/without_direct_SSB_effects/tables/case_years_prev_post_by_scenario.csv")
 
 #fwrite(impact_epi, "G:/Meine Ablage/PhD/Presentations/2022_EUPHA/impact_epi_results.csv", sep = ";", dec = ".")
 
@@ -92,10 +92,10 @@ impact_cea <- fread("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/wit
 
 impact_cea[, model := "IMPACT NCD"]
 
-impact_cea <- impact_cea[, lapply(.SD, sum), .SDcols = !c("model", "scenario", "sex", "agegrp_start", "mc"),
+impact_cea <- impact_cea[, lapply(.SD, sum), .SDcols = !c("model", "scenario", "sex", "agegrp", "mc"),
                          by = c("scenario", "mc", "model")]
 
-impact_cea <- impact_cea[, fquantile_byid(incr_qaly_scl, prbl, id = model), keyby = "scenario"]
+impact_cea <- impact_cea[, fquantile_byid(incr_qalys_scl, prbl, id = model), keyby = "scenario"]
 setnames(impact_cea, c("scenario", "model", percent(prbl, prefix = "prvl_rate_")))
 
 impact_cea <- na.omit(impact_cea)
@@ -108,18 +108,24 @@ impact <- rbind(impact_cea, impact_epi)
 
 prime <- fread("/home/php-workstation/Schreibtisch/IMPACT/2022_SSB_Tax_Model_Germany/PRIMEtime-CE/PRIMEtime_results.csv")
 
-prime <- melt(prime, id.vars = c("mc", "sex"))
+prime <- prime[, c("mc", "sex", "scenario", "incr_qalys", "stroke_cpp", "chd_cpp", "diabetes_cpp")]
 
-prime <- prime[, CKutils:::fquantile_byid(value, prbl, id = as.character(variable))]
-setnames(prime, c("outcome", scales:::percent(prbl, prefix = "prvl_rate_")))
+prime <- prime[, lapply(.SD, sum), .SDcols = c("incr_qalys", "stroke_cpp", "chd_cpp", "diabetes_cpp"), by = c("mc", "scenario")]
 
-prime[, model := "PRIMEtime CE"][, scenario := "sc1"]
+prime <- melt(prime[, c("mc", "scenario",
+                        "incr_qalys", "stroke_cpp", "chd_cpp", "diabetes_cpp")], id.vars = c("mc", "scenario"))
+
+#prime_mean <- prime[, lapply(.SD, mean), .SDcols = "value", keyby = c("variable", "scenario")]
+prime <- prime[, CKutils:::fquantile_byid(value, prbl, id = as.character(variable)), keyby = "scenario"]
+setnames(prime, c("scenario", "outcome", scales:::percent(prbl, prefix = "prvl_rate_")))
+
+prime[, model := "PRIMEtime CE"][, outcome := ifelse(outcome == "incr_qalys", "incr_qaly", outcome)]
 
 
 ## Combine datasets for plot
 
-#dat <- rbind(impact, prime[!outcome %in% c("incr_cost")])
-dat <- impact
+dat <- rbind(impact, prime[!outcome %in% c("incr_cost")])
+
 dat[outcome == "incr_qaly", `:=`(`prvl_rate_2.5%` = `prvl_rate_2.5%` * -1,
                                  `prvl_rate_50.0%` = `prvl_rate_50.0%` * -1,
                                  `prvl_rate_97.5%` = `prvl_rate_97.5%` * -1)]
