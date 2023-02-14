@@ -11,7 +11,7 @@ library(scales)
 #TODO: Generalize for number of scenarios!!!
 
 ## SET ANALYSIS + IN AND OUT PATHS BEFORE USE ##
-analysis <- "without_direct_SSB_effects"
+analysis <- "mc_aggr_test"
 
 # Input path for IMPACT results
 in_path <- paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/", analysis, "/summaries/")
@@ -39,6 +39,8 @@ tt <- fread(paste0(in_path, "prvl_scaled_up.csv.gz")
 tt[, grep("cms", names(tt), value = TRUE) := NULL]
 
 outstrata <- c("mc", "year", "sex", "agegrp", "scenario")
+
+sc_n <- length(unique(tt$scenario)) - 1 
 
 # Rate #
 
@@ -80,7 +82,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-1]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
   
@@ -158,7 +160,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-1]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
   
@@ -212,7 +214,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-1]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
   
@@ -288,7 +290,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-1]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
   
@@ -366,7 +368,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-1]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
   
@@ -420,7 +422,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-1]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
   
@@ -496,7 +498,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-1]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
   
@@ -574,7 +576,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-1]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
   
@@ -628,7 +630,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-1]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
   
@@ -703,7 +705,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-1]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
   
@@ -779,7 +781,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-1]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
   
@@ -832,7 +834,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-1]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
   
@@ -907,7 +909,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-1]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
   
@@ -984,7 +986,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-1]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
   
@@ -1037,7 +1039,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-1]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
   
@@ -1112,7 +1114,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-1]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
   
@@ -1189,7 +1191,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-1]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
   
@@ -1242,7 +1244,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-1]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
   
@@ -1317,7 +1319,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-1]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
   
@@ -1394,7 +1396,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-1]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
   
@@ -1447,7 +1449,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-1]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
   
@@ -1521,7 +1523,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-1]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
   
@@ -1596,7 +1598,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-1]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
   
@@ -1648,7 +1650,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-1]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
   
@@ -1727,7 +1729,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-4]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
   
@@ -1807,7 +1809,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-4]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
   
@@ -1900,7 +1902,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-4]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
   
@@ -1980,7 +1982,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-4]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
   
@@ -2073,7 +2075,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-4]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
   
@@ -2153,7 +2155,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-4]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
   
@@ -2246,7 +2248,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-4]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
   
@@ -2326,7 +2328,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-4]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
   
@@ -2415,7 +2417,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-2]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-2])
   
@@ -2495,7 +2497,7 @@ diffs0 <- grep("sc0_", names(d), value = TRUE)[-2]
 
 d_out <- data.table(NULL)
 
-for(j in 1:4){  
+for(j in 1:sc_n){  
   
   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-2])
   
@@ -2545,7 +2547,7 @@ tt <- fread(paste0(in_path, "le_scaled_up.csv.gz")
 outstrata <- c("mc", "sex", "year")
 
 ttt <- dcast(tt, mc + year + sex ~ scenario, value.var = "LE")
-
+#TODO Make generic!!
 ttt[, `:=`(sc1_diff = sc1 - sc0, sc2_diff = sc2 - sc0, sc3_diff = sc3 - sc0, sc4_diff = sc4 - sc0)]
 
 d <- melt(ttt, id.vars = outstrata)

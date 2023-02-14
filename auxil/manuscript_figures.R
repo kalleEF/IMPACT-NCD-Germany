@@ -75,7 +75,7 @@ prbl = c(0.5, 0.025, 0.975, 0.1, 0.9)
 
 # Epi Results ENTER CORRECT ANALYSIS IN PATH!!!!!
 
-impact_epi <- fread("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/without_direct_SSB_effects/tables/case_years_prev_post_by_scenario.csv")
+impact_epi <- fread("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/without_direct_SSB_effects/tables/cases_prev_post_by_scenario.csv")
 
 #fwrite(impact_epi, "G:/Meine Ablage/PhD/Presentations/2022_EUPHA/impact_epi_results.csv", sep = ";", dec = ".")
 
@@ -241,7 +241,7 @@ sc4 <- ggplot(dat[outcome == "Incremental QALYs"],
 
 plot_grid(sc1, sc2, sc3, sc4, align = "v", ncol = 2)
 
-ggsave("/media/php-workstation/Storage 1/IMPACT_Storage/outputs/plots/manuscript/Figure_2_cross_validation.tiff",
+ggsave("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/manuscript/Figure_2_cross_validation.tiff",
        height = 9, width = 12, dpi = 300)
 
 

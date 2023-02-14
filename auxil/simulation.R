@@ -10,14 +10,14 @@ IMPACTncd <- Simulation$new("./inputs/sim_design.yaml")
 
 # Original iterations #
 batch_size <- 8
-iterations <- 200
+iterations <- 50
 first_iteration <- 1
 batches <- split(seq(first_iteration, iterations + first_iteration - 1),
                  f = findInterval(seq(first_iteration, iterations + first_iteration - 1),
                                   vec = seq(first_iteration, iterations + first_iteration - 1, batch_size)))
 
 
-for(i in batches){
+for(i in batches[2:7]){
 
  scenario_fn <- function(sp) NULL
 
