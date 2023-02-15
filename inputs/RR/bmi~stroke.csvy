@@ -3,21 +3,19 @@ xps_name: bmi
 outcome: stroke
 lag: 4
 distribution: lognormal
-source: The Lancet 2011;377:1085–95. doi:10.1016/S0140-6736(11)60105-0 Table 1
+source: Original source is http://dx.doi.org/10.1016/S0140-6736(13)61836-X; Age-specific values in Huang et al. 2021
 notes:
-  - BMI not significant for ischaemic stroke but other obesity metrics are.
-  - Adjusted for age, sex, smoking status, systolic blood pressure,
-    history of diabetes, and total and HDL cholesterol) and figure 2
-    for age specific gradient.
-  - RRs are presented as per 4.56 kg/m2
-  - bmi_rr := bmi_rr ^ ((bmi_lagged - 20) / 4.56)
+  - Adjusted for age, sex, smoking status and glucose/diabetes
+  - This means partial adjustment for relevant metabolic mediators because HDL/LDL and BP are not modelled!
+  - RRs are presented as per 5 kg/m2
+  - bmi_rr := bmi_rr ^ ((bmi_lagged - 20) / 5)
 apply_rr_extra_fn: >
   function(sp) {
     if (!inherits(sp, 'SynthPop')) stop('Argument sp needs to be a SynthPop object.')
-    sp$pop[, bmi_rr := clamp(bmi_rr^((bmi - self$get_ideal_xps_lvl(sp$mc_aggr)) / 4.56), 1, 20)]
+    sp$pop[, bmi_rr := clamp(bmi_rr^((bmi - self$get_ideal_xps_lvl(sp$mc_aggr)) / 5), 1, 20)]
   }
 ideal_xps_lvl_fn: >
-  function(design_) { # from: PLOS ONE 2013;8:e65174 p7
+  function(design_) {
     if (!inherits(design_, 'Design')) stop('Argument design needs to be a Design object.')
     save.seed <- get('.Random.seed', .GlobalEnv)
     set.seed(851747L) # Same for stroke, CHD & T2DM
@@ -32,39 +30,39 @@ agegroup,sex,rr,ci_rr
 05-09,men,1,1
 10-14,men,1,1
 15-19,men,1,1
-20-24,men,1.183667,1.261833
-25-29,men,1.183667,1.261833
-30-34,men,1.183667,1.261833
-35-39,men,1.183667,1.261833
-40-44,men,1.183667,1.261833
-45-49,men,1.183667,1.261833
-50-54,men,1.183667,1.261833
-55-59,men,1.183667,1.261833
-60-64,men,1.077667,1.148833
-65-69,men,1.077667,1.148833
-70-74,men,1,1
-75-79,men,1,1
-80-84,men,1,1
-85-89,men,1,1
-90+,men,1,1
+20-24,men,1,1
+25-29,men,1.24,1.33
+30-34,men,1.24,1.33
+35-39,men,1.23,1.32
+40-44,men,1.23,1.32
+45-49,men,1.19,1.26
+50-54,men,1.19,1.26
+55-59,men,1.16,1.21
+60-64,men,1.16,1.21
+65-69,men,1.13,1.17
+70-74,men,1.13,1.17
+75-79,men,1.07,1.09
+80-84,men,1.07,1.09
+85-89,men,1.07,1.09
+90+,men,1.07,1.09
 <1,women,1,1
 01-04,women,1,1
 05-09,women,1,1
 10-14,women,1,1
 15-19,women,1,1
-20-24,women,1.183667,1.261833
-25-29,women,1.183667,1.261833
-30-34,women,1.183667,1.261833
-35-39,women,1.183667,1.261833
-40-44,women,1.183667,1.261833
-45-49,women,1.183667,1.261833
-50-54,women,1.183667,1.261833
-55-59,women,1.183667,1.261833
-60-64,women,1.077667,1.148833
-65-69,women,1.077667,1.148833
-70-74,women,1,1
-75-79,women,1,1
-80-84,women,1,1
-85-89,women,1,1
-90+,women,1,1
+20-24,women,1,1
+25-29,women,1.24,1.33
+30-34,women,1.24,1.33
+35-39,women,1.23,1.32
+40-44,women,1.23,1.32
+45-49,women,1.19,1.26
+50-54,women,1.19,1.26
+55-59,women,1.16,1.21
+60-64,women,1.16,1.21
+65-69,women,1.13,1.17
+70-74,women,1.13,1.17
+75-79,women,1.07,1.09
+80-84,women,1.07,1.09
+85-89,women,1.07,1.09
+90+,women,1.07,1.09
 
