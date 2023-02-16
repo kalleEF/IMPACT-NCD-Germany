@@ -458,7 +458,9 @@ Simulation <-
       #' @return The invisible self for chaining.
       del_outputs = function() {
 
-        fl <- list.files(self$design$sim_prm$output_dir, full.names = TRUE,
+        fl <- list.files(paste0(self$design$sim_prm$output_dir,
+                                "/",
+                                self$design$sim_prm$analysis_name), full.names = TRUE,
                          recursive = TRUE)
 
         file.remove(fl)

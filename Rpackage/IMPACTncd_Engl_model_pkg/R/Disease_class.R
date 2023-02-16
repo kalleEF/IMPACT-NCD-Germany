@@ -856,7 +856,7 @@ Disease <-
             setnafill(sp$pop, "c", fill = 0, cols = "mu") # fix for prostate and breast cancer
             sp$pop[
               year == design_$sim_prm$init_year,
-              (namprvl) := as.integer(dqrunif(.N) < mu)
+              (namprvl) := as.integer(dqrunif(.N) < mu * 0.9) # Manual calibration to input prevalence
             ]
             sp$pop[, mu := NULL]
 
@@ -873,7 +873,7 @@ Disease <-
             sp$pop[
               year > design_$sim_prm$init_year &
                 age == design_$sim_prm$ageL,
-              (namprvl) := as.integer(dqrunif(.N) < mu)
+              (namprvl) := as.integer(dqrunif(.N) < mu * 0.9) # Manual calibration to input prevalence
             ]
             setnafill(sp$pop, "c", 0L, cols = namprvl)
             sp$pop[, mu := NULL]
@@ -890,10 +890,10 @@ Disease <-
             if (length(private$rr) > 0L && any(sp$pop[[namprvl]] > 0L)) {
 
               # ncases is the number of prevalent cases expected in each stratum
-              sp$pop[year >= design_$sim_prm$init_year,
-                     ncases := sum(get(namprvl), na.rm = TRUE),
-                     by = eval(strata)]
-
+              tt <- sp$pop[get(namprvl) > 0, .("ncases" = .N), by = eval(strata)]
+              absorb_dt(sp$pop, tt, on = strata) # no lookup_dt as tt not a lu_tbl
+              setnafill(sp$pop, "c", fill = 0, cols = "ncases")
+              
               # Generate unique name using the relevant RR and lags
 
               # TODO below should apply only to strata with ncases > 0 for efficiency
@@ -1051,6 +1051,34 @@ Disease <-
             )
           }
 
+          # Manual incidence calibration
+          if(self$name == "t2dm"){
+            
+            age_trend <- TRUE
+            
+            clb_start_age <- 50
+            clbintrc <- 0.027
+            clbtrend <- -0.0005
+
+          }
+          
+          if(self$name == "chd"){
+            
+            age_trend <- FALSE
+            
+            clbintrc <- 1.8
+
+          }
+          
+          if(self$name == "stroke"){
+            
+            age_trend <- FALSE
+            
+            clbintrc <- 1.8
+
+          }
+          
+          
           if (self$meta$incidence$type == 1L) {
             if (length(riskcolnam) == 1L) {
               thresh <- as.numeric(sp$get_risks(self$name)[[riskcolnam]])
@@ -1094,7 +1122,19 @@ Disease <-
             #lookup_dt(sp$pop, tbl) #TODO: lookup_dt
             absorb_dt(sp$pop, tbl)
             setnafill(sp$pop, "c", 1, cols = "clbfctr")
-
+            
+            # Additional manual calibration factor including quadratic age effect
+            if(age_trend){
+              
+              sp$pop[, clbfctr := fifelse(between(age, clb_start_age, design_$sim_prm$ageH),
+                                          clbfctr * (1 + ((age - clb_start_age) * clbintrc) + (age - clb_start_age)**2 * clbtrend),
+                                          clbfctr)]
+              
+            } else {
+              
+              sp$pop[, clbfctr := clbfctr * clbintrc]
+              
+            }
             # End of calibration
 
             set(sp$pop, NULL, private$incd_colnam,

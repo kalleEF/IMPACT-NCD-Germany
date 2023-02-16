@@ -83,12 +83,12 @@ sp  <- SynthPop$new(1L, design)
 #    x$set_mrtl_prb(sp, design)
 # #})
 # # diseases$t2dm$harmonise_epi_tables(sp)
- # diseases$t2dm$gen_parf(sp, design)
- # diseases$t2dm$set_init_prvl(sp, design)
- # diseases$t2dm$set_rr(sp, design)
- # diseases$t2dm$set_incd_prb(sp, design)
- # diseases$t2dm$set_dgns_prb(sp, design)
- # diseases$t2dm$set_mrtl_prb(sp, design)
+ diseases$t2dm$gen_parf(sp, design)
+ diseases$t2dm$set_init_prvl(sp, design)
+ diseases$t2dm$set_rr(sp, design)
+ diseases$t2dm$set_incd_prb(sp, design)
+ diseases$t2dm$set_dgns_prb(sp, design)
+ diseases$t2dm$set_mrtl_prb(sp, design)
 # #
 # # # diseases$chd$harmonise_epi_tables(sp)
 # diseases$chd$gen_parf(sp, design)
@@ -129,9 +129,9 @@ lapply(diseases, function(x) {
     x$gen_parf(sp, design)$
     set_init_prvl(sp, design)$
     set_rr(sp, design)$
-    set_incd_prb(sp, design)$
-    set_dgns_prb(sp, design)$
-    set_mrtl_prb(sp, design)
+    set_incd_prb(sp, design)
+    #set_dgns_prb(sp, design)$
+    #set_mrtl_prb(sp, design)
 })
 
 qsave(sp, "./simulation/tmp.qs")
