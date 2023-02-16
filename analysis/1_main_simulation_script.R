@@ -169,7 +169,7 @@ load_RRs(c("bmi~chd", "bmi~obesity", "bmi~stroke", "bmi~t2dm",
            "ssb~chd", "ssb~t2dm",
            "t2dm_prvl~chd", "t2dm_prvl~nonmodelled", "t2dm_prvl~stroke"))
 
-analysis_name <- "policy_sensitivity_analyses"
+analysis_name <- "sensitivity_analyses_1"
 
 IMPACTncd <- Simulation$new("./inputs/sim_design.yaml")
 
@@ -196,11 +196,6 @@ for(i in batches){
   
   IMPACTncd$
     run(i, multicore = TRUE, "sens_3", m_zero_trend = -0.03, p_zero_trend = 0)
-  
-  scenario_fn <- scenario_sens_4_fn
-  
-  IMPACTncd$
-    run(i, multicore = TRUE, "sens_4", m_zero_trend = -0.03, p_zero_trend = 0)
     
 }
 
@@ -213,7 +208,7 @@ load_RRs(c("bmi~chd", "bmi~obesity", "bmi~stroke", "bmi~t2dm",
            "ssb~chd", "ssb~t2dm",
            "t2dm_prvl~chd", "t2dm_prvl~nonmodelled", "t2dm_prvl~stroke"))
 
-analysis_name <- "other_sensitivity"
+analysis_name <- "sensitivity_analyses_2"
 
 IMPACTncd <- Simulation$new("./inputs/sim_design.yaml")
 

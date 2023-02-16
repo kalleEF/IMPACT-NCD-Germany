@@ -204,7 +204,7 @@ data_fdm[, `:=`(reg = NULL, disease = fifelse(cause == "all", "all_cause_mrtl", 
 data_fdm_new_all <- data_fdm[disease != "all_cause_mrtl"]
 
 # Save FDM mortality rate as baseline for calibration
-write_fst(data_fdm_new_all, "G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT NCD Germany/inputs/mortality/mort_prcjt.fst")
+write_fst(data_fdm_new_all, "G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/inputs/mortality/mort_prcjt.fst")
 
 data_fdm_new_all <- data_fdm_new_all[, lapply(.SD, sum), .SDcols = "mx_total_mean", by = .(year, agegrp, sex)]
 data_fdm_new_all[, disease := "all_cause_mrtl_recalc"]
