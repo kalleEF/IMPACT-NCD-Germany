@@ -114,8 +114,56 @@ for(i in batches){
 
 IMPACTncd$export_summaries(multicore = TRUE)
 
+### Sensitivity analyses: Discounting
 
-### Policy sensitivity analyses (no changes in modelled pathways) ----
+## Rename original files with 3% discount rate:
+file.rename(from = paste0(IMPACTncd$design$sim_prm$output_dir, "/", "summaries/cea_results.csv.gz"),
+            to = paste0(IMPACTncd$design$sim_prm$output_dir, "/", "summaries/cea_results",
+                        gsub("0.", "", IMPACTncd$design$sim_prm$discount_rate), ".csv.gz"))
+
+file.rename(from = paste0(IMPACTncd$design$sim_prm$output_dir, "/", "summaries/health_economic_results.csv.gz"),
+            to = paste0(IMPACTncd$design$sim_prm$output_dir, "/", "summaries/health_economic_results",
+                        gsub("0.", "", IMPACTncd$design$sim_prm$discount_rate), ".csv.gz"))
+
+## Apply 1% discount rate:
+IMPACTncd$design$sim_prm$discount_rate <- 0.01
+IMPACTncd$export_summaries(multicore = TRUE, type = "cea")
+
+file.rename(from = paste0(IMPACTncd$design$sim_prm$output_dir, "/", "summaries/cea_results.csv.gz"),
+            to = paste0(IMPACTncd$design$sim_prm$output_dir, "/", "summaries/cea_results",
+                        gsub("0.", "", IMPACTncd$design$sim_prm$discount_rate), ".csv.gz"))
+
+file.rename(from = paste0(IMPACTncd$design$sim_prm$output_dir, "/", "summaries/health_economic_results.csv.gz"),
+            to = paste0(IMPACTncd$design$sim_prm$output_dir, "/", "summaries/health_economic_results",
+                        gsub("0.", "", IMPACTncd$design$sim_prm$discount_rate), ".csv.gz"))
+
+## Apply 5% discount rate:
+IMPACTncd$design$sim_prm$discount_rate <- 0.05
+IMPACTncd$export_summaries(multicore = TRUE, type = "cea")
+
+file.rename(from = paste0(IMPACTncd$design$sim_prm$output_dir, "/", "summaries/cea_results.csv.gz"),
+            to = paste0(IMPACTncd$design$sim_prm$output_dir, "/", "summaries/cea_results",
+                        gsub("0.", "", IMPACTncd$design$sim_prm$discount_rate), ".csv.gz"))
+
+file.rename(from = paste0(IMPACTncd$design$sim_prm$output_dir, "/", "summaries/health_economic_results.csv.gz"),
+            to = paste0(IMPACTncd$design$sim_prm$output_dir, "/", "summaries/health_economic_results",
+                        gsub("0.", "", IMPACTncd$design$sim_prm$discount_rate), ".csv.gz"))
+
+## Apply 10% discount rate:
+IMPACTncd$design$sim_prm$discount_rate <- 0.10
+IMPACTncd$export_summaries(multicore = TRUE, type = "cea")
+
+file.rename(from = paste0(IMPACTncd$design$sim_prm$output_dir, "/", "summaries/cea_results.csv.gz"),
+            to = paste0(IMPACTncd$design$sim_prm$output_dir, "/", "summaries/cea_results",
+                        gsub("0.", "", IMPACTncd$design$sim_prm$discount_rate), ".csv.gz"))
+
+file.rename(from = paste0(IMPACTncd$design$sim_prm$output_dir, "/", "summaries/health_economic_results.csv.gz"),
+            to = paste0(IMPACTncd$design$sim_prm$output_dir, "/", "summaries/health_economic_results",
+                        gsub("0.", "", IMPACTncd$design$sim_prm$discount_rate), ".csv.gz"))
+
+
+
+### Policy sensitivity analyses 1 (no changes in modelled pathways) ----
 
 load_RRs(c("bmi~chd", "bmi~obesity", "bmi~stroke", "bmi~t2dm",
            "ssb~chd", "ssb~t2dm",
@@ -178,25 +226,15 @@ for(i in batches){
   IMPACTncd$
     run(i, multicore = TRUE, "sc0", m_zero_trend = -0.03, p_zero_trend = 0)
   
-  scenario_fn <- scenario_1_fn
+  scenario_fn <- scenario_sens_4_fn
   
   IMPACTncd$
-    run(i, multicore = TRUE, "sc1", m_zero_trend = -0.03, p_zero_trend = 0)
+    run(i, multicore = TRUE, "sens_4", m_zero_trend = -0.03, p_zero_trend = 0)
   
-  scenario_fn <- scenario_2_fn
-  
-  IMPACTncd$
-    run(i, multicore = TRUE, "sc2", m_zero_trend = -0.03, p_zero_trend = 0)
-  
-  scenario_fn <- scenario_3_fn
+  scenario_fn <- scenario_sens_5_fn
   
   IMPACTncd$
-    run(i, multicore = TRUE, "sc3", m_zero_trend = -0.03, p_zero_trend = 0)
-  
-  scenario_fn <- scenario_4_fn
-  
-  IMPACTncd$
-    run(i, multicore = TRUE, "sc4", m_zero_trend = -0.03, p_zero_trend = 0)
+    run(i, multicore = TRUE, "sens_5", m_zero_trend = -0.03, p_zero_trend = 0)
   
 }
 

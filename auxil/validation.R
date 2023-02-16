@@ -12,7 +12,7 @@ library(yardstick)
 
 options(scipen = 999)
 
-setwd("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT NCD Germany")
+setwd("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany")
 
 prbl = c(0.5, 0.025, 0.975, 0.1, 0.9)
 theme_set(new = theme_economist())
@@ -50,10 +50,10 @@ theme_update(axis.text.x = element_text(size = 9), plot.title = element_text(hju
 ## Disease-specific Mortality ## ----
 
 # WARNING: For some reason some iteration have trailing comma!
-file_lines <- readLines("./outputs/summaries/with_SSB/dis_mrtl_scaled_up.csv.gz")
-writeLines(gsub(",+$", "", file_lines), "./outputs/summaries/with_SSB/dis_mrtl_scaled_up.csv.gz")
+file_lines <- readLines("./outputs/summaries/dis_mrtl_scaled_up.csv.gz")
+writeLines(gsub(",+$", "", file_lines), "./outputs/summaries/dis_mrtl_scaled_up.csv.gz")
 
-tt <- fread("./outputs/summaries/with_SSB/dis_mrtl_scaled_up.csv.gz", fill = TRUE,
+tt <- fread("./outputs/summaries/dis_mrtl_scaled_up.csv.gz", fill = TRUE,
 )[, `:=` (year = year + 2000)]
 
 tt[, agegrp := fifelse(agegrp == "90-94", "90+", agegrp)]
@@ -223,7 +223,7 @@ data_orig[, `:=`(disease = fifelse(variable == "mx_all", "all_cause_mrtl", gsub(
 
 ### Plots for  validation ###
 
-setwd("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT NCD Germany")
+setwd("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany")
 
 ## Non-modelled mortality (without deaths from diabetes included in non-modelled) ##
 
