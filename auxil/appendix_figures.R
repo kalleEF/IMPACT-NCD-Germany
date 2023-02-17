@@ -1,5 +1,5 @@
 
-## Manuscript Figures ## ----
+## Appendix Figures ## ----
 
 library(data.table)
 library(CKutils)
@@ -14,81 +14,23 @@ options(scipen = 999)
 # ## SET ANALYSIS + IN AND OUT PATHS BEFORE USE ##
 if(!Sys.info()[1] == "Windows"){
   
-  if(!file.exists(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/manuscript/"))){
-    dir.create(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/manuscript/"))
+  if(!file.exists(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/appendix/"))){
+    dir.create(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/appendix/"))
   }
-
-  out_path <- "/media/php-workstation/Storage_1/IMPACT_Storage/outputs/manuscript/"
-
+  
+  out_path <- "/media/php-workstation/Storage_1/IMPACT_Storage/outputs/appendix/"
+  
 } else {
   
-  if(!file.exists(paste0("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/manuscript/"))){
-    dir.create(paste0("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/manuscript/"))
+  if(!file.exists(paste0("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/appendix/"))){
+    dir.create(paste0("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/appendix/"))
   }
   
-  out_path <- "G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/manuscript/"
+  out_path <- "G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/appendix/"
   
 }
 
-## Figure 2: Cost-effectiveness ## ----
-
-if(!Sys.info()[1] == "Windows"){
-  cea_wo <- fread(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/", "without_direct_SSB_effects", "/summaries/cea_results.csv.gz"))
-  cea_wo[, analysis := "only BMI-mediated effects"]
-  cea_w <- fread(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/", "with_direct_SSB_effects", "/summaries/cea_results.csv.gz"))
-  cea_w[, analysis := "incl. direct SSB effects"]
-} else {
-  cea_wo <- fread(paste0("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/",
-                         "without_direct_SSB_effects", "/summaries/cea_results.csv.gz"))
-  cea_wo[, analysis := "only BMI-mediated effects"]
-  cea_w <- fread(paste0("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/",
-                        "with_direct_SSB_effects", "/summaries/cea_results.csv.gz"))
-  cea_w[, analysis := "incl. direct SSB effects"]
-}
-
-cea <- rbind(cea_w, cea_wo)
-
-cea_agg <- cea[, lapply(.SD, sum), .SDcols = !c("analysis", "scenario", "sex", "agegrp", "mc"),
-               by = c("scenario", "mc", "analysis")]
-
-#TODO: Eventually extend by error bars!
-cea_point <- data.table(x = cea_agg[scenario != "sc0", mean(incr_qalys_scl, na.rm = T), by = .(scenario, analysis)],
-                        y = cea_agg[scenario != "sc0", mean(incr_tot_costs_scl, na.rm = T), by = .(scenario, analysis)])
-
-cea_point[, `:=`(scenario = x.scenario, y.scenario = NULL,
-                 analysis = x.analysis, y.analysis = NULL,
-                 mean_qaly = x.V1, mean_cost = y.V1)]
-
-ggplot(cea_agg[scenario != "sc0"], aes(x = incr_qalys_scl,
-                                       y = incr_tot_costs_scl,
-                                       col = scenario)) +
-  facet_wrap(~ analysis) +
-  geom_point(shape = 16, alpha = 0.7, size = 3) +
-  geom_point(data = cea_point, aes(x = mean_qaly, y = mean_cost, col = scenario), shape = 4, size = 5, stroke = 1.5) +
-  geom_point(data = cea_point, aes(x = mean_qaly, y = mean_cost), shape = 1, size = 2, col = "black") +
-  geom_point(data = cea_point, aes(x = mean_qaly, y = mean_cost), shape = 4, size = 4, col = "black") +
-  geom_vline(xintercept = 0) +
-  geom_hline(yintercept = 0) +
-  #expand_limits(x = -8e4, y = 2e9) +
-  scale_y_continuous(name = "Incremental costs (in millions)", c(seq(0,80000000000,1000000000)*-1),
-                     labels = function(y) format(y/1000000)) +
-  scale_x_continuous(name = "Incremental QALYs (in thousands)", c(seq(-1000000,500000,50000)), labels = function(y) format(y/1000)) +
-  scale_color_viridis_d(name = "Scenario", option = "viridis",
-                       labels = c("Tax on SSBs", "Tax on SSBs + Fruit Juice",
-                                  "Reformulation", "Reformulation + Reduced Consumption")) +
-  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-                     panel.grid.minor = element_blank(), strip.text.x = element_text(size = 15),
-                     axis.line = element_line(colour = "black"),
-                     axis.text=element_text(size=13), axis.title=element_text(size=15),
-                     legend.position = c(0.8,0.3),
-                     legend.title = element_text(size = 15), legend.text = element_text(size = 13))
-
-
-ggsave(paste0(out_path, "Figure_1_cost_effectiveness_plane.tiff"),
-       height = 9, width = 16, dpi = 300)
-
-
-## Figure 3: Cross-validation IMPACT vs PRIMEtime ## ----
+## Figure X: Cross-validation IMPACT vs PRIMEtime including both RR sets ## ----
 
 ## IMPACT Results
 
@@ -100,8 +42,6 @@ if(!Sys.info()[1] == "Windows"){
 } else {
   impact_epi <- fread("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/without_direct_SSB_effects/tables/cases_prev_post_by_scenario.csv")
 }
-
-#fwrite(impact_epi, "G:/Meine Ablage/PhD/Presentations/2022_EUPHA/impact_epi_results.csv", sep = ";", dec = ".")
 
 impact_epi[, `:=`(model = "IMPACT NCD",
                   outcome = ifelse(disease == "diff_t2dm_prvl", "diabetes_cpp",
@@ -146,18 +86,40 @@ prime_impact <- prime_impact[, c("mc", "sex", "scenario", "incr_qalys", "stroke_
 prime_impact <- prime_impact[, lapply(.SD, sum), .SDcols = c("incr_qalys", "stroke_cpp", "chd_cpp", "diabetes_cpp"), by = c("mc", "scenario")]
 
 prime_impact <- melt(prime_impact[, c("mc", "scenario",
-                        "incr_qalys", "stroke_cpp", "chd_cpp", "diabetes_cpp")], id.vars = c("mc", "scenario"))
+                                      "incr_qalys", "stroke_cpp", "chd_cpp", "diabetes_cpp")], id.vars = c("mc", "scenario"))
 
 #prime_impact_mean <- prime_impact[, lapply(.SD, mean), .SDcols = "value", keyby = c("variable", "scenario")]
 prime_impact <- prime_impact[, CKutils:::fquantile_byid(value, prbl, id = as.character(variable)), keyby = "scenario"]
 setnames(prime_impact, c("scenario", "outcome", scales:::percent(prbl, prefix = "prvl_rate_")))
 
-prime_impact[, model := "PRIMEtime CE"][, outcome := ifelse(outcome == "incr_qalys", "incr_qaly", outcome)]
+prime_impact[, model := "PRIMEtime CE (IMPACT RRs)"][, outcome := ifelse(outcome == "incr_qalys", "incr_qaly", outcome)]
+
+
+## PRIMEtime Results with original RRs
+
+if(!Sys.info()[1] == "Windows"){
+  prime_original <- fread("/home/php-workstation/Schreibtisch/IMPACT/2022_SSB_Tax_Model_Germany/PRIMEtime-CE/PRIMEtime_results_RR_original.csv")
+} else {
+  prime_original <- fread("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/PRIMEtime-CE/output/PRIMEtime_results_RR_original.csv")
+}
+
+prime_original <- prime_original[, c("mc", "sex", "scenario", "incr_qalys", "stroke_cpp", "chd_cpp", "diabetes_cpp")]
+
+prime_original <- prime_original[, lapply(.SD, sum), .SDcols = c("incr_qalys", "stroke_cpp", "chd_cpp", "diabetes_cpp"), by = c("mc", "scenario")]
+
+prime_original <- melt(prime_original[, c("mc", "scenario",
+                                          "incr_qalys", "stroke_cpp", "chd_cpp", "diabetes_cpp")], id.vars = c("mc", "scenario"))
+
+#prime_original_mean <- prime_original[, lapply(.SD, mean), .SDcols = "value", keyby = c("variable", "scenario")]
+prime_original <- prime_original[, CKutils:::fquantile_byid(value, prbl, id = as.character(variable)), keyby = "scenario"]
+setnames(prime_original, c("scenario", "outcome", scales:::percent(prbl, prefix = "prvl_rate_")))
+
+prime_original[, model := "PRIMEtime CE (Original RRs)"][, outcome := ifelse(outcome == "incr_qalys", "incr_qaly", outcome)]
 
 
 ## Combine datasets for plot
 
-dat <- rbind(impact, prime_impact)
+dat <- rbind(impact, prime_original, prime_impact)
 
 dat[outcome == "incr_qaly", `:=`(`prvl_rate_2.5%` = `prvl_rate_2.5%` * -1,
                                  `prvl_rate_50.0%` = `prvl_rate_50.0%` * -1,
@@ -166,7 +128,7 @@ dat[outcome == "incr_qaly", `:=`(`prvl_rate_2.5%` = `prvl_rate_2.5%` * -1,
 dat[, outcome := ifelse(outcome == "chd_cpp", "Coronary Heart Disease",
                         ifelse(outcome == "stroke_cpp", "Stroke",
                                ifelse(outcome == "incr_qaly", "Incremental QALYs",
-                               "Type 2 Diabetes")))]
+                                      "Type 2 Diabetes")))]
 
 dat[, scenario := ifelse(scenario == "sc1", "Scenario 1",
                          ifelse(scenario == "sc2", "Scenario 2",
@@ -179,9 +141,9 @@ dodge <- position_dodge(width=0.9)
 # Panel A: CHD #
 sc1 <- ggplot(dat[outcome == "Coronary Heart Disease"],
               aes(y = scenario, x = `prvl_rate_50.0%` * -1,
-                                   xmin = `prvl_rate_2.5%` * -1,
-                                   xmax = `prvl_rate_97.5%` * -1,
-                                   by = scenario, fill = model)) +
+                  xmin = `prvl_rate_2.5%` * -1,
+                  xmax = `prvl_rate_97.5%` * -1,
+                  by = scenario, fill = model)) +
   #facet_wrap(~ scenario, scales = "fixed", ncol = 1, nrow = 4) +
   geom_bar(stat = "identity", position = "dodge") +
   geom_col(position = "dodge") +
@@ -274,8 +236,6 @@ sc4 <- ggplot(dat[outcome == "Incremental QALYs"],
 
 plot_grid(sc1, sc2, sc3, sc4, align = "v", ncol = 2)
 
-ggsave(paste0(out_path, "Figure_2_cross_validation.tiff"),
+ggsave(paste0(out_path, "Figure_X_cross_validation.tiff"),
        height = 9, width = 12, dpi = 300)
-
-
 
