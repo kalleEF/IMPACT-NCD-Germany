@@ -1,7 +1,7 @@
 
 new_runs <- FALSE
 new_calibration <- FALSE # SET CALIBRATION IN DESIGN FILE TO "NO" BEFORE ATTEMPT
-check_runs <- TRUE
+check_runs <- FALSE
 
 if(new_runs || check_runs){
   
@@ -31,7 +31,7 @@ if(new_runs){
   IMPACTncd$del_outputs()$del_logs()
   
   # Original iterations #
-  batch_size <- 4
+  batch_size <- 25
   iterations <- 100
   batches <- split(seq(1, iterations),
                    f = findInterval(seq(1, iterations),
@@ -44,7 +44,7 @@ if(new_runs){
       run(i, multicore = TRUE, "sc0", m_zero_trend = -0.03, p_zero_trend = 0)
     
   }
-  IMPACTncd$export_summaries(multicore = TRUE, type = "dis_mrtl")
+  IMPACTncd$export_summaries(multicore = TRUE, type = c("dis_mrtl", "incd", "prvl"))
   
 }
 
@@ -58,10 +58,10 @@ if(new_calibration){
   lifetable_nonmodelled <- lifetable_all[disease == "other"][, disease := NULL]
   
   # WARNING: For some reason some iteration have trailing comma!
-  file_lines <- readLines("./outputs/summaries/dis_mrtl_scaled_up.csv.gz")
-  writeLines(gsub(",+$", "", file_lines), "./outputs/summaries/dis_mrtl_scaled_up.csv.gz")
+  file_lines <- readLines(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/mortality_calibration/summaries/dis_mrtl_scaled_up.csv.gz"))
+  writeLines(gsub(",+$", "", file_lines), "/media/php-workstation/Storage_1/IMPACT_Storage/outputs/mortality_calibration/summaries/dis_mrtl_scaled_up.csv.gz")
   
-  tt <- fread("./outputs/summaries/dis_mrtl_scaled_up.csv.gz"
+  tt <- fread("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/mortality_calibration/summaries/dis_mrtl_scaled_up.csv.gz"
   )[scenario == "sc0"]
   e <- tt[, .(mrtl_rate = sum(nonmodelled)/sum(popsize)), keyby = .(year, agegrp, sex)]
   e[, agegrp := ifelse(agegrp == "90-94", "90+", agegrp)]
@@ -87,7 +87,7 @@ if(new_calibration){
   
   lifetable_chd <- lifetable_all[disease == "chd"][, disease := NULL]
   
-  tt <- fread("./outputs/summaries/dis_mrtl_scaled_up.csv.gz"
+  tt <- fread("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/mortality_calibration/summaries/dis_mrtl_scaled_up.csv.gz"
   )[scenario == "sc0"]
   e <- tt[, .(mrtl_rate = sum(chd)/sum(popsize)), keyby = .(year, agegrp, sex)]
   e[, agegrp := ifelse(agegrp == "90-94", "90+", agegrp)]
@@ -112,8 +112,8 @@ if(new_calibration){
   ## Calibration factors for CHD mortality ##
   
   lifetable_stroke <- lifetable_all[disease == "stroke"][, disease := NULL]
-  
-  tt <- fread("./outputs/summaries/dis_mrtl_scaled_up.csv.gz"
+
+  tt <- fread("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/mortality_calibration/summaries/dis_mrtl_scaled_up.csv.gz"
   )[scenario == "sc0"]
   e <- tt[, .(mrtl_rate = sum(stroke)/sum(popsize)), keyby = .(year, agegrp, sex)]
   e[, agegrp := ifelse(agegrp == "90-94", "90+", agegrp)]
@@ -146,8 +146,8 @@ if(check_runs){
   IMPACTncd$del_outputs()$del_logs()
   
   # Original iterations #
-  batch_size <- 4
-  iterations <- 50
+  batch_size <- 10
+  iterations <- 30
   batches <- split(seq(1, iterations),
                    f = findInterval(seq(1, iterations),
                                     vec = seq(1, iterations, batch_size)))
@@ -159,6 +159,6 @@ if(check_runs){
       run(i, multicore = TRUE, "sc0", m_zero_trend = -0.03, p_zero_trend = 0)
     
   }
-  IMPACTncd$export_summaries(multicore = TRUE, type = c("dis_mrtl"))
+  IMPACTncd$export_summaries(multicore = TRUE, type = c("dis_mrtl", "incd", "prvl"))
   
 }

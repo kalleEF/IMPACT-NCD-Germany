@@ -856,7 +856,7 @@ Disease <-
             setnafill(sp$pop, "c", fill = 0, cols = "mu") # fix for prostate and breast cancer
             sp$pop[
               year == design_$sim_prm$init_year,
-              (namprvl) := as.integer(dqrunif(.N) < mu * 0.9) # Manual calibration to input prevalence
+              (namprvl) := as.integer(dqrunif(.N) < mu * 0.9) # To avoid double counting of incidence
             ]
             sp$pop[, mu := NULL]
 
@@ -1050,33 +1050,6 @@ Disease <-
                                perl = TRUE
             )
           }
-
-          # Manual incidence calibration
-          if(self$name == "t2dm"){
-            
-            age_trend <- TRUE
-            
-            clb_start_age <- 50
-            clbintrc <- 0.027
-            clbtrend <- -0.0005
-
-          }
-          
-          if(self$name == "chd"){
-            
-            age_trend <- FALSE
-            
-            clbintrc <- 1.8
-
-          }
-          
-          if(self$name == "stroke"){
-            
-            age_trend <- FALSE
-            
-            clbintrc <- 1.8
-
-          }
           
           
           if (self$meta$incidence$type == 1L) {
@@ -1123,18 +1096,33 @@ Disease <-
             absorb_dt(sp$pop, tbl)
             setnafill(sp$pop, "c", 1, cols = "clbfctr")
             
-            # Additional manual calibration factor including quadratic age effect
-            if(age_trend){
+            # Manual incidence calibration
+            if(self$name == "t2dm"){
+              sp$pop[,`:=`(clb_start_age = 50,
+                           clbintrc = 0.027,
+                           clbtrend = -0.0005)]
               
               sp$pop[, clbfctr := fifelse(between(age, clb_start_age, design_$sim_prm$ageH),
                                           clbfctr * (1 + ((age - clb_start_age) * clbintrc) + (age - clb_start_age)**2 * clbtrend),
                                           clbfctr)]
               
-            } else {
-              
+              sp$pop[,`:=`(clb_start_age = NULL,
+                           clbintrc = NULL,
+                           clbtrend = NULL)]
+              }
+            
+            if(self$name == "chd"){
+              sp$pop[, clbintrc := 1.2]
               sp$pop[, clbfctr := clbfctr * clbintrc]
-              
-            }
+              sp$pop[, clbintrc := NULL]
+              }
+            
+            if(self$name == "stroke"){
+              sp$pop[, clbintrc := 1.2]
+              sp$pop[, clbfctr := clbfctr * clbintrc]
+              sp$pop[, clbintrc := NULL]
+              }
+            
             # End of calibration
 
             set(sp$pop, NULL, private$incd_colnam,
@@ -1353,7 +1341,8 @@ Disease <-
                 sp$pop[, clbintrc := 1] # Calibration intercept parameter
 
                 # Modifications based on ratios after initial calibration:
-                sp$pop[sex == "men" & age >= 67 & year >= 20, clbtrend := 1.0015] # next values: 1.002, 1.003
+                sp$pop[sex == "women" & age >= 40 & year >= 13, clbintrc := 1.15] # next values: 1.002, 1.003
+                sp$pop[sex == "men" & age >= 40 & year >= 13, clbintrc := 1.18] # next values: 1.002, 1.003
                 
               } else if(self$name == "stroke"){
                 
@@ -1366,6 +1355,9 @@ Disease <-
                 sp$pop[, clbtrend := 1]
                 sp$pop[, clbintrc := 1]
                 
+                sp$pop[sex == "women" & age >= 40 & year >= 13, clbintrc := 1.23]
+                sp$pop[sex == "men" & age >= 40 & year >= 13, clbintrc := 1.23] 
+                
               } else if(self$name == "nonmodelled"){
                 
                 tbl <- read_fst("./inputs/mortality/mrtl_clbr_nonmodelled.fst",
@@ -1376,11 +1368,10 @@ Disease <-
                 
                 sp$pop[, clbtrend := 1]
                 sp$pop[, clbintrc := 1]
-                # TODO
-                # # Modifications based on ratios after initial calibration:
-                # sp$pop[sex == "men" & age >= 70 & age < 80, clbintrc := 1.01]
-                # sp$pop[sex == "men" & age >= 80 & age < 85, clbintrc := 0.99]
-                # sp$pop[year >= 25 & sex == "men" & age >= 85, clbintrc := 0.975]
+
+                sp$pop[sex == "men" & between(age, 70, 80), clbintrc := 0.98]
+                sp$pop[sex == "men" & age > 80, clbintrc := 0.96]
+                sp$pop[age >= 85, clbtrend := 0.9999]
                 
               } else {
                 
@@ -1405,6 +1396,18 @@ Disease <-
             if("mrtl_clbr" %in% names(sp$pop)){
               
               sp$pop[, mrtl_clbr := NULL]
+              
+            }
+            
+            if("clbtrend" %in% names(sp$pop)){
+              
+              sp$pop[, c("clbtrend") := NULL]
+              
+            }
+            
+            if("clbintrc" %in% names(sp$pop)){
+              
+              sp$pop[, c("clbintrc") := NULL]
               
             }
             

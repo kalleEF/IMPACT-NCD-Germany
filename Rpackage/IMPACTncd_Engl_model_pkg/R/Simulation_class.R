@@ -52,7 +52,8 @@ Simulation <-
       #' @description Create a new simulation object.
       #' @param sim_prm Either a path to a yaml file or a Design object.
       #' @return A new `Simulation` object.
-      initialize = function(sim_prm) {
+      initialize = function(sim_prm, analysis_name_) {
+        if(!is.character(analysis_name_)) stop("Name of analysis needs to be of type character!")
         if (is.character(sim_prm))
           self$design <- Design$new(sim_prm)
         else if (inherits(sim_prm, "Design"))
@@ -60,6 +61,8 @@ Simulation <-
         else
           stop("sim_prm need to be a path to an appropriate yaml file or a Design object")
 
+        self$design$sim_prm$analysis_name <- analysis_name_
+        
         data.table::setDTthreads(threads = self$design$sim_prm$clusternumber, restore_after_fork = NULL)
         fst::threads_fst(nr_of_threads = self$design$sim_prm$clusternumber, reset_after_fork = NULL)
 

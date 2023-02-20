@@ -53,7 +53,7 @@ scenario_sens_1_fn <- function(sp) {
   sp$pop[year > ((IMPACTncd$design$sim_prm$init_year_intv - 2000) + policy_lag), bmi_curr_xps := bmi_curr_xps - (bmi_delta * bmi_mod)]
   
   # Delete unnecessary variables from synthpop #
-  sp$pop[, c("ssb_delta_xps", "juice_delta_xps", "sugar_delta", "bmi_delta", "bmi_mod") := NULL]
+  sp$pop[, c("bmi_mod") := NULL]
   
 }
 
@@ -110,7 +110,7 @@ scenario_sens_2_fn <- function(sp) {
   sp$pop[year > ((IMPACTncd$design$sim_prm$init_year_intv - 2000) + policy_lag), bmi_curr_xps := bmi_curr_xps - (bmi_delta * bmi_mod)]
   
   # Delete unnecessary variables from synthpop #
-  sp$pop[, c("ssb_delta_xps", "juice_delta_xps", "sugar_delta", "bmi_delta", "bmi_mod") := NULL]
+  sp$pop[, c("bmi_mod") := NULL]
   
 }
 
@@ -161,8 +161,8 @@ scenario_sens_3_fn <- function(sp) {
   sp$pop[year > ((IMPACTncd$design$sim_prm$init_year_intv - 2000) + policy_lag), bmi_curr_xps := bmi_curr_xps - (bmi_delta * bmi_mod)]
   
   # Delete unnecessary variables from synthpop #
-  sp$pop[, c("ssb_delta_xps", "sugar_delta", "bmi_delta", "bmi_mod") := NULL]
-  
+  sp$pop[, c("bmi_mod") := NULL]
+  sp$pop[, c("juice_delta_xps") := 0]
 }
 
 
@@ -210,7 +210,8 @@ scenario_sens_4_fn <- function(sp) {
   sp$pop[year > (IMPACTncd$design$sim_prm$init_year_intv - 2000), bmi_curr_xps := bmi_curr_xps - (bmi_delta * bmi_mod)]
   
   # Delete unnecessary variables from synthpop #
-  sp$pop[, c("sugar_delta", "bmi_delta", "ref_mod", "bmi_mod") := NULL]
+  sp$pop[, c("ref_mod", "bmi_mod") := NULL]
+  sp$pop[, c("ssb_delta_xps", "juice_delta_xps") := 0] 
   
 }
 
@@ -259,6 +260,7 @@ scenario_sens_5_fn <- function(sp) {
   sp$pop[year > ((IMPACTncd$design$sim_prm$init_year_intv - 2000) + policy_lag), bmi_curr_xps := bmi_curr_xps - (bmi_delta * bmi_mod)]
   
   # Delete unnecessary variables from synthpop #
-  sp$pop[, c("ssb_delta_xps", "sugar_delta", "bmi_delta", "bmi_mod") := NULL]
+  sp$pop[, c("bmi_mod") := NULL]
+  sp$pop[, c("juice_delta_xps") := 0] 
   
 }

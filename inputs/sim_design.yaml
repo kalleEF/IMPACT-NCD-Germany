@@ -1,15 +1,15 @@
 analysis_name: mortality_calibration
 iteration_n: 15
 iteration_n_final: 100
-clusternumber: 32 # explicit parallelisation
-clusternumber_export: 16 # NEW: number of clusters for export_summaries
+clusternumber: 30 # explicit parallelisation
+clusternumber_export: 4 # NEW: number of clusters for export_summaries
 n_cpus: 1 # implicit parallelisation
 logs: yes
 export_xps: yes
 keep_lifecourse: yes
 export_PARF: no
 'n': 100000
-n_synthpop_aggregation: 3 # number of synthpops to aggregate together
+n_synthpop_aggregation: 2 # number of synthpops to aggregate together
 # n_primers: 10 # better be some multiple of n_synthpop_aggregation
 init_year_long: 2013 # 2008 to 2020 but be careful with max lags
 sim_horizon_max: 2043 # population projections do not support longer horizon
@@ -119,6 +119,10 @@ cols_for_output:
 - bmi_curr_xps
 - ssb_curr_xps
 - juice_curr_xps
+- ssb_delta_xps
+- juice_delta_xps
+- sugar_delta
+- bmi_delta
 strata_for_output:
 - scenario
 - year
