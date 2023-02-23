@@ -54,6 +54,8 @@ vignettes/*.pdf
 /secure_data/
 DELETEme*
 *.png
+*.tiff
+*.jpeg
 
 IMPACT NCD Germany.Rproj
 
