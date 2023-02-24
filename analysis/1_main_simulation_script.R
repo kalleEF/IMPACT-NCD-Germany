@@ -272,11 +272,11 @@ IMPACTncd$export_summaries(multicore = TRUE, type = "cea")
 
 file.rename(from = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/cea_results.csv.gz"),
             to = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/cea_results",
-                        gsub("0.0", "", as.character(IMPACTncd$design$sim_prm$discount_rate)), ".csv.gz"))
+                        gsub("0.1", "10", as.character(IMPACTncd$design$sim_prm$discount_rate)), ".csv.gz"))
 
 file.rename(from = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/health_economic_results.csv.gz"),
             to = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/health_economic_results",
-                        gsub("0.0", "", as.character(IMPACTncd$design$sim_prm$discount_rate)), ".csv.gz"))
+                        gsub("0.1", "10", as.character(IMPACTncd$design$sim_prm$discount_rate)), ".csv.gz"))
 
 
 
