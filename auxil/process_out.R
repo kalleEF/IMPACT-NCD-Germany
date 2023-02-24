@@ -12,11 +12,15 @@ library(scales)
 dirs <- list.dirs("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs",
                   recursive = FALSE, full.names = FALSE)
 
+dirs <- dirs[dirs != "Test"]
+
 # Export options:
 plot_format <- "png" # File format for plots
 
-theme_set(new = theme_economist()) # ggplot theme that is applied to plots
-theme_update(axis.text.x = element_text(size = 9), plot.title = element_text(hjust = 0.5))
+theme_set(new = theme_hc()) # ggplot theme that is applied to plots
+theme_update(axis.text.x = element_text(size = 9),
+             plot.title = element_text(hjust = 0.5),
+             axis.title.y = element_text(angle = 90))
 
 prbl = c(0.5, 0.025, 0.975, 0.1, 0.9) # Quantiles for uncertainty of results
 
@@ -2411,6 +2415,45 @@ for(analysis in dirs){
         ggsave(paste0(out_path_plots, "disease_mortality_numbers_diff_by_year.", plot_format),
                height = 9, width = 16)
         
+        # Deaths prevented or postponed #
+        
+        d <- tt[, lapply(.SD, sum), .SDcols = c("nonmodelled", "chd", "stroke", "popsize"), keyby = eval(outstrata)]
+        
+        prvls <- c("nonmodelled", "chd", "stroke")
+        
+        d <- melt(d, id.vars = outstrata)
+        d <- dcast(d, mc + year ~ scenario + variable)
+        
+        diffs0 <- grep("sc0_", names(d), value = TRUE)[-4]
+        
+        d_out <- data.table(NULL)
+        
+        for(j in 1:sc_n){  
+          
+          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
+          
+          for(i in 1:(length(get(paste0("diffs", j))))){
+            
+            d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
+            
+          }
+          
+          dd <- copy(d)
+          
+          dd[, setdiff(names(d), intersect(c("mc", "year", grep("diff_", names(d), value = TRUE)), names(d))) := NULL]
+          
+          dd <- melt(dd, id.vars = c("mc", "year"))
+          
+          dd <- dd[, lapply(.SD, sum), .SDcols = "value", by = c("mc", "variable")]
+          
+          dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable))]
+          setnames(dd, c("disease", percent(prbl, prefix = "mrtl_rate_")))
+          dd[, scenario := paste0("sc", j)]
+          
+          d_out <- rbind(d_out, dd)
+        }
+        
+        fwrite(d_out, paste0(out_path_tables, "deaths_prev_post_by_scenario.csv"), sep = ";")
     }
     
     if("mrtl_scaled_up.csv.gz" %in% list.files(in_path)){
@@ -2712,7 +2755,7 @@ for(analysis in dirs){
         
     }
     
-    if("LY_scaled_up.csv.gz" %in% list.files(in_path)){
+    if("ly_scaled_up.csv.gz" %in% list.files(in_path)){
           
         ## Life years lived by sex ## ----
         
@@ -2723,7 +2766,7 @@ for(analysis in dirs){
         
         sc_n <- unique(tt$scenario)
         
-        ttt <- dcast(tt, mc + year + sex ~ scenario, value.var = "LY")
+        ttt <- dcast(tt, mc + year + sex ~ scenario, value.var = "LY", fun.aggregate = sum) # Sum over age groups
         
         for(sc in sc_n){
           
@@ -2784,7 +2827,7 @@ for(analysis in dirs){
         
         outstrata <- c("mc", "year")
         
-        ttt <- dcast(tt, mc + year ~ scenario, value.var = "LY", fun.aggregate = sum) # Sum of men and women!
+        ttt <- dcast(tt, mc + year ~ scenario, value.var = "LY", fun.aggregate = sum) # Sum of men and women and age groups!
         
         for(sc in sc_n){
           
@@ -2837,7 +2880,7 @@ for(analysis in dirs){
         
     }
     
-    if("LE60_scaled_up.csv.gz" %in% list.files(in_path)){
+    if("le60_scaled_up.csv.gz" %in% list.files(in_path)){
           
         ## Life expectancy at age 60 by sex ## ----
         
@@ -2964,55 +3007,76 @@ for(analysis in dirs){
         
     }
     
-    if("cea_results.csv.gz" %in% list.files(in_path)){
-        #TODO Add logic for discount rates!
+    if(length(grep("cea_results", list.files(in_path))) > 0){
+
         ## Costs and QALYs, total, by sex and by agegrp ## ----
         
-        cea <- fread(paste0(in_path, "cea_results.csv.gz"))
-        cea[, analysis := analysis]
+        cea_disc <- grep("cea_results", list.files(in_path), value = TRUE)
         
-        export_vars <- grep("^incr_.*_scl$", names(cea), value = TRUE)
+        for(j in cea_disc){
         
-        ## Total ##
-        cea_tot <- cea[, lapply(.SD, sum), .SDcols = !c("analysis", "scenario", "sex", "agegrp", "mc"),
-                       by = c("scenario", "mc", "analysis")]
-        
-        ## Sex ##
-        cea_sex <- cea[, lapply(.SD, sum), .SDcols = !c("analysis", "scenario", "sex", "agegrp", "mc"),
-                       by = c("scenario", "mc", "analysis", "sex")]
-        
-        ## Age ##
-        cea_age <- cea[, lapply(.SD, sum), .SDcols = !c("analysis", "scenario", "sex", "agegrp", "mc"),
-                       by = c("scenario", "mc", "analysis", "agegrp")]
-        
-        for(i in export_vars){
+          disc <- stringr::str_extract(j, "[0-9]")
           
-          # QALYs Scaled #
-          dd <- cea_tot[, fquantile_byid(get(i), prbl, id = analysis), keyby = "scenario"]
-          setnames(dd, c("scenario", "analysis", percent(prbl, prefix = paste0(i, "_"))))
+          cea <- fread(paste0(in_path, j))
+          cea[, analysis := analysis]
           
-          dd <- na.omit(dd)
+          export_vars <- grep("^incr_.*_scl$", names(cea), value = TRUE)
           
-          fwrite(dd, paste0(out_path_tables, i, "_", analysis, ".csv"), sep = ";")
+          ## Total ##
+          cea_tot <- cea[, lapply(.SD, sum), .SDcols = !c("analysis", "scenario", "sex", "agegrp", "mc"),
+                         by = c("scenario", "mc", "analysis")]
           
-          # QALYs Scaled #
+          ## Sex ##
+          cea_sex <- cea[, lapply(.SD, sum), .SDcols = !c("analysis", "scenario", "sex", "agegrp", "mc"),
+                         by = c("scenario", "mc", "analysis", "sex")]
           
-          dd <- cea_sex[, fquantile_byid(get(i), prbl, id = analysis), keyby = c("sex", "scenario")]
-          setnames(dd, c("sex", "scenario", "analysis", percent(prbl, prefix = paste0(i, "_"))))
+          ## Age ##
+          cea_age <- cea[, lapply(.SD, sum), .SDcols = !c("analysis", "scenario", "sex", "agegrp", "mc"),
+                         by = c("scenario", "mc", "analysis", "agegrp")]
           
-          dd <- na.omit(dd)
+          ## Year ##
+          cea_year <- cea[, lapply(.SD, sum), .SDcols = !c("analysis", "scenario", "sex", "agegrp", "mc"),
+                          by = c("scenario", "mc", "analysis", "year")]
           
-          fwrite(dd, paste0(out_path_tables, i, "_", analysis, "_by_sex.csv"), sep = ";")
+          for(i in export_vars){
+            
+            # Total results #
+            
+            dd <- cea_tot[, fquantile_byid(get(i), prbl, id = analysis), keyby = "scenario"]
+            setnames(dd, c("scenario", "analysis", percent(prbl, prefix = paste0(i, "_"))))
+            
+            dd <- na.omit(dd)
+            
+            fwrite(dd, paste0(out_path_tables, i, "_", analysis, "_disc_", disc, ".csv"), sep = ";")
+            
+            # Sex results #
+            
+            dd <- cea_sex[, fquantile_byid(get(i), prbl, id = analysis), keyby = c("sex", "scenario")]
+            setnames(dd, c("sex", "scenario", "analysis", percent(prbl, prefix = paste0(i, "_"))))
+            
+            dd <- na.omit(dd)
+            
+            fwrite(dd, paste0(out_path_tables, i, "_", analysis, "_disc_", disc, "_by_sex.csv"), sep = ";")
+            
+            # Age results #
+            
+            dd <- cea_age[, fquantile_byid(get(i), prbl, id = analysis), keyby = c("agegrp", "scenario")]
+            setnames(dd, c("agegrp", "scenario", "analysis", percent(prbl, prefix = paste0(i, "_"))))
+            
+            dd <- na.omit(dd)
+            
+            fwrite(dd, paste0(out_path_tables, i, "_", analysis, "_disc_", disc, "_by_age.csv"), sep = ";")
+            
+            # Year results #
+            
+            dd <- cea_year[, fquantile_byid(get(i), prbl, id = analysis), keyby = c("year", "scenario")]
+            setnames(dd, c("year", "scenario", "analysis", percent(prbl, prefix = paste0(i, "_"))))
+            
+            dd <- na.omit(dd)
+            
+            fwrite(dd, paste0(out_path_tables, i, "_", analysis, "_disc_", disc, "_by_year.csv"), sep = ";")
           
-          # QALYs Scaled #
-          
-          dd <- cea_age[, fquantile_byid(get(i), prbl, id = analysis), keyby = c("agegrp", "scenario")]
-          setnames(dd, c("agegrp", "scenario", "analysis", percent(prbl, prefix = paste0(i, "_"))))
-          
-          dd <- na.omit(dd)
-          
-          fwrite(dd, paste0(out_path_tables, i, "_", analysis, "_by_age.csv"), sep = ";")
-        
+          }
         }
     }
     
