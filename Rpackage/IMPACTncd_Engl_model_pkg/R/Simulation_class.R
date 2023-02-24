@@ -648,18 +648,18 @@ Simulation <-
 
         # TODO add logic for the years of having MM. Currently 1 is not the real
         # incidence. It is still prevalence
-        sp$pop[, `:=` (
-          cms1st_cont_prvl   = carry_forward_incr(as.integer(cms_count == 1),
-                                             pid_mrk, TRUE, 1L),
-          cmsmm0_prvl   = carry_forward_incr(as.integer(cms_score > 0),
-                                             pid_mrk, TRUE, 1L),
-          cmsmm1_prvl   = carry_forward_incr(as.integer(cms_score > 1),
-                                             pid_mrk, TRUE, 1L),
-          cmsmm1.5_prvl = carry_forward_incr(as.integer(cms_score > 1.5),
-                                             pid_mrk, TRUE, 1L),
-          cmsmm2_prvl   = carry_forward_incr(as.integer(cms_score > 2),
-                                             pid_mrk, TRUE, 1L)
-        )]
+        # sp$pop[, `:=` (
+        #   cms1st_cont_prvl   = carry_forward_incr(as.integer(cms_count == 1),
+        #                                      pid_mrk, TRUE, 1L),
+        #   cmsmm0_prvl   = carry_forward_incr(as.integer(cms_score > 0),
+        #                                      pid_mrk, TRUE, 1L),
+        #   cmsmm1_prvl   = carry_forward_incr(as.integer(cms_score > 1),
+        #                                      pid_mrk, TRUE, 1L),
+        #   cmsmm1.5_prvl = carry_forward_incr(as.integer(cms_score > 1.5),
+        #                                      pid_mrk, TRUE, 1L),
+        #   cmsmm2_prvl   = carry_forward_incr(as.integer(cms_score > 2),
+        #                                      pid_mrk, TRUE, 1L)
+        # )]
 
         setkeyv(sp$pop, c("pid", "year"))
         

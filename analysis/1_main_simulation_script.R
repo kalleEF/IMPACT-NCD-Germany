@@ -12,7 +12,7 @@ source("./auxil/sensitivity_analyses.R")
 runif(1)
 
 # Create batches for batched simulation
-batch_size <- 8
+batch_size <- 10
 iterations <- 500
 first_iteration <- 1
 batches <- split(seq(first_iteration, iterations + first_iteration - 1),
@@ -112,53 +112,46 @@ for(i in batches){
 
 IMPACTncd$export_summaries(multicore = TRUE)
 
-### Sensitivity analyses: Discounting
 
-## Rename original files with 3% discount rate:
-file.rename(from = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/cea_results.csv.gz"),
-            to = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/cea_results",
-                        gsub("0.0", "", as.character(IMPACTncd$design$sim_prm$discount_rate)), ".csv.gz"))
+### Alternative analysis: Excluding direct SSB effects ----
 
-file.rename(from = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/health_economic_results.csv.gz"),
-            to = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/health_economic_results",
-                        gsub("0.0", "", as.character(IMPACTncd$design$sim_prm$discount_rate)), ".csv.gz"))
+load_RRs(c("bmi~chd", "bmi~obesity", "bmi~stroke", "bmi~t2dm",
+           "t2dm_prvl~chd", "t2dm_prvl~nonmodelled", "t2dm_prvl~stroke"))
 
-## Apply 1% discount rate:
-IMPACTncd$design$sim_prm$discount_rate <- 0.01
-IMPACTncd$export_summaries(multicore = TRUE, type = "cea")
+analysis_name <- "without_direct_SSB_effects"
 
-file.rename(from = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/cea_results.csv.gz"),
-            to = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/cea_results",
-                        gsub("0.0", "", as.character(IMPACTncd$design$sim_prm$discount_rate)), ".csv.gz"))
+IMPACTncd <- Simulation$new("./inputs/sim_design.yaml", analysis_name)
 
-file.rename(from = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/health_economic_results.csv.gz"),
-            to = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/health_economic_results",
-                        gsub("0.0", "", as.character(IMPACTncd$design$sim_prm$discount_rate)), ".csv.gz"))
+for(i in batches){
+  
+  scenario_fn <- scenario_0_fn
+  
+  IMPACTncd$
+    run(i, multicore = TRUE, "sc0", m_zero_trend = -0.03, p_zero_trend = 0)
+  
+  scenario_fn <- scenario_1_fn
+  
+  IMPACTncd$
+    run(i, multicore = TRUE, "sc1", m_zero_trend = -0.03, p_zero_trend = 0)
+  
+  scenario_fn <- scenario_2_fn
+  
+  IMPACTncd$
+    run(i, multicore = TRUE, "sc2", m_zero_trend = -0.03, p_zero_trend = 0)
+  
+  scenario_fn <- scenario_3_fn
+  
+  IMPACTncd$
+    run(i, multicore = TRUE, "sc3", m_zero_trend = -0.03, p_zero_trend = 0)
+  
+  scenario_fn <- scenario_4_fn
+  
+  IMPACTncd$
+    run(i, multicore = TRUE, "sc4", m_zero_trend = -0.03, p_zero_trend = 0)
+  
+}
 
-## Apply 5% discount rate:
-IMPACTncd$design$sim_prm$discount_rate <- 0.05
-IMPACTncd$export_summaries(multicore = TRUE, type = "cea")
-
-file.rename(from = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/cea_results.csv.gz"),
-            to = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/cea_results",
-                        gsub("0.0", "", as.character(IMPACTncd$design$sim_prm$discount_rate)), ".csv.gz"))
-
-file.rename(from = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/health_economic_results.csv.gz"),
-            to = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/health_economic_results",
-                        gsub("0.0", "", as.character(IMPACTncd$design$sim_prm$discount_rate)), ".csv.gz"))
-
-## Apply 10% discount rate:
-IMPACTncd$design$sim_prm$discount_rate <- 0.10
-IMPACTncd$export_summaries(multicore = TRUE, type = "cea")
-
-file.rename(from = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/cea_results.csv.gz"),
-            to = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/cea_results",
-                        gsub("0.0", "", as.character(IMPACTncd$design$sim_prm$discount_rate)), ".csv.gz"))
-
-file.rename(from = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/health_economic_results.csv.gz"),
-            to = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/health_economic_results",
-                        gsub("0.0", "", as.character(IMPACTncd$design$sim_prm$discount_rate)), ".csv.gz"))
-
+IMPACTncd$export_summaries(multicore = TRUE)
 
 
 ### Policy sensitivity analyses 1 (no changes in modelled pathways) ----
@@ -230,46 +223,60 @@ for(i in batches){
 IMPACTncd$export_summaries(multicore = TRUE)
 
 
-### Alternative analysis: Excluding direct SSB effects ----
+### Sensitivity analyses: Discounting ----
 
 load_RRs(c("bmi~chd", "bmi~obesity", "bmi~stroke", "bmi~t2dm",
+           "ssb~chd", "ssb~t2dm",
            "t2dm_prvl~chd", "t2dm_prvl~nonmodelled", "t2dm_prvl~stroke"))
 
-analysis_name <- "without_direct_SSB_effects"
+analysis_name <- "with_direct_SSB_effects"
 
 IMPACTncd <- Simulation$new("./inputs/sim_design.yaml", analysis_name)
 
-for(i in batches){
-  
-  scenario_fn <- scenario_0_fn
-  
-  IMPACTncd$
-    run(i, multicore = TRUE, "sc0", m_zero_trend = -0.03, p_zero_trend = 0)
-  
-  scenario_fn <- scenario_1_fn
-  
-  IMPACTncd$
-    run(i, multicore = TRUE, "sc1", m_zero_trend = -0.03, p_zero_trend = 0)
-  
-  scenario_fn <- scenario_2_fn
-  
-  IMPACTncd$
-    run(i, multicore = TRUE, "sc2", m_zero_trend = -0.03, p_zero_trend = 0)
-  
-  scenario_fn <- scenario_3_fn
-  
-  IMPACTncd$
-    run(i, multicore = TRUE, "sc3", m_zero_trend = -0.03, p_zero_trend = 0)
-  
-  scenario_fn <- scenario_4_fn
-  
-  IMPACTncd$
-    run(i, multicore = TRUE, "sc4", m_zero_trend = -0.03, p_zero_trend = 0)
-  
-}
+## Rename original files with 3% discount rate:
+file.rename(from = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/cea_results.csv.gz"),
+            to = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/cea_results",
+                        gsub("0.0", "", as.character(IMPACTncd$design$sim_prm$discount_rate)), ".csv.gz"))
 
-IMPACTncd$export_summaries(multicore = TRUE)
+file.rename(from = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/health_economic_results.csv.gz"),
+            to = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/health_economic_results",
+                        gsub("0.0", "", as.character(IMPACTncd$design$sim_prm$discount_rate)), ".csv.gz"))
 
+## Apply 1% discount rate:
+IMPACTncd$design$sim_prm$discount_rate <- 0.01
+IMPACTncd$export_summaries(multicore = TRUE, type = "cea")
+
+file.rename(from = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/cea_results.csv.gz"),
+            to = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/cea_results",
+                        gsub("0.0", "", as.character(IMPACTncd$design$sim_prm$discount_rate)), ".csv.gz"))
+
+file.rename(from = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/health_economic_results.csv.gz"),
+            to = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/health_economic_results",
+                        gsub("0.0", "", as.character(IMPACTncd$design$sim_prm$discount_rate)), ".csv.gz"))
+
+## Apply 5% discount rate:
+IMPACTncd$design$sim_prm$discount_rate <- 0.05
+IMPACTncd$export_summaries(multicore = TRUE, type = "cea")
+
+file.rename(from = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/cea_results.csv.gz"),
+            to = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/cea_results",
+                        gsub("0.0", "", as.character(IMPACTncd$design$sim_prm$discount_rate)), ".csv.gz"))
+
+file.rename(from = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/health_economic_results.csv.gz"),
+            to = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/health_economic_results",
+                        gsub("0.0", "", as.character(IMPACTncd$design$sim_prm$discount_rate)), ".csv.gz"))
+
+## Apply 10% discount rate:
+IMPACTncd$design$sim_prm$discount_rate <- 0.10
+IMPACTncd$export_summaries(multicore = TRUE, type = "cea")
+
+file.rename(from = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/cea_results.csv.gz"),
+            to = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/cea_results",
+                        gsub("0.0", "", as.character(IMPACTncd$design$sim_prm$discount_rate)), ".csv.gz"))
+
+file.rename(from = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/health_economic_results.csv.gz"),
+            to = paste0(IMPACTncd$design$sim_prm$output_dir, "/", analysis_name, "/summaries/health_economic_results",
+                        gsub("0.0", "", as.character(IMPACTncd$design$sim_prm$discount_rate)), ".csv.gz"))
 
 
 
