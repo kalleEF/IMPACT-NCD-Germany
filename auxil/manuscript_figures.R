@@ -35,14 +35,14 @@ if(!Sys.info()[1] == "Windows"){
 if(!Sys.info()[1] == "Windows"){
   cea_wo <- fread(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/", "without_direct_SSB_effects", "/summaries/cea_results.csv.gz"))
   cea_wo[, analysis := "only BMI-mediated effects"]
-  cea_w <- fread(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/", "with_direct_SSB_effects", "/summaries/cea_results.csv.gz"))
+  cea_w <- fread(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/", "with_direct_SSB_effects", "/summaries/cea_results3.csv.gz"))
   cea_w[, analysis := "incl. direct SSB effects"]
 } else {
   cea_wo <- fread(paste0("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/",
                          "without_direct_SSB_effects", "/summaries/cea_results.csv.gz"))
   cea_wo[, analysis := "only BMI-mediated effects"]
   cea_w <- fread(paste0("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/",
-                        "with_direct_SSB_effects", "/summaries/cea_results.csv.gz"))
+                        "with_direct_SSB_effects", "/summaries/cea_results3.csv.gz"))
   cea_w[, analysis := "incl. direct SSB effects"]
 }
 
