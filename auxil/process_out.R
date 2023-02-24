@@ -9,10 +9,14 @@ library(ggthemes)
 library(scales)
 
 # Note: Analyses are nested in the output folder!
-dirs <- list.dirs("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs",
-                  recursive = FALSE, full.names = FALSE)
-
-dirs <- dirs[dirs != "Test"]
+if(Sys.info()["sysname"] == "Windows"){
+  dirs <- list.dirs("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs",
+                    recursive = FALSE, full.names = FALSE)
+} else {
+  dirs <- list.dirs("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/",
+                    recursive = FALSE, full.names = FALSE)
+}
+dirs <- dirs[!(dirs %in% c("Test", "manuscript", "appendix"))]
 
 # Export options:
 plot_format <- "png" # File format for plots
@@ -71,12 +75,14 @@ for(analysis in dirs){
         ## Prevalence by age and sex ## ----
         
         tt <- fread(paste0(in_path, "prvl_scaled_up.csv.gz")
-        )[, `:=` (year = year + 2000)]
-        tt[, grep("cms", names(tt), value = TRUE) := NULL]
-        
+        )[, `:=` (year = year + 2000,
+                  agegrp = fifelse(agegrp %in% c("30-34", "35-39", "40-44", "45-49"), "30-49",
+                                   ifelse(agegrp %in% c("50-54", "55-59", "60-64", "65-69"), "50-69",
+                                          "70-90")))]
+
         outstrata <- c("mc", "year", "sex", "agegrp", "scenario")
         
-        sc_n <- length(unique(tt$scenario)) - 1 
+        sc_n <- na.omit(as.numeric(gsub("[^1-9]+", "", unique(tt$scenario)))) 
         
         # Rate #
         
@@ -118,9 +124,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+            sens <- FALSE
+            } else {
+              assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-1])
+              sens <- TRUE
+            }
           
           for(i in 1:(length(get(paste0("diffs", j))))){
             
@@ -136,7 +148,12 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year", "sex", "agegrp")]
           setnames(dd, c("year", "sex", "agegrp", "disease", percent(prbl, prefix = "prvl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+          
+          if(sens){
+            dd[, scenario := paste0("sens_", j)]
+          } else {
+            dd[, scenario := paste0("sens_", j)]
+          }
           
           d_out <- rbind(d_out, dd)
         }
@@ -196,9 +213,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-1])
+            sens <- TRUE
+          }
           
           for(i in 1:(length(get(paste0("diffs", j))))){
             
@@ -214,7 +237,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year", "sex", "agegrp")]
           setnames(dd, c("year", "sex", "agegrp", "disease", percent(prbl, prefix = "prvl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -250,9 +273,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-1])
+            sens <- TRUE
+          }
           
           for(i in 1:(length(get(paste0("diffs", j))))){
             
@@ -270,7 +299,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("sex", "agegrp")]
           setnames(dd, c("sex", "agegrp", "disease", percent(prbl, prefix = "prvl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -326,9 +355,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-1])
+            sens <- TRUE
+          }
           
           for(i in 1:(length(get(paste0("diffs", j))))){
             
@@ -344,7 +379,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year", "sex")]
           setnames(dd, c("year", "sex", "disease", percent(prbl, prefix = "prvl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -404,9 +439,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-1])
+            sens <- TRUE
+          }
           
           for(i in 1:(length(get(paste0("diffs", j))))){
             
@@ -422,7 +463,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year", "sex")]
           setnames(dd, c("year", "sex", "disease", percent(prbl, prefix = "prvl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -458,10 +499,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-1])
+            sens <- TRUE
+          }
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -478,7 +524,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = "sex"]
           setnames(dd, c("sex", "disease", percent(prbl, prefix = "prvl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -489,7 +535,11 @@ for(analysis in dirs){
         ## Prevalence by age ## ----
         
         tt <- fread(paste0(in_path, "prvl_scaled_up.csv.gz")
-        )[, `:=` (year = year + 2000)]
+        )[, `:=` (year = year + 2000,
+                  agegrp = fifelse(agegrp %in% c("30-34", "35-39", "40-44", "45-49"), "30-49",
+                                   ifelse(agegrp %in% c("50-54", "55-59", "60-64", "65-69"), "50-69",
+                                          "70-90")))]
+        
         tt[, grep("cms", names(tt), value = TRUE) := NULL]
         
         outstrata <- c("mc", "year", "agegrp", "scenario")
@@ -534,10 +584,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-1])
+            sens <- TRUE
+          }
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -552,7 +607,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year", "agegrp")]
           setnames(dd, c("year", "agegrp", "disease", percent(prbl, prefix = "prvl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -612,10 +667,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-1])
+            sens <- TRUE
+          }
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -630,7 +690,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year", "agegrp")]
           setnames(dd, c("year", "agegrp", "disease", percent(prbl, prefix = "prvl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -666,10 +726,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-1])
+            sens <- TRUE
+          }
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -686,7 +751,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = "agegrp"]
           setnames(dd, c("agegrp", "disease", percent(prbl, prefix = "prvl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -741,10 +806,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-1])
+            sens <- TRUE
+          } 
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -759,7 +829,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year")]
           setnames(dd, c("year", "disease", percent(prbl, prefix = "prvl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -817,10 +887,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-1])
+            sens <- TRUE
+          }
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -835,7 +910,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year")]
           setnames(dd, c("year", "disease", percent(prbl, prefix = "prvl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -870,10 +945,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-1])
+            sens <- TRUE
+          }
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -890,7 +970,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable))]
           setnames(dd, c("disease", percent(prbl, prefix = "prvl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -904,12 +984,16 @@ for(analysis in dirs){
         ## Incidence by age and sex ## ----
         
         tt <- fread(paste0(in_path, "incd_scaled_up.csv.gz")
-        )[, `:=` (year = year + 2000)]
+        )[, `:=` (year = year + 2000,
+                  agegrp = fifelse(agegrp %in% c("30-34", "35-39", "40-44", "45-49"), "30-49",
+                                   ifelse(agegrp %in% c("50-54", "55-59", "60-64", "65-69"), "50-69",
+                                          "70-90")))]
+        
         tt[, grep("cms", names(tt), value = TRUE) := NULL]
         
         outstrata <- c("mc", "year", "sex", "agegrp", "scenario")
         
-        sc_n <- length(unique(tt$scenario)) - 1 
+                sc_n <- na.omit(as.numeric(gsub("[^1-9]+", "", unique(tt$scenario)))) 
         
         # Rate #
         
@@ -950,10 +1034,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-1])
+            sens <- TRUE
+          }
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -968,7 +1057,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year", "sex", "agegrp")]
           setnames(dd, c("year", "sex", "agegrp", "disease", percent(prbl, prefix = "prvl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -1027,10 +1116,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-1])
+            sens <- TRUE
+          }
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -1045,7 +1139,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year", "sex", "agegrp")]
           setnames(dd, c("year", "sex", "agegrp", "disease", percent(prbl, prefix = "prvl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -1080,10 +1174,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-1])
+            sens <- TRUE
+          }
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -1100,7 +1199,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("sex", "agegrp")]
           setnames(dd, c("sex", "agegrp", "disease", percent(prbl, prefix = "prvl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -1155,10 +1254,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-1])
+            sens <- TRUE
+          }
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -1173,7 +1277,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year", "sex")]
           setnames(dd, c("year", "sex", "disease", percent(prbl, prefix = "prvl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -1232,10 +1336,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-1])
+            sens <- TRUE
+          }
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -1250,7 +1359,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year", "sex")]
           setnames(dd, c("year", "sex", "disease", percent(prbl, prefix = "prvl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -1285,10 +1394,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-1])
+            sens <- TRUE
+          }
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -1305,7 +1419,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = "sex"]
           setnames(dd, c("sex", "disease", percent(prbl, prefix = "prvl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -1316,7 +1430,11 @@ for(analysis in dirs){
         ## Incidence by age ## ----
         
         tt <- fread(paste0(in_path, "incd_scaled_up.csv.gz")
-        )[, `:=` (year = year + 2000)]
+        )[, `:=` (year = year + 2000,
+                  agegrp = fifelse(agegrp %in% c("30-34", "35-39", "40-44", "45-49"), "30-49",
+                                   ifelse(agegrp %in% c("50-54", "55-59", "60-64", "65-69"), "50-69",
+                                          "70-90")))]
+        
         tt[, grep("cms", names(tt), value = TRUE) := NULL]
         
         outstrata <- c("mc", "year", "agegrp", "scenario")
@@ -1360,10 +1478,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-1])
+            sens <- TRUE
+          }
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -1378,7 +1501,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year", "agegrp")]
           setnames(dd, c("year", "agegrp", "disease", percent(prbl, prefix = "prvl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -1437,10 +1560,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-1])
+            sens <- TRUE
+          }
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -1455,7 +1583,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year", "agegrp")]
           setnames(dd, c("year", "agegrp", "disease", percent(prbl, prefix = "prvl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -1490,10 +1618,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-1])
+            sens <- TRUE
+          }
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -1510,7 +1643,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = "agegrp"]
           setnames(dd, c("agegrp", "disease", percent(prbl, prefix = "prvl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -1564,10 +1697,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-1])
+            sens <- TRUE
+          }
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -1582,7 +1720,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year")]
           setnames(dd, c("year", "disease", percent(prbl, prefix = "prvl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -1639,10 +1777,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-1])
+            sens <- TRUE
+          }
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -1657,7 +1800,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year")]
           setnames(dd, c("year", "disease", percent(prbl, prefix = "prvl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -1691,10 +1834,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-1])
+            sens <- TRUE
+          }
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -1711,7 +1859,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable))]
           setnames(dd, c("disease", percent(prbl, prefix = "prvl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -1729,11 +1877,15 @@ for(analysis in dirs){
         writeLines(gsub(",+$", "", file_lines), paste0(in_path, "dis_mrtl_scaled_up.csv.gz"))
         
         tt <- fread(paste0(in_path, "dis_mrtl_scaled_up.csv.gz"), fill = TRUE,
-        )[, `:=` (year = year + 2000)]
+        )[, `:=` (year = year + 2000,
+                  agegrp = fifelse(agegrp %in% c("30-34", "35-39", "40-44", "45-49"), "30-49",
+                                   ifelse(agegrp %in% c("50-54", "55-59", "60-64", "65-69"), "50-69",
+                                          "70-90")))]
+        
         
         outstrata <- c("mc", "agegrp", "sex", "year", "scenario")
         
-        sc_n <- length(unique(tt$scenario)) - 1 
+                sc_n <- na.omit(as.numeric(gsub("[^1-9]+", "", unique(tt$scenario)))) 
         
         # Rate #
         
@@ -1775,10 +1927,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-4])
+            sens <- TRUE
+          }
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -1793,7 +1950,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year", "agegrp", "sex")]
           setnames(dd, c("year", "agegrp", "sex", "disease", percent(prbl, prefix = "mrtl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -1855,10 +2012,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-4])
+            sens <- TRUE
+          }          
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -1873,7 +2035,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year", "agegrp", "sex")]
           setnames(dd, c("year", "agegrp", "sex", "disease", percent(prbl, prefix = "mrtl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -1948,10 +2110,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-4])
+            sens <- TRUE
+          }          
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -1966,7 +2133,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year", "sex")]
           setnames(dd, c("year", "sex", "disease", percent(prbl, prefix = "mrtl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -2028,10 +2195,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-4])
+            sens <- TRUE
+          }          
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -2046,7 +2218,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year", "sex")]
           setnames(dd, c("year", "sex", "disease", percent(prbl, prefix = "mrtl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -2077,7 +2249,11 @@ for(analysis in dirs){
         writeLines(gsub(",+$", "", file_lines), paste0(in_path, "dis_mrtl_scaled_up.csv.gz"))
         
         tt <- fread(paste0(in_path, "dis_mrtl_scaled_up.csv.gz"), fill = TRUE,
-        )[, `:=` (year = year + 2000)]
+        )[, `:=` (year = year + 2000,
+                  agegrp = fifelse(agegrp %in% c("30-34", "35-39", "40-44", "45-49"), "30-49",
+                                   ifelse(agegrp %in% c("50-54", "55-59", "60-64", "65-69"), "50-69",
+                                          "70-90")))]
+        
         
         outstrata <- c("mc", "agegrp", "year", "scenario")
         
@@ -2121,10 +2297,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-4])
+            sens <- TRUE
+          }          
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -2139,7 +2320,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year", "agegrp")]
           setnames(dd, c("year", "agegrp", "disease", percent(prbl, prefix = "mrtl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -2201,10 +2382,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-4])
+            sens <- TRUE
+          }          
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -2219,7 +2405,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year", "agegrp")]
           setnames(dd, c("year", "agegrp", "disease", percent(prbl, prefix = "mrtl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -2294,10 +2480,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-4])
+            sens <- TRUE
+          }          
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -2312,7 +2503,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year")]
           setnames(dd, c("year", "disease", percent(prbl, prefix = "mrtl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -2374,10 +2565,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-4])
+            sens <- TRUE
+          }          
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -2392,7 +2588,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year")]
           setnames(dd, c("year", "disease", percent(prbl, prefix = "mrtl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -2428,7 +2624,7 @@ for(analysis in dirs){
         # 
         # d_out <- data.table(NULL)
         # 
-        # for(j in 1:sc_n){  
+        # for(j in sc_n){  
         #   
         #   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
         #   
@@ -2448,7 +2644,7 @@ for(analysis in dirs){
         #   
         #   dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable))]
         #   setnames(dd, c("disease", percent(prbl, prefix = "mrtl_rate_")))
-        #   dd[, scenario := paste0("sc", j)]
+        #             if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
         #   
         #   d_out <- rbind(d_out, dd)
         # }
@@ -2461,11 +2657,15 @@ for(analysis in dirs){
         ## All-cause Mortality by age and sex ## ----
         
         tt <- fread(paste0(in_path, "mrtl_scaled_up.csv.gz")
-        )[, `:=` (year = year + 2000)]
+        )[, `:=` (year = year + 2000,
+                  agegrp = fifelse(agegrp %in% c("30-34", "35-39", "40-44", "45-49"), "30-49",
+                                   ifelse(agegrp %in% c("50-54", "55-59", "60-64", "65-69"), "50-69",
+                                          "70-90")))]
+        
         
         outstrata <- c("mc", "agegrp", "sex", "year", "scenario")
         
-        sc_n <- length(unique(tt$scenario)) - 1 
+                sc_n <- na.omit(as.numeric(gsub("[^1-9]+", "", unique(tt$scenario)))) 
         
         # Rate #
         
@@ -2507,10 +2707,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-2])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-2])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-2])
+            sens <- TRUE
+          }          
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -2525,7 +2730,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year", "agegrp", "sex")]
           setnames(dd, c("year", "agegrp", "sex", "disease", percent(prbl, prefix = "mrtl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -2587,10 +2792,15 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
-        for(j in 1:sc_n){  
+        for(j in sc_n){  
           
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-2])
-          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-2])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-2])
+            sens <- TRUE
+          }          
           for(i in 1:(length(get(paste0("diffs", j))))){
             
             d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
@@ -2605,7 +2815,7 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year", "agegrp", "sex")]
           setnames(dd, c("year", "agegrp", "sex", "disease", percent(prbl, prefix = "mrtl_rate_")))
-          dd[, scenario := paste0("sc", j)]
+                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
@@ -3042,6 +3252,11 @@ for(analysis in dirs){
           disc <- stringr::str_extract(j, "[0-9]")
           
           cea <- fread(paste0(in_path, j))
+          cea[, `:=` (year = year + 2000,
+                      agegrp = fifelse(agegrp %in% c("30-34", "35-39", "40-44", "45-49"), "30-49",
+                                       ifelse(agegrp %in% c("50-54", "55-59", "60-64", "65-69"), "50-69",
+                                              "70-90")))]
+          
           cea[, analysis := analysis]
           
           export_vars <- grep("^incr_.*_scl$", names(cea), value = TRUE)
