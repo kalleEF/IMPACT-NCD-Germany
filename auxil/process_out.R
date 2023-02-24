@@ -2416,44 +2416,44 @@ for(analysis in dirs){
                height = 9, width = 16)
         
         # Deaths prevented or postponed #
-        
-        d <- tt[, lapply(.SD, sum), .SDcols = c("nonmodelled", "chd", "stroke", "popsize"), keyby = eval(outstrata)]
-        
-        prvls <- c("nonmodelled", "chd", "stroke")
-        
-        d <- melt(d, id.vars = outstrata)
-        d <- dcast(d, mc + year ~ scenario + variable)
-        
-        diffs0 <- grep("sc0_", names(d), value = TRUE)[-4]
-        
-        d_out <- data.table(NULL)
-        
-        for(j in 1:sc_n){  
-          
-          assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
-          
-          for(i in 1:(length(get(paste0("diffs", j))))){
-            
-            d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
-            
-          }
-          
-          dd <- copy(d)
-          
-          dd[, setdiff(names(d), intersect(c("mc", "year", grep("diff_", names(d), value = TRUE)), names(d))) := NULL]
-          
-          dd <- melt(dd, id.vars = c("mc", "year"))
-          
-          dd <- dd[, lapply(.SD, sum), .SDcols = "value", by = c("mc", "variable")]
-          
-          dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable))]
-          setnames(dd, c("disease", percent(prbl, prefix = "mrtl_rate_")))
-          dd[, scenario := paste0("sc", j)]
-          
-          d_out <- rbind(d_out, dd)
-        }
-        
-        fwrite(d_out, paste0(out_path_tables, "deaths_prev_post_by_scenario.csv"), sep = ";")
+        # TODO needs fixing!
+        # d <- tt[, lapply(.SD, sum), .SDcols = c("nonmodelled", "chd", "stroke", "popsize"), keyby = eval(outstrata)]
+        # 
+        # prvls <- c("nonmodelled", "chd", "stroke")
+        # 
+        # d <- melt(d, id.vars = outstrata)
+        # d <- dcast(d, mc + year ~ scenario + variable)
+        # 
+        # diffs0 <- grep("sc0_", names(d), value = TRUE)[-4]
+        # 
+        # d_out <- data.table(NULL)
+        # 
+        # for(j in 1:sc_n){  
+        #   
+        #   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
+        #   
+        #   for(i in 1:(length(get(paste0("diffs", j))))){
+        #     
+        #     d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
+        #     
+        #   }
+        #   
+        #   dd <- copy(d)
+        #   
+        #   dd[, setdiff(names(d), intersect(c("mc", "year", grep("diff_", names(d), value = TRUE)), names(d))) := NULL]
+        #   
+        #   dd <- melt(dd, id.vars = c("mc", "year"))
+        #   
+        #   dd <- dd[, lapply(.SD, sum), .SDcols = "value", by = c("mc", "variable")]
+        #   
+        #   dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable))]
+        #   setnames(dd, c("disease", percent(prbl, prefix = "mrtl_rate_")))
+        #   dd[, scenario := paste0("sc", j)]
+        #   
+        #   d_out <- rbind(d_out, dd)
+        # }
+        # 
+        # fwrite(d_out, paste0(out_path_tables, "deaths_prev_post_by_scenario.csv"), sep = ";")
     }
     
     if("mrtl_scaled_up.csv.gz" %in% list.files(in_path)){
@@ -2819,6 +2819,18 @@ for(analysis in dirs){
         ggsave(paste0(out_path_plots, "life_years_diff_by_year_sex.", plot_format),
                height = 9, width = 16)
         
+        ## Life years gained sex ## ----
+        
+        # Cumulate difference in life years lived over years:
+        
+        d <- melt(ttt, id.vars = outstrata)
+        d <- d[, lapply(.SD, sum), .SDcols = "value", by = c("mc", "variable", "sex")]
+        d <- d[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = "sex"]
+        setnames(d, c("sex", "scenario", percent(prbl, prefix = "LY_diff_")))
+        
+        fwrite(d[(scenario %in% grep("_diff", unique(d$scenario), value = TRUE))],
+               paste0(out_path_tables, "life_years_gained_by_sex.csv"), sep = ";")
+        
         
         ## Life years lived total ## ----
         
@@ -2877,6 +2889,18 @@ for(analysis in dirs){
         
         ggsave(paste0(out_path_plots, "life_years_diff_by_year.", plot_format),
                height = 9, width = 16)
+        
+        ## Life years gained total ## ----
+        
+        # Cumulate difference in life years lived over years:
+        
+        d <- melt(ttt, id.vars = outstrata)
+        d <- d[, lapply(.SD, sum), .SDcols = "value", by = c("mc", "variable")]
+        d <- d[, fquantile_byid(value, prbl, id = as.character(variable))]
+        setnames(d, c("scenario", percent(prbl, prefix = "LY_diff_")))
+        
+        fwrite(d[(scenario %in% grep("_diff", unique(d$scenario), value = TRUE))],
+               paste0(out_path_tables, "life_years_gained.csv"), sep = ";")
         
     }
     
