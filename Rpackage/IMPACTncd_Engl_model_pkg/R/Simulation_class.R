@@ -732,7 +732,7 @@ Simulation <-
             c("year", "sex"),
             c("year", "agegrp20")
           )
-        )[, `:=` (year = year + 2000L, mc = sp$mc)] # TODO this could also be mc_aggr. Getting the uncertainty right here is tricky
+        )[, `:=` (year = year + 2000L, mc = sp$mc_aggr)] # TODO this could also be mc_aggr. Getting the uncertainty right here is tricky
         for (j in seq_len(ncol(out_xps)))
           set(out_xps, which(is.na(out_xps[[j]])), j, "All")
         sp$pop[, c(
@@ -768,7 +768,7 @@ Simulation <-
       export_summaries_hlpr = function(lc, type = c("le", "ly",
                                                   "prvl", "incd",
                                                   "mrtl",  "dis_mrtl",
-                                                  "cea")) {
+                                                  "cea", "xps")) {
         if (self$design$sim_prm$logs) message("Exporting summaries...")
         # strata <- setdiff(self$design$sim_prm$cols_for_output, c("age", "pid", "wt"))
         strata <- c("mc",
@@ -991,6 +991,19 @@ Simulation <-
                       private$output_dir(paste0("summaries", "/dis_mrtl_esp.csv.gz"
                       )))
         
+        }
+        
+        if("xps" %in% type){
+          
+          if (self$design$sim_prm$logs) message("Exporting changes in exposures and changes...")
+          
+          setnames(lc, c("sugar_delta", "bmi_delta"), c("sugar_delta_xps", "bmi_delta_xps"))
+          
+          fwrite_safe(lc[, lapply(.SD, weighted.mean, wt),
+                         .SDcols = patterns("_xps$"), keyby = strata],
+                      private$output_dir(paste0("summaries", "/xps_scaled_up.csv.gz"
+                      )))
+          
         }
         
         if("cea" %in% type){
