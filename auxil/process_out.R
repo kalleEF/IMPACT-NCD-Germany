@@ -2610,46 +2610,6 @@ for(analysis in dirs){
         
         ggsave(paste0(out_path_plots, "disease_mortality_numbers_diff_by_year.", plot_format),
                height = 9, width = 16)
-        
-        # Deaths prevented or postponed #
-        # TODO needs fixing!
-        # d <- tt[, lapply(.SD, sum), .SDcols = c("nonmodelled", "chd", "stroke", "popsize"), keyby = eval(outstrata)]
-        # 
-        # prvls <- c("nonmodelled", "chd", "stroke")
-        # 
-        # d <- melt(d, id.vars = outstrata)
-        # d <- dcast(d, mc + year ~ scenario + variable)
-        # 
-        # diffs0 <- grep("sc0_", names(d), value = TRUE)[-4]
-        # 
-        # d_out <- data.table(NULL)
-        # 
-        # for(j in sc_n){  
-        #   
-        #   assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-4])
-        #   
-        #   for(i in 1:(length(get(paste0("diffs", j))))){
-        #     
-        #     d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
-        #     
-        #   }
-        #   
-        #   dd <- copy(d)
-        #   
-        #   dd[, setdiff(names(d), intersect(c("mc", "year", grep("diff_", names(d), value = TRUE)), names(d))) := NULL]
-        #   
-        #   dd <- melt(dd, id.vars = c("mc", "year"))
-        #   
-        #   dd <- dd[, lapply(.SD, sum), .SDcols = "value", by = c("mc", "variable")]
-        #   
-        #   dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable))]
-        #   setnames(dd, c("disease", percent(prbl, prefix = "mrtl_rate_")))
-        #             if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
-        #   
-        #   d_out <- rbind(d_out, dd)
-        # }
-        # 
-        # fwrite(d_out, paste0(out_path_tables, "deaths_prev_post_by_scenario.csv"), sep = ";")
     }
     
     if("mrtl_scaled_up.csv.gz" %in% list.files(in_path)){
@@ -2665,7 +2625,7 @@ for(analysis in dirs){
         
         outstrata <- c("mc", "agegrp", "sex", "year", "scenario")
         
-                sc_n <- na.omit(as.numeric(gsub("[^1-9]+", "", unique(tt$scenario)))) 
+        sc_n <- na.omit(as.numeric(gsub("[^1-9]+", "", unique(tt$scenario)))) 
         
         # Rate #
         
@@ -2837,6 +2797,508 @@ for(analysis in dirs){
         
         ggsave(paste0(out_path_plots, "mortality_numbers_diff_by_year_age_sex.", plot_format),
                height = 9, width = 16)
+        
+        
+        # Deaths prevented or postponed #
+
+        d <- tt[, lapply(.SD, sum), .SDcols = c("all_cause_mrtl"), keyby = eval(outstrata)]
+
+        prvls <- c("all_cause_mrtl")
+
+        d <- melt(d, id.vars = outstrata)
+        d <- dcast(d, mc + sex + agegrp ~ scenario + variable, fun.aggregate = sum) # sum over years
+
+        diffs0 <- grep("sc0_", names(d), value = TRUE)
+
+        d_out <- data.table(NULL)
+
+        for(j in sc_n){
+
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-2])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-2])
+            sens <- TRUE
+          }   
+          for(i in 1:(length(get(paste0("diffs", j))))){
+
+            d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
+
+          }
+
+          dd <- copy(d)
+
+          dd[, setdiff(names(d), intersect(c("mc", "sex", "agegrp", grep("diff_", names(d), value = TRUE)), names(d))) := NULL]
+
+          dd <- melt(dd, id.vars = c("mc", "sex", "agegrp"))
+
+          dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("sex", "agegrp")]
+          setnames(dd, c("sex", "agegrp", "disease", percent(prbl, prefix = "mrtl_rate_")))
+          if(sens){dd[, scenario := paste0("sens_", j)]} else {dd[, scenario := paste0("sc", j)]           }
+
+          d_out <- rbind(d_out, dd)
+        }
+
+        fwrite(d_out, paste0(out_path_tables, "deaths_prev_post_by_scenario.csv"), sep = ";")
+        
+        
+        ## All-cause Mortality by sex ## ----
+        
+        tt <- fread(paste0(in_path, "mrtl_scaled_up.csv.gz")
+        )[, `:=` (year = year + 2000,
+                  agegrp = fifelse(agegrp %in% c("30-34", "35-39", "40-44", "45-49"), "30-49",
+                                   ifelse(agegrp %in% c("50-54", "55-59", "60-64", "65-69"), "50-69",
+                                          "70-90")))]
+        
+        
+        outstrata <- c("mc", "sex", "year", "scenario")
+        
+        sc_n <- na.omit(as.numeric(gsub("[^1-9]+", "", unique(tt$scenario)))) 
+        
+        # Rate #
+        
+        d <- tt[, lapply(.SD, sum), .SDcols = c("all_cause_mrtl", "popsize"), keyby = eval(outstrata)
+        ][, lapply(.SD, function(x) x/popsize), keyby = outstrata]
+        d <- melt(d, id.vars = outstrata)
+        d <- d[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(setdiff(outstrata, "mc"))]
+        setnames(d, c(setdiff(outstrata, "mc"), "disease", percent(prbl, prefix = "mrtl_rate_")))
+        
+        fwrite(d, paste0(out_path_tables, "mortality_rate_by_year_sex.csv"), sep = ";")
+        
+        ggplot(d[disease != "popsize"], aes(x = year, y = `mrtl_rate_50.0%`,
+                                            ymin = `mrtl_rate_2.5%`,
+                                            ymax = `mrtl_rate_97.5%`,
+                                            linetype = scenario)) +
+          facet_wrap(~ disease + sex, scales = "free") +
+          geom_ribbon(alpha = 0.5/5, colour = NA) +
+          geom_line() +
+          scale_x_continuous(name = "Year") +
+          scale_y_continuous(name = "Mortality") +
+          ggtitle("Mortality rate by scenario over time") +
+          expand_limits(y = 0) +
+          theme(legend.title = element_blank())
+        
+        ggsave(paste0(out_path_plots, "mortality_rate_by_year_sex.", plot_format),
+               height = 9, width = 16)
+        
+        # Rate difference #
+        
+        d <- tt[, lapply(.SD, sum), .SDcols = c("all_cause_mrtl", "popsize"), keyby = eval(outstrata)
+        ][, lapply(.SD, function(x) x/popsize), keyby = outstrata]
+        
+        prvls <- c("all_cause_mrtl")
+        
+        d <- melt(d, id.vars = outstrata)
+        d <- dcast(d, mc + year + sex ~ scenario + variable, fun.aggregate = sum) # sum over ages
+        
+        diffs0 <- grep("sc0_", names(d), value = TRUE)[-2]
+        
+        d_out <- data.table(NULL)
+        
+        for(j in sc_n){  
+          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-2])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-2])
+            sens <- TRUE
+          }          
+          for(i in 1:(length(get(paste0("diffs", j))))){
+            
+            d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
+            
+          }
+          
+          dd <- copy(d)
+          
+          dd[, setdiff(names(d), intersect(c("mc", "year", "sex", grep("diff_", names(d), value = TRUE)), names(d))) := NULL]
+          
+          dd <- melt(dd, id.vars = c("mc", "year", "sex"))
+          
+          dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year", "sex")]
+          setnames(dd, c("year", "sex", "disease", percent(prbl, prefix = "mrtl_rate_")))
+          if(sens){dd[, scenario := paste0("sens_", j)]} else {dd[, scenario := paste0("sc", j)]           }
+          
+          d_out <- rbind(d_out, dd)
+        }
+        
+        fwrite(d_out, paste0(out_path_tables, "mortality_rate_diff_by_year_sex.csv"), sep = ";")
+        
+        ggplot(d_out, aes(x = year, y = `mrtl_rate_50.0%`,
+                          ymin = `mrtl_rate_2.5%`,
+                          ymax = `mrtl_rate_97.5%`,
+                          linetype = scenario)) +
+          facet_wrap(~ disease + sex, scales = "free") +
+          geom_ribbon(alpha = 0.5/5, colour = NA) +
+          geom_line() +
+          scale_x_continuous(name = "Year") +
+          scale_y_continuous(name = "Mortality") +
+          ggtitle("Difference in mortality rate compared to baseline over time") +
+          expand_limits(y = 0) +
+          theme(legend.title = element_blank())
+        
+        ggsave(paste0(out_path_plots, "mortality_rate_diff_by_year_sex.", plot_format),
+               height = 9, width = 16)
+        
+        
+        # Absolute numbers #
+        
+        d <- tt[, lapply(.SD, sum), .SDcols = c("all_cause_mrtl"), keyby = eval(outstrata)]
+        d <- melt(d, id.vars = outstrata)
+        d <- d[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(setdiff(outstrata, "mc"))]
+        setnames(d, c(setdiff(outstrata, "mc"), "disease", percent(prbl, prefix = "mrtl_rate_")))
+        
+        fwrite(d, paste0(out_path_tables, "mortality_numbers_by_year_sex.csv"), sep = ";")
+        
+        ggplot(d, aes(x = year, y = `mrtl_rate_50.0%`,
+                      ymin = `mrtl_rate_2.5%`,
+                      ymax = `mrtl_rate_97.5%`,
+                      linetype = scenario)) +
+          facet_wrap(~ disease + sex, scales = "free") +
+          geom_ribbon(alpha = 0.5/5, colour = NA) +
+          geom_line() +
+          scale_x_continuous(name = "Year") +
+          scale_y_continuous(name = "Mortality") +
+          ggtitle("Mortality numbers by scenario over time") +
+          expand_limits(y = 0) +
+          theme(legend.title = element_blank())
+        
+        ggsave(paste0(out_path_plots, "mortality_numbers_by_year_sex.", plot_format),
+               height = 9, width = 16)
+        
+        # Absolute difference #
+        
+        d <- tt[, lapply(.SD, sum), .SDcols = c("all_cause_mrtl"), keyby = eval(outstrata)]
+        
+        prvls <- c("all_cause_mrtl")
+        
+        d <- melt(d, id.vars = outstrata)
+        d <- dcast(d, mc + year + sex ~ scenario + variable, fun.aggregate = sum)
+        
+        diffs0 <- grep("sc0_", names(d), value = TRUE)[-2]
+        
+        d_out <- data.table(NULL)
+        
+        for(j in sc_n){  
+          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-2])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-2])
+            sens <- TRUE
+          }          
+          for(i in 1:(length(get(paste0("diffs", j))))){
+            
+            d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
+            
+          }
+          
+          dd <- copy(d)
+          
+          dd[, setdiff(names(d), intersect(c("mc", "year", "sex", grep("diff_", names(d), value = TRUE)), names(d))) := NULL]
+          
+          dd <- melt(dd, id.vars = c("mc", "year", "sex"))
+          
+          dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year", "sex")]
+          setnames(dd, c("year", "sex", "disease", percent(prbl, prefix = "mrtl_rate_")))
+          if(sens){dd[, scenario := paste0("sens_", j)]} else {dd[, scenario := paste0("sc", j)]           }
+          
+          d_out <- rbind(d_out, dd)
+        }
+        
+        fwrite(d_out, paste0(out_path_tables, "mortality_numbers_diff_by_year_sex.csv"), sep = ";")
+        
+        ggplot(d_out, aes(x = year, y = `mrtl_rate_50.0%`,
+                          ymin = `mrtl_rate_2.5%`,
+                          ymax = `mrtl_rate_97.5%`,
+                          linetype = scenario)) +
+          facet_wrap(~ disease + sex, scales = "free") +
+          geom_ribbon(alpha = 0.5/5, colour = NA) +
+          geom_line() +
+          scale_x_continuous(name = "Year") +
+          scale_y_continuous(name = "Mortality") +
+          ggtitle("Difference in mortality numbers compared to baseline over time") +
+          expand_limits(y = 0) +
+          theme(legend.title = element_blank())
+        
+        ggsave(paste0(out_path_plots, "mortality_numbers_diff_by_year_sex.", plot_format),
+               height = 9, width = 16)
+        
+        
+        # Deaths prevented or postponed #
+        
+        d <- tt[, lapply(.SD, sum), .SDcols = c("all_cause_mrtl"), keyby = eval(outstrata)]
+        
+        prvls <- c("all_cause_mrtl")
+        
+        d <- melt(d, id.vars = outstrata)
+        d <- dcast(d, mc + sex ~ scenario + variable, fun.aggregate = sum) # sum over years
+        
+        diffs0 <- grep("sc0_", names(d), value = TRUE)
+        
+        d_out <- data.table(NULL)
+        
+        for(j in sc_n){
+          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-2])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-2])
+            sens <- TRUE
+          }   
+          for(i in 1:(length(get(paste0("diffs", j))))){
+            
+            d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
+            
+          }
+          
+          dd <- copy(d)
+          
+          dd[, setdiff(names(d), intersect(c("mc", "sex", grep("diff_", names(d), value = TRUE)), names(d))) := NULL]
+          
+          dd <- melt(dd, id.vars = c("mc", "sex"))
+          
+          dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("sex")]
+          setnames(dd, c("sex", "disease", percent(prbl, prefix = "mrtl_rate_")))
+          if(sens){dd[, scenario := paste0("sens_", j)]} else {dd[, scenario := paste0("sc", j)]           }
+          
+          d_out <- rbind(d_out, dd)
+        }
+        
+        fwrite(d_out, paste0(out_path_tables, "deaths_prev_post_by_scenario_sex.csv"), sep = ";")
+        
+        
+        ## All-cause Mortality by age ## ----
+        
+        tt <- fread(paste0(in_path, "mrtl_scaled_up.csv.gz")
+        )[, `:=` (year = year + 2000,
+                  agegrp = fifelse(agegrp %in% c("30-34", "35-39", "40-44", "45-49"), "30-49",
+                                   ifelse(agegrp %in% c("50-54", "55-59", "60-64", "65-69"), "50-69",
+                                          "70-90")))]
+        
+        
+        outstrata <- c("mc", "agegrp", "year", "scenario")
+        
+        sc_n <- na.omit(as.numeric(gsub("[^1-9]+", "", unique(tt$scenario)))) 
+        
+        # Rate #
+        
+        d <- tt[, lapply(.SD, sum), .SDcols = c("all_cause_mrtl", "popsize"), keyby = eval(outstrata)
+        ][, lapply(.SD, function(x) x/popsize), keyby = outstrata]
+        d <- melt(d, id.vars = outstrata)
+        d <- d[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(setdiff(outstrata, "mc"))]
+        setnames(d, c(setdiff(outstrata, "mc"), "disease", percent(prbl, prefix = "mrtl_rate_")))
+        
+        fwrite(d, paste0(out_path_tables, "mortality_rate_by_year_age.csv"), sep = ";")
+        
+        ggplot(d[disease != "popsize"], aes(x = year, y = `mrtl_rate_50.0%`,
+                                            ymin = `mrtl_rate_2.5%`,
+                                            ymax = `mrtl_rate_97.5%`,
+                                            linetype = scenario)) +
+          facet_wrap(~ disease + agegrp, scales = "free") +
+          geom_ribbon(alpha = 0.5/5, colour = NA) +
+          geom_line() +
+          scale_x_continuous(name = "Year") +
+          scale_y_continuous(name = "Mortality") +
+          ggtitle("Mortality rate by scenario over time") +
+          expand_limits(y = 0) +
+          theme(legend.title = element_blank())
+        
+        ggsave(paste0(out_path_plots, "mortality_rate_by_year_age.", plot_format),
+               height = 9, width = 16)
+        
+        # Rate difference #
+        
+        d <- tt[, lapply(.SD, sum), .SDcols = c("all_cause_mrtl", "popsize"), keyby = eval(outstrata)
+        ][, lapply(.SD, function(x) x/popsize), keyby = outstrata]
+        
+        prvls <- c("all_cause_mrtl")
+        
+        d <- melt(d, id.vars = outstrata)
+        d <- dcast(d, mc + year + agegrp ~ scenario + variable, fun.aggregate = sum) # sum over sexes
+        
+        diffs0 <- grep("sc0_", names(d), value = TRUE)[-2]
+        
+        d_out <- data.table(NULL)
+        
+        for(j in sc_n){  
+          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-2])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-2])
+            sens <- TRUE
+          }          
+          for(i in 1:(length(get(paste0("diffs", j))))){
+            
+            d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
+            
+          }
+          
+          dd <- copy(d)
+          
+          dd[, setdiff(names(d), intersect(c("mc", "year", "agegrp", grep("diff_", names(d), value = TRUE)), names(d))) := NULL]
+          
+          dd <- melt(dd, id.vars = c("mc", "year", "agegrp"))
+          
+          dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year", "agegrp")]
+          setnames(dd, c("year", "agegrp", "disease", percent(prbl, prefix = "mrtl_rate_")))
+          if(sens){dd[, scenario := paste0("sens_", j)]} else {dd[, scenario := paste0("sc", j)]           }
+          
+          d_out <- rbind(d_out, dd)
+        }
+        
+        fwrite(d_out, paste0(out_path_tables, "mortality_rate_diff_by_year_age.csv"), sep = ";")
+        
+        ggplot(d_out, aes(x = year, y = `mrtl_rate_50.0%`,
+                          ymin = `mrtl_rate_2.5%`,
+                          ymax = `mrtl_rate_97.5%`,
+                          linetype = scenario)) +
+          facet_wrap(~ disease + agegrp, scales = "free") +
+          geom_ribbon(alpha = 0.5/5, colour = NA) +
+          geom_line() +
+          scale_x_continuous(name = "Year") +
+          scale_y_continuous(name = "Mortality") +
+          ggtitle("Difference in mortality rate compared to baseline over time") +
+          expand_limits(y = 0) +
+          theme(legend.title = element_blank())
+        
+        ggsave(paste0(out_path_plots, "mortality_rate_diff_by_year_age.", plot_format),
+               height = 9, width = 16)
+        
+        
+        # Absolute numbers #
+        
+        d <- tt[, lapply(.SD, sum), .SDcols = c("all_cause_mrtl"), keyby = eval(outstrata)]
+        d <- melt(d, id.vars = outstrata)
+        d <- d[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(setdiff(outstrata, "mc"))]
+        setnames(d, c(setdiff(outstrata, "mc"), "disease", percent(prbl, prefix = "mrtl_rate_")))
+        
+        fwrite(d, paste0(out_path_tables, "mortality_numbers_by_year_age.csv"), sep = ";")
+        
+        ggplot(d, aes(x = year, y = `mrtl_rate_50.0%`,
+                      ymin = `mrtl_rate_2.5%`,
+                      ymax = `mrtl_rate_97.5%`,
+                      linetype = scenario)) +
+          facet_wrap(~ disease + agegrp, scales = "free") +
+          geom_ribbon(alpha = 0.5/5, colour = NA) +
+          geom_line() +
+          scale_x_continuous(name = "Year") +
+          scale_y_continuous(name = "Mortality") +
+          ggtitle("Mortality numbers by scenario over time") +
+          expand_limits(y = 0) +
+          theme(legend.title = element_blank())
+        
+        ggsave(paste0(out_path_plots, "mortality_numbers_by_year_age.", plot_format),
+               height = 9, width = 16)
+        
+        # Absolute difference #
+        
+        d <- tt[, lapply(.SD, sum), .SDcols = c("all_cause_mrtl"), keyby = eval(outstrata)]
+        
+        prvls <- c("all_cause_mrtl")
+        
+        d <- melt(d, id.vars = outstrata)
+        d <- dcast(d, mc + year + agegrp ~ scenario + variable, fun.aggregate = sum)
+        
+        diffs0 <- grep("sc0_", names(d), value = TRUE)[-2]
+        
+        d_out <- data.table(NULL)
+        
+        for(j in sc_n){  
+          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-2])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-2])
+            sens <- TRUE
+          }          
+          for(i in 1:(length(get(paste0("diffs", j))))){
+            
+            d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
+            
+          }
+          
+          dd <- copy(d)
+          
+          dd[, setdiff(names(d), intersect(c("mc", "year", "agegrp", grep("diff_", names(d), value = TRUE)), names(d))) := NULL]
+          
+          dd <- melt(dd, id.vars = c("mc", "year", "agegrp"))
+          
+          dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("year", "agegrp")]
+          setnames(dd, c("year", "agegrp", "disease", percent(prbl, prefix = "mrtl_rate_")))
+          if(sens){dd[, scenario := paste0("sens_", j)]} else {dd[, scenario := paste0("sc", j)]           }
+          
+          d_out <- rbind(d_out, dd)
+        }
+        
+        fwrite(d_out, paste0(out_path_tables, "mortality_numbers_diff_by_year_age.csv"), sep = ";")
+        
+        ggplot(d_out, aes(x = year, y = `mrtl_rate_50.0%`,
+                          ymin = `mrtl_rate_2.5%`,
+                          ymax = `mrtl_rate_97.5%`,
+                          linetype = scenario)) +
+          facet_wrap(~ disease + agegrp, scales = "free") +
+          geom_ribbon(alpha = 0.5/5, colour = NA) +
+          geom_line() +
+          scale_x_continuous(name = "Year") +
+          scale_y_continuous(name = "Mortality") +
+          ggtitle("Difference in mortality numbers compared to baseline over time") +
+          expand_limits(y = 0) +
+          theme(legend.title = element_blank())
+        
+        ggsave(paste0(out_path_plots, "mortality_numbers_diff_by_year_age.", plot_format),
+               height = 9, width = 16)
+        
+        
+        # Deaths prevented or postponed #
+        
+        d <- tt[, lapply(.SD, sum), .SDcols = c("all_cause_mrtl"), keyby = eval(outstrata)]
+        
+        prvls <- c("all_cause_mrtl")
+        
+        d <- melt(d, id.vars = outstrata)
+        d <- dcast(d, mc + agegrp ~ scenario + variable, fun.aggregate = sum) # sum over years
+        
+        diffs0 <- grep("sc0_", names(d), value = TRUE)
+        
+        d_out <- data.table(NULL)
+        
+        for(j in sc_n){
+          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-2])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-2])
+            sens <- TRUE
+          }   
+          for(i in 1:(length(get(paste0("diffs", j))))){
+            
+            d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
+            
+          }
+          
+          dd <- copy(d)
+          
+          dd[, setdiff(names(d), intersect(c("mc", "agegrp", grep("diff_", names(d), value = TRUE)), names(d))) := NULL]
+          
+          dd <- melt(dd, id.vars = c("mc", "agegrp"))
+          
+          dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("agegrp")]
+          setnames(dd, c("agegrp", "disease", percent(prbl, prefix = "mrtl_rate_")))
+          if(sens){dd[, scenario := paste0("sens_", j)]} else {dd[, scenario := paste0("sc", j)]           }
+          
+          d_out <- rbind(d_out, dd)
+        }
+        
+        fwrite(d_out, paste0(out_path_tables, "deaths_prev_post_by_scenario_age.csv"), sep = ";")
         
     }
     
@@ -3040,6 +3502,82 @@ for(analysis in dirs){
         
         fwrite(d[(scenario %in% grep("_diff", unique(d$scenario), value = TRUE))],
                paste0(out_path_tables, "life_years_gained_by_sex.csv"), sep = ";")
+        
+        
+        
+        ## Life years lived by age ## ----
+        
+        tt <- fread(paste0(in_path, "ly_scaled_up.csv.gz")
+        )[, `:=` (year = year + 2000)]
+        
+        outstrata <- c("mc", "agegrp", "year")
+        
+        sc_n <- unique(tt$scenario)
+        
+        ttt <- dcast(tt, mc + year + agegrp ~ scenario, value.var = "LY", fun.aggregate = sum) # Sum over sex groups
+        
+        for(sc in sc_n){
+          
+          if(sc != "sc0"){
+            
+            ttt[, (paste0(sc, "_diff")) := get(sc) - sc0]
+            
+          }
+        }
+        
+        d <- melt(ttt, id.vars = outstrata)
+        d <- d[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(setdiff(outstrata, "mc"))]
+        setnames(d, c(setdiff(outstrata, "mc"), "scenario", percent(prbl, prefix = "LY_diff_")))
+        
+        fwrite(d[!(scenario %in% grep("_diff", unique(d$scenario), value = TRUE))],
+               paste0(out_path_tables, "life_years_by_year_age.csv"), sep = ";")
+        
+        fwrite(d[(scenario %in% grep("_diff", unique(d$scenario), value = TRUE))],
+               paste0(out_path_tables, "life_years_diff_by_year_age.csv"), sep = ";")
+        
+        ggplot(d[!(scenario %in% grep("_diff", unique(d$scenario), value = TRUE))],
+               aes(x = year, y = `LY_diff_50.0%`,
+                   ymin = `LY_diff_2.5%`,
+                   ymax = `LY_diff_97.5%`,
+                   col = scenario, fill = scenario)) +
+          facet_wrap(~ agegrp, scales = "free") +
+          geom_ribbon(alpha = 0.5/5, colour = NA) +
+          geom_line() +
+          scale_x_continuous(name = "Year") +
+          scale_y_continuous(name = "Life years lived") +
+          ggtitle("Life years lived by scenario over time") +
+          theme(legend.title = element_blank())
+        
+        ggsave(paste0(out_path_plots, "life_years_by_year_age.", plot_format),
+               height = 9, width = 16)
+        
+        ggplot(d[(scenario %in% grep("_diff", unique(d$scenario), value = TRUE))],
+               aes(x = year, y = `LY_diff_50.0%`,
+                   ymin = `LY_diff_2.5%`,
+                   ymax = `LY_diff_97.5%`,
+                   col = scenario, fill = scenario)) +
+          facet_wrap(~ agegrp, scales = "free") +
+          geom_ribbon(alpha = 0.5/5, colour = NA) +
+          geom_line() +
+          scale_x_continuous(name = "Year") +
+          scale_y_continuous(name = "Difference in years lived") +
+          ggtitle("Difference in years lived by scenario over time") +
+          theme(legend.title = element_blank())
+        
+        ggsave(paste0(out_path_plots, "life_years_diff_by_year_agegrp.", plot_format),
+               height = 9, width = 16)
+        
+        ## Life years gained by age ## ----
+        
+        # Cumulate difference in life years lived over years:
+        
+        d <- melt(ttt, id.vars = outstrata)
+        d <- d[, lapply(.SD, sum), .SDcols = "value", by = c("mc", "variable", "agegrp")]
+        d <- d[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = "agegrp"]
+        setnames(d, c("agegrp", "scenario", percent(prbl, prefix = "LY_diff_")))
+        
+        fwrite(d[(scenario %in% grep("_diff", unique(d$scenario), value = TRUE))],
+               paste0(out_path_tables, "life_years_gained_by_age.csv"), sep = ";")
         
         
         ## Life years lived total ## ----
