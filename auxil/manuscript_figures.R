@@ -172,6 +172,11 @@ dat[, scenario := ifelse(scenario == "sc1", "Scenario 1",
                          ifelse(scenario == "sc2", "Scenario 2",
                                 ifelse(scenario == "sc3", "Scenario 3", "Scenario 4")))]
 
+setkey(dat, scenario, outcome)
+
+write.xlsx(dat, "./outputs/appendix/table_4.xlsx")
+
+
 ## Combined plot for all scenarios
 
 dodge <- position_dodge(width=0.9)
