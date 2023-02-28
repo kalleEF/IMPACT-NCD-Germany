@@ -338,7 +338,8 @@ Simulation <-
         if ("dis_mrtl" %in% type) file_pth <- private$output_dir("summaries/dis_mrtl_scaled_up.csv.gz") else
         if ("incd" %in% type) file_pth <- private$output_dir("summaries/incd_scaled_up.csv.gz") else
         if ("prvl" %in% type) file_pth <- private$output_dir("summaries/prvl_scaled_up.csv.gz") else
-        if ("cea" %in% type) file_pth <- private$output_dir("summaries/health_economic_results.csv.gz")
+        if ("cea" %in% type) file_pth <- private$output_dir("summaries/health_economic_results.csv.gz") else
+          if ("xps" %in% type) file_pth <- private$output_dir("summaries/xps_scaled_up.csv.gz")
                         
         if (file.exists(file_pth)) {
           tt <- unique(fread(file_pth, select = "mc")$mc)
@@ -995,7 +996,7 @@ Simulation <-
         
         if("xps" %in% type){
           
-          if (self$design$sim_prm$logs) message("Exporting changes in exposures and changes...")
+          if (self$design$sim_prm$logs) message("Exporting exposures and changes...")
           
           setnames(lc, c("sugar_delta", "bmi_delta"), c("sugar_delta_xps", "bmi_delta_xps"))
           
