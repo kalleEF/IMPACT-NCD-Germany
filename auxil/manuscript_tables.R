@@ -6,7 +6,7 @@ library(openxlsx)
 
 options(scipen = 999)
 
-# Table 1: Main results table (not stratified)
+# Table 1: Main results table (not stratified) ----
 
 analysis <- "with_direct_SSB_effects"
 
@@ -193,4 +193,56 @@ table_1[outcome %in% grep("_cost", table_1$outcome, value = TRUE),
         .SDcols = !c("scenario", "disease", "outcome", "order")]
 
 write.xlsx(table_1, "./outputs/manuscript/table_1.xlsx")
+
+
+
+# Table 2: Auxiliary results of exposures and changes (incl. stratification) ----
+
+analysis <- "with_direct_SSB_effects"
+
+xps_levels <- fread(paste0("./outputs/", analysis, "/tables/xps_and_changes_by_year.csv"))
+xps_levels <- xps_levels[year %in% c(2023, 2043) & xps %in% grep("_curr_", unique(xps_levels$xps), value = TRUE)]
+xps_levels[, outcome := "xps_levels"][, sex := "total"][, agegrp := "total"]
+setnames(xps_levels, grep("xps_", names(xps_levels), value = TRUE),
+         gsub("xps_mean_", "", grep("xps_", names(xps_levels), value = TRUE)))
+
+
+xps_diff <- fread(paste0("./outputs/", analysis, "/tables/xps_diff_by_year.csv"))
+xps_diff <- xps_diff[year == 2043]
+xps_diff[, outcome := "xps_diff"][, sex := "total"][, agegrp := "total"]
+setnames(xps_diff, grep("xps_", names(xps_diff), value = TRUE),
+         gsub("xps_mean_", "", grep("xps_", names(xps_diff), value = TRUE)))
+
+table_2 <- rbind(xps_levels, xps_diff)
+
+setkey(table_2, scenario)
+
+table_2[outcome %in% grep("_post", table_2$outcome, value = TRUE),
+        (grep("%", names(table_2), value = TRUE)) := lapply(.SD, round, -3), .SDcols = !c("scenario", "xps",
+                                                                                          "outcome")]
+
+
+xps_levels_age_sex <- fread(paste0("./outputs/", analysis, "/tables/xps_and_changes_by_year_agegrp_sex.csv"))
+xps_levels_age_sex <- xps_levels_age_sex[year %in% c(2023, 2043) & xps %in% grep("_curr_", unique(xps_levels_age_sex$xps), value = TRUE)]
+xps_levels_age_sex[, outcome := "xps_levels"]
+setnames(xps_levels_age_sex, grep("xps_", names(xps_levels_age_sex), value = TRUE),
+         gsub("xps_mean_", "", grep("xps_", names(xps_levels_age_sex), value = TRUE)))
+
+
+xps_diff_age_sex <- fread(paste0("./outputs/", analysis, "/tables/xps_diff_by_year_agegrp_sex.csv"))
+xps_diff_age_sex <- xps_diff_age_sex[year == 2043]
+xps_diff_age_sex[, outcome := "xps_diff"]
+setnames(xps_diff_age_sex, grep("xps_", names(xps_diff_age_sex), value = TRUE),
+         gsub("xps_mean_", "", grep("xps_", names(xps_diff_age_sex), value = TRUE)))
+
+table_2 <- rbind(table_2, xps_levels_age_sex, xps_diff_age_sex)
+
+setkey(table_2, scenario, year, xps, sex)
+
+table_2[, (grep("%", names(table_2), value = TRUE)) := lapply(.SD, round, 2), .SDcols = !c("scenario", "xps",
+                                                                                           "outcome", "year",
+                                                                                           "agegrp", "sex")]
+
+write.xlsx(table_2, "./outputs/manuscript/table_2.xlsx")
+
 

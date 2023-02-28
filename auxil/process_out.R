@@ -70,6 +70,524 @@ for(analysis in dirs){
       
     }
     
+    if("xps_scaled_up.csv.gz" %in% list.files(in_path)){
+      
+        ## Exposures and changes by age and sex ## ----
+        tt <- fread(paste0(in_path, "xps_scaled_up.csv.gz")
+        )[, `:=` (year = year + 2000,
+                  agegrp = fifelse(agegrp %in% c("30-34", "35-39", "40-44", "45-49"), "30-49",
+                                   ifelse(agegrp %in% c("50-54", "55-59", "60-64", "65-69"), "50-69",
+                                          "70-90")))]
+        
+        # Convert changes to negative values
+        tt[, (grep("_delta_", names(tt), value = TRUE)) := lapply(.SD, `*`, -1), .SDcols = (grep("_delta_", names(tt), value = TRUE))]
+        
+        # Set changes before 2023 to 0!
+        # This is needed because changes are computed for every year but only active after the intervention starts!
+        tt[year < 2023, (grep("_delta_", names(tt), value = TRUE)) := 0]
+        
+        outstrata <- c("mc", "year", "sex", "agegrp", "scenario")
+        evalstrata <- outstrata[outstrata != "scenario"]
+        
+        sc_n <- na.omit(as.numeric(gsub("[^1-9]+", "", unique(tt$scenario)))) 
+        
+        # Exposure level and changes over time #
+        
+        d <- tt[, lapply(.SD, mean), .SDcols = patterns("_xps$"), keyby = eval(outstrata)]
+        d <- melt(d, id.vars = outstrata)
+        d <- d[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(setdiff(outstrata, "mc"))]
+        setnames(d, c(setdiff(outstrata, "mc"), "xps", percent(prbl, prefix = "xps_mean_")))
+        
+        fwrite(d, paste0(out_path_tables, "xps_and_changes_by_year_agegrp_sex.csv"), sep = ";")
+        
+        ggplot(d[xps %in% grep("_delta_", names(tt), value = TRUE)],
+               aes(x = year, y = `xps_mean_50.0%`, ymin = `xps_mean_2.5%`,
+                   ymax = `xps_mean_97.5%`,
+                   colour = scenario, fill = scenario,
+                   linetype = agegrp)) +
+          facet_wrap(~ xps + sex, scales = "free") +
+          geom_ribbon(alpha = 0.5/5, colour = NA) +
+          geom_line() +
+          scale_x_continuous(name = "Year") +
+          scale_y_continuous(name = "Change in exposure level") +
+          ggtitle("Exposure changes by scenario over time") +
+          expand_limits(y = 0) +
+          theme(legend.title = element_blank())
+        
+        ggsave(paste0(out_path_plots, "xps_changes_by_year_agegrp_sex.", plot_format),
+               height = 9, width = 16)
+        
+        ggplot(d[!(xps %in% grep("_delta_", names(tt), value = TRUE))],
+               aes(x = year, y = `xps_mean_50.0%`, ymin = `xps_mean_2.5%`,
+                   ymax = `xps_mean_97.5%`,
+                   colour = scenario, fill = scenario,
+                   linetype = agegrp)) +
+          facet_wrap(~ xps + sex, scales = "free") +
+          geom_ribbon(alpha = 0.5/5, colour = NA) +
+          geom_line() +
+          scale_x_continuous(name = "Year") +
+          scale_y_continuous(name = "Exposure level") +
+          ggtitle("Exposure levels by scenario over time") +
+          expand_limits(y = 0) +
+          theme(legend.title = element_blank())
+        
+        ggsave(paste0(out_path_plots, "xps_levels_by_year_agegrp_sex.", plot_format),
+               height = 9, width = 16)
+        
+        
+        # Exposure level and change differences over time #
+        
+        d <- tt[, lapply(.SD, mean), .SDcols = patterns("_xps$"), keyby = eval(outstrata)]
+        
+        xps_ <- grep("_xps", names(d), value = TRUE)
+        
+        d <- melt(d, id.vars = outstrata)
+        d <- dcast(d, as.formula(paste(paste(evalstrata, collapse = "+"), "~ scenario + variable")))
+        
+        diffs0 <- grep("sc0_", names(d), value = TRUE)
+        
+        d_out <- data.table(NULL)
+        
+        for(j in sc_n){  
+          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE))
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE))
+            sens <- TRUE
+          }
+          
+          for(i in 1:(length(get(paste0("diffs", j))))){
+            
+            d[, paste0("diff_", xps_)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
+            
+          }
+          
+          dd <- copy(d)
+          
+          dd[, setdiff(names(d), intersect(c(evalstrata, grep("diff_", names(d), value = TRUE)), names(d))) := NULL]
+          
+          dd <- melt(dd, id.vars = evalstrata)
+          
+          dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(evalstrata[evalstrata != "mc"])]
+          setnames(dd, c(evalstrata[evalstrata != "mc"], "xps", percent(prbl, prefix = "xps_mean_")))
+          
+          if(sens){
+            dd[, scenario := paste0("sens_", j)]
+          } else {
+            dd[, scenario := paste0("sc", j)]
+          }
+          
+          d_out <- rbind(d_out, dd)
+        }
+        
+        fwrite(d_out, paste0(out_path_tables, "xps_diff_by_year_agegrp_sex.csv"), sep = ";")
+        
+        ggplot(d_out[!(xps %in% grep("_delta_", unique(d_out$xps), value = TRUE))],
+               aes(x = year, y = `xps_mean_50.0%`, ymin = `xps_mean_2.5%`,
+                   ymax = `xps_mean_97.5%`,
+                   colour = scenario, fill = scenario,
+                   linetype = agegrp)) +
+          facet_wrap(~ xps + sex, scales = "free") +
+          geom_ribbon(alpha = 0.5/5, colour = NA) +
+          geom_line() +
+          scale_x_continuous(name = "Year") +
+          scale_y_continuous(name = "Exposure level") +
+          ggtitle("Difference in exposure levels compared to baseline over time") +
+          expand_limits(y = 0) +
+          theme(legend.title = element_blank())
+        
+        ggsave(paste0(out_path_plots, "xps_diff_by_year_agegrp_sex.", plot_format),
+               height = 9, width = 16)
+        
+        
+        ## Exposures and changes by sex ## ----
+        tt <- fread(paste0(in_path, "xps_scaled_up.csv.gz")
+        )[, `:=` (year = year + 2000,
+                  agegrp = fifelse(agegrp %in% c("30-34", "35-39", "40-44", "45-49"), "30-49",
+                                   ifelse(agegrp %in% c("50-54", "55-59", "60-64", "65-69"), "50-69",
+                                          "70-90")))]
+        
+        # Convert changes to negative values
+        tt[, (grep("_delta_", names(tt), value = TRUE)) := lapply(.SD, `*`, -1), .SDcols = (grep("_delta_", names(tt), value = TRUE))]
+        
+        # Set changes before 2023 to 0!
+        # This is needed because changes are computed for every year but only active after the intervention starts!
+        tt[year < 2023, (grep("_delta_", names(tt), value = TRUE)) := 0]
+        
+        outstrata <- c("mc", "year", "sex", "scenario")
+        evalstrata <- outstrata[outstrata != "scenario"]
+        
+        sc_n <- na.omit(as.numeric(gsub("[^1-9]+", "", unique(tt$scenario)))) 
+        
+        # Exposure level and changes over time #
+        
+        d <- tt[, lapply(.SD, mean), .SDcols = patterns("_xps$"), keyby = eval(outstrata)]
+        d <- melt(d, id.vars = outstrata)
+        d <- d[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(setdiff(outstrata, "mc"))]
+        setnames(d, c(setdiff(outstrata, "mc"), "xps", percent(prbl, prefix = "xps_mean_")))
+        
+        fwrite(d, paste0(out_path_tables, "xps_and_changes_by_year_sex.csv"), sep = ";")
+        
+        ggplot(d[xps %in% grep("_delta_", names(tt), value = TRUE)],
+               aes(x = year, y = `xps_mean_50.0%`, ymin = `xps_mean_2.5%`,
+                   ymax = `xps_mean_97.5%`,
+                   colour = scenario, fill = scenario)) +
+          facet_wrap(~ xps + sex, scales = "free") +
+          geom_ribbon(alpha = 0.5/5, colour = NA) +
+          geom_line() +
+          scale_x_continuous(name = "Year") +
+          scale_y_continuous(name = "Change in exposure level") +
+          ggtitle("Exposure changes by scenario over time") +
+          expand_limits(y = 0) +
+          theme(legend.title = element_blank())
+        
+        ggsave(paste0(out_path_plots, "xps_changes_by_year_sex.", plot_format),
+               height = 9, width = 16)
+        
+        ggplot(d[!(xps %in% grep("_delta_", names(tt), value = TRUE))],
+               aes(x = year, y = `xps_mean_50.0%`, ymin = `xps_mean_2.5%`,
+                   ymax = `xps_mean_97.5%`,
+                   colour = scenario, fill = scenario)) +
+          facet_wrap(~ xps + sex, scales = "free") +
+          geom_ribbon(alpha = 0.5/5, colour = NA) +
+          geom_line() +
+          scale_x_continuous(name = "Year") +
+          scale_y_continuous(name = "Exposure level") +
+          ggtitle("Exposure levels by scenario over time") +
+          expand_limits(y = 0) +
+          theme(legend.title = element_blank())
+        
+        ggsave(paste0(out_path_plots, "xps_levels_by_year_sex.", plot_format),
+               height = 9, width = 16)
+        
+        
+        # Exposure level and change differences over time #
+        
+        d <- tt[, lapply(.SD, mean), .SDcols = patterns("_xps$"), keyby = eval(outstrata)]
+        
+        xps_ <- grep("_xps", names(d), value = TRUE)
+        
+        d <- melt(d, id.vars = outstrata)
+        d <- dcast(d, as.formula(paste(paste(evalstrata, collapse = "+"), "~ scenario + variable")))
+        
+        diffs0 <- grep("sc0_", names(d), value = TRUE)
+        
+        d_out <- data.table(NULL)
+        
+        for(j in sc_n){  
+          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE))
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE))
+            sens <- TRUE
+          }
+          
+          for(i in 1:(length(get(paste0("diffs", j))))){
+            
+            d[, paste0("diff_", xps_)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
+            
+          }
+          
+          dd <- copy(d)
+          
+          dd[, setdiff(names(d), intersect(c(evalstrata, grep("diff_", names(d), value = TRUE)), names(d))) := NULL]
+          
+          dd <- melt(dd, id.vars = evalstrata)
+          
+          dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(evalstrata[evalstrata != "mc"])]
+          setnames(dd, c(evalstrata[evalstrata != "mc"], "xps", percent(prbl, prefix = "xps_mean_")))
+          
+          if(sens){
+            dd[, scenario := paste0("sens_", j)]
+          } else {
+            dd[, scenario := paste0("sc", j)]
+          }
+          
+          d_out <- rbind(d_out, dd)
+        }
+        
+        fwrite(d_out, paste0(out_path_tables, "xps_diff_by_year_sex.csv"), sep = ";")
+        
+        ggplot(d_out[!(xps %in% grep("_delta_", unique(d_out$xps), value = TRUE))],
+               aes(x = year, y = `xps_mean_50.0%`, ymin = `xps_mean_2.5%`,
+                   ymax = `xps_mean_97.5%`,
+                   colour = scenario, fill = scenario)) +
+          facet_wrap(~ xps + sex, scales = "free") +
+          geom_ribbon(alpha = 0.5/5, colour = NA) +
+          geom_line() +
+          scale_x_continuous(name = "Year") +
+          scale_y_continuous(name = "Exposure level") +
+          ggtitle("Difference in exposure levels compared to baseline over time") +
+          expand_limits(y = 0) +
+          theme(legend.title = element_blank())
+        
+        ggsave(paste0(out_path_plots, "xps_diff_by_year_sex.", plot_format),
+               height = 9, width = 16)
+        
+        
+        ## Exposures and changes by age ## ----
+        tt <- fread(paste0(in_path, "xps_scaled_up.csv.gz")
+        )[, `:=` (year = year + 2000,
+                  agegrp = fifelse(agegrp %in% c("30-34", "35-39", "40-44", "45-49"), "30-49",
+                                   ifelse(agegrp %in% c("50-54", "55-59", "60-64", "65-69"), "50-69",
+                                          "70-90")))]
+        
+        # Convert changes to negative values
+        tt[, (grep("_delta_", names(tt), value = TRUE)) := lapply(.SD, `*`, -1), .SDcols = (grep("_delta_", names(tt), value = TRUE))]
+        
+        # Set changes before 2023 to 0!
+        # This is needed because changes are computed for every year but only active after the intervention starts!
+        tt[year < 2023, (grep("_delta_", names(tt), value = TRUE)) := 0]
+        
+        outstrata <- c("mc", "year", "agegrp", "scenario")
+        evalstrata <- outstrata[outstrata != "scenario"]
+        
+        sc_n <- na.omit(as.numeric(gsub("[^1-9]+", "", unique(tt$scenario)))) 
+        
+        # Exposure level and changes over time #
+        
+        d <- tt[, lapply(.SD, mean), .SDcols = patterns("_xps$"), keyby = eval(outstrata)]
+        d <- melt(d, id.vars = outstrata)
+        d <- d[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(setdiff(outstrata, "mc"))]
+        setnames(d, c(setdiff(outstrata, "mc"), "xps", percent(prbl, prefix = "xps_mean_")))
+        
+        fwrite(d, paste0(out_path_tables, "xps_and_changes_by_year_agegrp.csv"), sep = ";")
+        
+        ggplot(d[xps %in% grep("_delta_", names(tt), value = TRUE)],
+               aes(x = year, y = `xps_mean_50.0%`, ymin = `xps_mean_2.5%`,
+                   ymax = `xps_mean_97.5%`,
+                   colour = scenario, fill = scenario,
+                   linetype = agegrp)) +
+          facet_wrap(~ xps, scales = "free") +
+          geom_ribbon(alpha = 0.5/5, colour = NA) +
+          geom_line() +
+          scale_x_continuous(name = "Year") +
+          scale_y_continuous(name = "Change in exposure level") +
+          ggtitle("Exposure changes by scenario over time") +
+          expand_limits(y = 0) +
+          theme(legend.title = element_blank())
+        
+        ggsave(paste0(out_path_plots, "xps_changes_by_year_agegrp.", plot_format),
+               height = 9, width = 16)
+        
+        ggplot(d[!(xps %in% grep("_delta_", names(tt), value = TRUE))],
+               aes(x = year, y = `xps_mean_50.0%`, ymin = `xps_mean_2.5%`,
+                   ymax = `xps_mean_97.5%`,
+                   colour = scenario, fill = scenario,
+                   linetype = agegrp)) +
+          facet_wrap(~ xps, scales = "free") +
+          geom_ribbon(alpha = 0.5/5, colour = NA) +
+          geom_line() +
+          scale_x_continuous(name = "Year") +
+          scale_y_continuous(name = "Exposure level") +
+          ggtitle("Exposure levels by scenario over time") +
+          expand_limits(y = 0) +
+          theme(legend.title = element_blank())
+        
+        ggsave(paste0(out_path_plots, "xps_levels_by_year_agegrp.", plot_format),
+               height = 9, width = 16)
+        
+        
+        # Exposure level and change differences over time #
+        
+        d <- tt[, lapply(.SD, mean), .SDcols = patterns("_xps$"), keyby = eval(outstrata)]
+        
+        xps_ <- grep("_xps", names(d), value = TRUE)
+        
+        d <- melt(d, id.vars = outstrata)
+        d <- dcast(d, as.formula(paste(paste(evalstrata, collapse = "+"), "~ scenario + variable")))
+        
+        diffs0 <- grep("sc0_", names(d), value = TRUE)
+        
+        d_out <- data.table(NULL)
+        
+        for(j in sc_n){  
+          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE))
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE))
+            sens <- TRUE
+          }
+          
+          for(i in 1:(length(get(paste0("diffs", j))))){
+            
+            d[, paste0("diff_", xps_)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
+            
+          }
+          
+          dd <- copy(d)
+          
+          dd[, setdiff(names(d), intersect(c(evalstrata, grep("diff_", names(d), value = TRUE)), names(d))) := NULL]
+          
+          dd <- melt(dd, id.vars = evalstrata)
+          
+          dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(evalstrata[evalstrata != "mc"])]
+          setnames(dd, c(evalstrata[evalstrata != "mc"], "xps", percent(prbl, prefix = "xps_mean_")))
+          
+          if(sens){
+            dd[, scenario := paste0("sens_", j)]
+          } else {
+            dd[, scenario := paste0("sc", j)]
+          }
+          
+          d_out <- rbind(d_out, dd)
+        }
+        
+        fwrite(d_out, paste0(out_path_tables, "xps_diff_by_year_agegrp.csv"), sep = ";")
+        
+        ggplot(d_out[!(xps %in% grep("_delta_", unique(d_out$xps), value = TRUE))],
+               aes(x = year, y = `xps_mean_50.0%`, ymin = `xps_mean_2.5%`,
+                   ymax = `xps_mean_97.5%`,
+                   colour = scenario, fill = scenario,
+                   linetype = agegrp)) +
+          facet_wrap(~ xps, scales = "free") +
+          geom_ribbon(alpha = 0.5/5, colour = NA) +
+          geom_line() +
+          scale_x_continuous(name = "Year") +
+          scale_y_continuous(name = "Exposure level") +
+          ggtitle("Difference in exposure levels compared to baseline over time") +
+          expand_limits(y = 0) +
+          theme(legend.title = element_blank())
+        
+        ggsave(paste0(out_path_plots, "xps_diff_by_year_agegrp.", plot_format),
+               height = 9, width = 16)
+        
+        
+        ## Exposures and changes total ## ----
+        tt <- fread(paste0(in_path, "xps_scaled_up.csv.gz")
+        )[, `:=` (year = year + 2000,
+                  agegrp = fifelse(agegrp %in% c("30-34", "35-39", "40-44", "45-49"), "30-49",
+                                   ifelse(agegrp %in% c("50-54", "55-59", "60-64", "65-69"), "50-69",
+                                          "70-90")))]
+        
+        # Convert changes to negative values
+        tt[, (grep("_delta_", names(tt), value = TRUE)) := lapply(.SD, `*`, -1), .SDcols = (grep("_delta_", names(tt), value = TRUE))]
+        
+        # Set changes before 2023 to 0!
+        # This is needed because changes are computed for every year but only active after the intervention starts!
+        tt[year < 2023, (grep("_delta_", names(tt), value = TRUE)) := 0]
+        
+        outstrata <- c("mc", "year", "scenario")
+        evalstrata <- outstrata[outstrata != "scenario"]
+        
+        sc_n <- na.omit(as.numeric(gsub("[^1-9]+", "", unique(tt$scenario)))) 
+        
+        # Exposure level and changes over time #
+        
+        d <- tt[, lapply(.SD, mean), .SDcols = patterns("_xps$"), keyby = eval(outstrata)]
+        d <- melt(d, id.vars = outstrata)
+        d <- d[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(setdiff(outstrata, "mc"))]
+        setnames(d, c(setdiff(outstrata, "mc"), "xps", percent(prbl, prefix = "xps_mean_")))
+        
+        fwrite(d, paste0(out_path_tables, "xps_and_changes_by_year.csv"), sep = ";")
+        
+        ggplot(d[xps %in% grep("_delta_", names(tt), value = TRUE)],
+               aes(x = year, y = `xps_mean_50.0%`, ymin = `xps_mean_2.5%`,
+                   ymax = `xps_mean_97.5%`,
+                   colour = scenario, fill = scenario)) +
+          facet_wrap(~ xps, scales = "free") +
+          geom_ribbon(alpha = 0.5/5, colour = NA) +
+          geom_line() +
+          scale_x_continuous(name = "Year") +
+          scale_y_continuous(name = "Change in exposure level") +
+          ggtitle("Exposure changes by scenario over time") +
+          expand_limits(y = 0) +
+          theme(legend.title = element_blank())
+        
+        ggsave(paste0(out_path_plots, "xps_changes_by_year.", plot_format),
+               height = 9, width = 16)
+        
+        ggplot(d[!(xps %in% grep("_delta_", names(tt), value = TRUE))],
+               aes(x = year, y = `xps_mean_50.0%`, ymin = `xps_mean_2.5%`,
+                   ymax = `xps_mean_97.5%`,
+                   colour = scenario, fill = scenario)) +
+          facet_wrap(~ xps, scales = "free") +
+          geom_ribbon(alpha = 0.5/5, colour = NA) +
+          geom_line() +
+          scale_x_continuous(name = "Year") +
+          scale_y_continuous(name = "Exposure level") +
+          ggtitle("Exposure levels by scenario over time") +
+          expand_limits(y = 0) +
+          theme(legend.title = element_blank())
+        
+        ggsave(paste0(out_path_plots, "xps_levels_by_year.", plot_format),
+               height = 9, width = 16)
+        
+        
+        # Exposure level and change differences over time #
+        
+        d <- tt[, lapply(.SD, mean), .SDcols = patterns("_xps$"), keyby = eval(outstrata)]
+        
+        xps_ <- grep("_xps", names(d), value = TRUE)
+        
+        d <- melt(d, id.vars = outstrata)
+        d <- dcast(d, as.formula(paste(paste(evalstrata, collapse = "+"), "~ scenario + variable")))
+        
+        diffs0 <- grep("sc0_", names(d), value = TRUE)
+        
+        d_out <- data.table(NULL)
+        
+        for(j in sc_n){  
+          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE))
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE))
+            sens <- TRUE
+          }
+          
+          for(i in 1:(length(get(paste0("diffs", j))))){
+            
+            d[, paste0("diff_", xps_)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
+            
+          }
+          
+          dd <- copy(d)
+          
+          dd[, setdiff(names(d), intersect(c(evalstrata, grep("diff_", names(d), value = TRUE)), names(d))) := NULL]
+          
+          dd <- melt(dd, id.vars = evalstrata)
+          
+          dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(evalstrata[evalstrata != "mc"])]
+          setnames(dd, c(evalstrata[evalstrata != "mc"], "xps", percent(prbl, prefix = "xps_mean_")))
+          
+          if(sens){
+            dd[, scenario := paste0("sens_", j)]
+          } else {
+            dd[, scenario := paste0("sc", j)]
+          }
+          
+          d_out <- rbind(d_out, dd)
+        }
+        
+        fwrite(d_out, paste0(out_path_tables, "xps_diff_by_year.csv"), sep = ";")
+        
+        ggplot(d_out[!(xps %in% grep("_delta_", unique(d_out$xps), value = TRUE))],
+               aes(x = year, y = `xps_mean_50.0%`, ymin = `xps_mean_2.5%`,
+                   ymax = `xps_mean_97.5%`,
+                   colour = scenario, fill = scenario)) +
+          facet_wrap(~ xps, scales = "free") +
+          geom_ribbon(alpha = 0.5/5, colour = NA) +
+          geom_line() +
+          scale_x_continuous(name = "Year") +
+          scale_y_continuous(name = "Exposure level") +
+          ggtitle("Difference in exposure levels compared to baseline over time") +
+          expand_limits(y = 0) +
+          theme(legend.title = element_blank())
+        
+        ggsave(paste0(out_path_plots, "xps_diff_by_year.", plot_format),
+               height = 9, width = 16)
+      
+    }   
+  
+  
     if("prvl_scaled_up.csv.gz" %in% list.files(in_path)){
         
         ## Prevalence by age and sex ## ----
@@ -152,7 +670,7 @@ for(analysis in dirs){
           if(sens){
             dd[, scenario := paste0("sens_", j)]
           } else {
-            dd[, scenario := paste0("sens_", j)]
+            dd[, scenario := paste0("sc", j)]
           }
           
           d_out <- rbind(d_out, dd)

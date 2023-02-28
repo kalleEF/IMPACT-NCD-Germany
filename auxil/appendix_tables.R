@@ -6,7 +6,7 @@ library(openxlsx)
 
 options(scipen = 999)
 
-# Table 1: Main results table stratified by sex
+# Table 1: Main results table stratified by sex ----
 
 analysis <- "with_direct_SSB_effects"
 
