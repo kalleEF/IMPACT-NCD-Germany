@@ -166,12 +166,12 @@ scenario_sens_3_fn <- function(sp) {
 }
 
 
-### Sensitivity analysis 4 - 20% tiered tax with hypothetical thresholds leading to reformulation (50% less sugar) ----
+### Sensitivity analysis 4 - 20% tiered tax with hypothetical thresholds leading to reformulation (10% less sugar) ----
 
 scenario_sens_4_fn <- function(sp) {
   
   # Set scenario variables #
-  ref <- 1 - 0.5
+  ref <- 1 - 0.1
   
   tbl <- read_fst("./inputs/other_parameters/bmi_lag.fst", as.data.table = TRUE)
   bmi_lag <- as.numeric(tbl[mc == sp$mc_aggr, "bmi_lag"]) # Lag until full BMI reduction is achieved
