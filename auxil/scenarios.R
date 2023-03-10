@@ -144,10 +144,14 @@ scenario_3_fn <- function(sp) {
                                        1 - (year - (IMPACTncd$design$sim_prm$init_year_intv - 2000)) * (1 - ref) * ref_steps,
                                        ref)]
   
-  sp$pop[year > (IMPACTncd$design$sim_prm$init_year_intv - 2000), sugar_per_ssb := sugar_per_ssb * ref_mod]
+  sp$pop[year > (IMPACTncd$design$sim_prm$init_year_intv - 2000), sugar_per_ssb_new := sugar_per_ssb * ref_mod]
 
   # Change in consumption of sugar from SSBs after tax #
-  sp$pop[, sugar_delta := ssb_sugar - (ssb_curr_xps * sugar_per_ssb)]
+  sp$pop[, sugar_delta := ssb_sugar - (ssb_curr_xps * sugar_per_ssb_new)]
+  
+  # Recalculate SSB consumption to account for direct effect of reduced sugar SSBs #
+  sp$pop[, ssb_curr_xps := ssb_curr_xps - sugar_delta / sugar_per_ssb]
+  
   
   # Change in BMI after tax #
   sp$pop[, bmi_delta := fifelse(bmi_curr_xps < 25,
@@ -164,7 +168,7 @@ scenario_3_fn <- function(sp) {
   sp$pop[year > (IMPACTncd$design$sim_prm$init_year_intv - 2000), bmi_curr_xps := bmi_curr_xps - (bmi_delta * bmi_mod)]
   
   # Delete unnecessary variables from synthpop #
-  sp$pop[, c("ref_mod", "bmi_mod") := NULL]
+  sp$pop[, c("ref_mod", "bmi_mod", "sugar_per_ssb_new") := NULL]
   sp$pop[, c("ssb_delta_xps", "juice_delta_xps") := 0] 
   
 }
@@ -207,11 +211,17 @@ scenario_4_fn <- function(sp) {
                                        1 - (year - (IMPACTncd$design$sim_prm$init_year_intv - 2000)) * (1 - ref) * ref_steps,
                                        ref)]
   
-  sp$pop[year > (IMPACTncd$design$sim_prm$init_year_intv - 2000), sugar_per_ssb := sugar_per_ssb * ref_mod]
+  sp$pop[year > (IMPACTncd$design$sim_prm$init_year_intv - 2000), sugar_per_ssb_new := sugar_per_ssb * ref_mod]
+  
+  # Change in consumption of sugar from SSBs after tax #
+  sp$pop[, sugar_delta := ssb_sugar - (ssb_curr_xps * sugar_per_ssb_new)]
+  
+  # Recalculate additional delta of SSB consumption to account for direct effect of reduced sugar SSBs #
+  sp$pop[, ssb_xps_reform_delta := sugar_delta / sugar_per_ssb]
   
   # Change in SSB consumption after tax #
   sp$pop[, ssb_delta_xps := ssb_curr_xps - (ssb_curr_xps * (1 + oPE_ssb * ((tax/100) * pass_through)))]
-  sp$pop[year > (IMPACTncd$design$sim_prm$init_year_intv - 2000), ssb_curr_xps := ssb_curr_xps - (ssb_delta_xps)]
+  sp$pop[year > (IMPACTncd$design$sim_prm$init_year_intv - 2000), ssb_curr_xps := ssb_curr_xps - (ssb_delta_xps + ssb_xps_reform_delta)]
   
   # Change in fruit juice consumption after tax #
   sp$pop[, juice_delta_xps := juice_curr_xps - (juice_curr_xps * (1 + cPE_ssb_juice * ((tax/100) * pass_through)))]
@@ -235,7 +245,7 @@ scenario_4_fn <- function(sp) {
   sp$pop[year > ((IMPACTncd$design$sim_prm$init_year_intv - 2000) + policy_lag), bmi_curr_xps := bmi_curr_xps - (bmi_delta * bmi_mod)]
   
   # Delete unnecessary variables from synthpop #
-  sp$pop[, c("bmi_mod", "ref_mod") := NULL]
+  sp$pop[, c("bmi_mod", "ref_mod", "sugar_per_ssb_new", "ssb_xps_reform_delta") := NULL]
   
 }
 

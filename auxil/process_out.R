@@ -148,6 +148,8 @@ for(analysis in dirs){
         
         d_out <- data.table(NULL)
         
+        d_out_full <- data.table(NULL)
+        
         for(j in sc_n){  
           
           if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
@@ -170,16 +172,21 @@ for(analysis in dirs){
           
           dd <- melt(dd, id.vars = evalstrata)
           
+          ee <- copy(dd)
+          
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(evalstrata[evalstrata != "mc"])]
           setnames(dd, c(evalstrata[evalstrata != "mc"], "xps", percent(prbl, prefix = "xps_mean_")))
           
           if(sens){
             dd[, scenario := paste0("sens_", j)]
+            ee[, scenario := paste0("sens_", j)]
           } else {
             dd[, scenario := paste0("sc", j)]
+            ee[, scenario := paste0("sc", j)]
           }
           
           d_out <- rbind(d_out, dd)
+          d_out_full <- rbind(d_out_full, ee)
         }
         
         fwrite(d_out, paste0(out_path_tables, "xps_diff_by_year_agegrp_sex.csv"), sep = ";")
