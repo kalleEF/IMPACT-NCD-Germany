@@ -150,7 +150,7 @@ scenario_3_fn <- function(sp) {
   sp$pop[, sugar_delta := ssb_sugar - (ssb_curr_xps * sugar_per_ssb_new)]
   
   # Recalculate SSB consumption to account for direct effect of reduced sugar SSBs #
-  sp$pop[, ssb_curr_xps := ssb_curr_xps - sugar_delta / sugar_per_ssb]
+  sp$pop[!is.na(sugar_delta), ssb_curr_xps := ssb_curr_xps - sugar_delta / sugar_per_ssb]
   
   
   # Change in BMI after tax #
@@ -213,27 +213,33 @@ scenario_4_fn <- function(sp) {
   
   sp$pop[year > (IMPACTncd$design$sim_prm$init_year_intv - 2000), sugar_per_ssb_new := sugar_per_ssb * ref_mod]
   
-  # Change in consumption of sugar from SSBs after tax #
-  sp$pop[, sugar_delta := ssb_sugar - (ssb_curr_xps * sugar_per_ssb_new)]
-  
-  # Recalculate additional delta of SSB consumption to account for direct effect of reduced sugar SSBs #
-  sp$pop[, ssb_xps_reform_delta := sugar_delta / sugar_per_ssb]
-  
   # Change in SSB consumption after tax #
   sp$pop[, ssb_delta_xps := ssb_curr_xps - (ssb_curr_xps * (1 + oPE_ssb * ((tax/100) * pass_through)))]
-  sp$pop[year > (IMPACTncd$design$sim_prm$init_year_intv - 2000), ssb_curr_xps := ssb_curr_xps - (ssb_delta_xps + ssb_xps_reform_delta)]
+  sp$pop[year > (IMPACTncd$design$sim_prm$init_year_intv - 2000), ssb_curr_xps := ssb_curr_xps - (ssb_delta_xps)]
   
   # Change in fruit juice consumption after tax #
   sp$pop[, juice_delta_xps := juice_curr_xps - (juice_curr_xps * (1 + cPE_ssb_juice * ((tax/100) * pass_through)))]
   sp$pop[year > (IMPACTncd$design$sim_prm$init_year_intv - 2000), juice_curr_xps := juice_curr_xps - (juice_delta_xps)]
   
   # Change in consumption of sugar from SSBs and juice after tax #
-  sp$pop[, sugar_delta := (ssb_sugar - ssb_curr_xps * sugar_per_ssb) + (juice_delta_xps * sugar_per_juice)]
+  sp$pop[, ssb_sugar_delta := (ssb_sugar - ssb_curr_xps * sugar_per_ssb_new)]
+
+  # Change in consumption of sugar from SSBs after tax #
+  sp$pop[, juice_sugar_delta := (juice_delta_xps * sugar_per_juice)]
+  
+  # Calculate additional delta of SSB consumption to account for direct effect of reduced sugar SSBs #
+  sp$pop[, ssb_xps_reform_delta := ssb_sugar_delta / sugar_per_ssb]
+  
+  # Implement reformulation effect via SSB consumption #
+  sp$pop[!is.na(ssb_xps_reform_delta), ssb_curr_xps := ssb_curr_xps - (ssb_xps_reform_delta)]
   
   # Change in BMI after tax #
   sp$pop[, bmi_delta := fifelse(bmi_curr_xps < 25,
-                                sugar_delta * sugar_rr_low,
-                                sugar_delta * sugar_rr_high)]
+                                (ssb_sugar_delta + juice_sugar_delta) * sugar_rr_low,
+                                (ssb_sugar_delta + juice_sugar_delta) * sugar_rr_high)]
+  
+  sp$pop[, sugar_delta := (ssb_sugar_delta + juice_sugar_delta)][, `:=`(ssb_sugar_delta = NULL,
+                                                                        juice_sugar_delta = NULL)]
   
   # Lagged effect of BMI #
   sp$pop[, bmi_mod := 0]
