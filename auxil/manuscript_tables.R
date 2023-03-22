@@ -174,6 +174,7 @@ table_1 <- rbind(cases_prev_post, case_years_prev_post, deaths_prev_post, le, le
                  cost_death, cost_slfmgt_t2dm, cost_time_t2dm, cost_time,
                  cost_healthcare, cost_societal)
 
+
 setkey(table_1, scenario, order)
 
 table_1[outcome %in% grep("_post", table_1$outcome, value = TRUE),

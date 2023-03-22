@@ -37,6 +37,13 @@ if(!Sys.info()[1] == "Windows"){
   cea_wo[, analysis := "only BMI-mediated effects"]
   cea_w <- fread(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/", "with_direct_SSB_effects", "/summaries/cea_results3.csv.gz"))
   cea_w[, analysis := "incl. direct SSB effects"]
+  
+  # Include new scenario 3
+  cea_wo_reform <- fread(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/", "without_direct_SSB_effects_reform", "/summaries/cea_results.csv.gz"))
+  cea_wo_reform[, analysis := "only BMI-mediated effects"]
+  cea_w_reform <- fread(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/", "with_direct_SSB_effects_reform", "/summaries/cea_results3.csv.gz"))
+  cea_w_reform[, analysis := "incl. direct SSB effects"]
+  
 } else {
   cea_wo <- fread(paste0("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/",
                          "without_direct_SSB_effects", "/summaries/cea_results.csv.gz"))
@@ -44,34 +51,54 @@ if(!Sys.info()[1] == "Windows"){
   cea_w <- fread(paste0("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/",
                         "with_direct_SSB_effects", "/summaries/cea_results3.csv.gz"))
   cea_w[, analysis := "incl. direct SSB effects"]
+  
+  # Include new scenario 3
+  cea_wo_reform <- fread(paste0("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/",
+                         "without_direct_SSB_effects_reform", "/summaries/cea_results.csv.gz"))
+  cea_wo_reform[, analysis := "only BMI-mediated effects"]
+  cea_w_reform <- fread(paste0("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/",
+                        "with_direct_SSB_effects_reform", "/summaries/cea_results3.csv.gz"))
+  cea_w_reform[, analysis := "incl. direct SSB effects"]
 }
 
-cea <- rbind(cea_w, cea_wo)
+cea <- rbind(cea_w[!(scenario %in% c("sc3", "sc4"))],
+             cea_wo[!(scenario %in% c("sc3", "sc4"))],
+             cea_w_reform[scenario != "sc0"],
+             cea_wo_reform[scenario != "sc0"])
 
 cea_agg <- cea[, lapply(.SD, sum), .SDcols = !c("analysis", "scenario", "sex", "agegrp", "mc"),
                by = c("scenario", "mc", "analysis")]
 
 #TODO: Eventually extend by error bars!
 cea_point <- data.table(x = cea_agg[scenario != "sc0", mean(incr_qalys_scl, na.rm = T), by = .(scenario, analysis)],
-                        y = cea_agg[scenario != "sc0", mean(incr_tot_costs_scl, na.rm = T), by = .(scenario, analysis)])
-
-cea_point[, `:=`(scenario = x.scenario, y.scenario = NULL,
-                 analysis = x.analysis, y.analysis = NULL,
-                 mean_qaly = x.V1, mean_cost = y.V1)]
+                        y = cea_agg[scenario != "sc0", mean(incr_tot_costs_scl, na.rm = T), by = .(scenario, analysis)],
+                        xmin = cea_agg[scenario != "sc0", quantile(incr_qalys_scl, probs = 0.025, na.rm = T), by = .(scenario, analysis)],
+                        xmax = cea_agg[scenario != "sc0", quantile(incr_qalys_scl, probs = 0.975, na.rm = T), by = .(scenario, analysis)],
+                        ymin = cea_agg[scenario != "sc0", quantile(incr_tot_costs_scl, probs = 0.025, na.rm = T), by = .(scenario, analysis)],
+                        ymax = cea_agg[scenario != "sc0", quantile(incr_tot_costs_scl, probs = 0.975, na.rm = T), by = .(scenario, analysis)])
+                        
+cea_point[, `:=`(scenario = x.scenario, y.scenario = NULL, ymin.scenario = NULL, ymax.scenario = NULL, xmin.scenario = NULL, xmax.scenario = NULL,
+                 analysis = x.analysis, y.analysis = NULL, ymin.analysis = NULL, ymax.analysis = NULL, xmin.analysis = NULL, xmax.analysis = NULL,
+                 x.analysis = NULL, x.scenario = NULL,
+                 mean_qaly = x.V1, mean_cost = y.V1, x.V1 = NULL, y.V1 = NULL,
+                 ymin_cost = ymin.V1, ymax_cost = ymax.V1, ymin.V1 = NULL, ymax.V1 = NULL,
+                 xmin_qaly = xmin.V1, xmax_qaly = xmax.V1, xmin.V1 = NULL, xmax.V1 = NULL)]
 
 ggplot(cea_agg[scenario != "sc0"], aes(x = incr_qalys_scl,
                                        y = incr_tot_costs_scl,
                                        col = scenario)) +
   facet_wrap(~ analysis) +
-  geom_point(shape = 16, alpha = 0.7, size = 3) +
-  geom_point(data = cea_point, aes(x = mean_qaly, y = mean_cost, col = scenario), shape = 4, size = 5, stroke = 1.5) +
+  geom_point(shape = 16, alpha = 0.5, size = 3) +
+  #geom_point(data = cea_point, aes(x = mean_qaly, y = mean_cost, col = scenario), shape = 4, size = 5, stroke = 1.5) +
+  geom_errorbar(data = cea_point, aes(x = mean_qaly, y = mean_cost, ymin = ymin_cost, ymax = ymax_cost), inherit.aes = FALSE) +
+  geom_errorbar(data = cea_point, aes(x = mean_qaly, y = mean_cost, xmin = xmin_qaly, xmax = xmax_qaly), inherit.aes = FALSE) +
   geom_point(data = cea_point, aes(x = mean_qaly, y = mean_cost), shape = 1, size = 2, col = "black") +
-  geom_point(data = cea_point, aes(x = mean_qaly, y = mean_cost), shape = 4, size = 4, col = "black") +
+  #geom_point(data = cea_point, aes(x = mean_qaly, y = mean_cost), shape = 4, size = 4, col = "black") +
   geom_vline(xintercept = 0) +
   geom_hline(yintercept = 0) +
   #expand_limits(x = -8e4, y = 2e9) +
-  scale_y_continuous(name = "Incremental costs (in millions)", c(seq(0,80000000000,1000000000)*-1),
-                     labels = function(y) format(y/1000000)) +
+  scale_y_continuous(name = "Incremental costs (in billions)", c(seq(0,80000000000,5000000000)*-1),
+                     labels = function(y) format(y/1000000000)) +
   scale_x_continuous(name = "Incremental QALYs (in thousands)", c(seq(-1000000,500000,50000)), labels = function(y) format(y/1000)) +
   scale_color_viridis_d(name = "Scenario", option = "viridis",
                        labels = c("Tax on SSBs", "Tax on SSBs + Fruit Juice",
@@ -85,7 +112,7 @@ ggplot(cea_agg[scenario != "sc0"], aes(x = incr_qalys_scl,
 
 
 ggsave(paste0(out_path, "Figure_1_cost_effectiveness_plane.tiff"),
-       height = 9, width = 16, dpi = 300)
+       height = 9, width = 14, dpi = 300)
 
 
 ## Figure 3: Cross-validation IMPACT vs PRIMEtime ## ----
@@ -97,11 +124,18 @@ prbl = c(0.5, 0.025, 0.975, 0.1, 0.9)
 # Epi Results ENTER CORRECT ANALYSIS IN PATH!!!!!
 if(!Sys.info()[1] == "Windows"){
   impact_epi <- fread("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/without_direct_SSB_effects/tables/cases_prev_post_by_scenario.csv")
+
+  impact_epi_reform <- fread("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/without_direct_SSB_effects_reform/tables/cases_prev_post_by_scenario.csv")
 } else {
   impact_epi <- fread("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/without_direct_SSB_effects/tables/cases_prev_post_by_scenario.csv")
+
+  impact_epi_reform <- fread("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/without_direct_SSB_effects_reform/tables/cases_prev_post_by_scenario.csv")
 }
 
 #fwrite(impact_epi, "G:/Meine Ablage/PhD/Presentations/2022_EUPHA/impact_epi_results.csv", sep = ";", dec = ".")
+
+impact_epi <- rbind(impact_epi[!(scenario %in% c("sc3", "sc4"))],
+                    impact_epi_reform[scenario != "sc0"])
 
 impact_epi[, `:=`(model = "IMPACT NCD",
                   outcome = ifelse(disease == "diff_t2dm_prvl", "diabetes_cpp",
@@ -114,9 +148,16 @@ impact_epi <- na.omit(impact_epi)
 
 if(!Sys.info()[1] == "Windows"){
   impact_cea <- fread("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/without_direct_SSB_effects/summaries/cea_results.csv.gz")
+
+  impact_cea_reform <- fread("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/without_direct_SSB_effects_reform/summaries/cea_results.csv.gz")
 } else {
   impact_cea <- fread("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/without_direct_SSB_effects/summaries/cea_results.csv.gz")
+
+  impact_cea_reform <- fread("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/without_direct_SSB_effects_reform/summaries/cea_results.csv.gz")
 }
+
+impact_cea <- rbind(impact_cea[!(scenario %in% c("sc3", "sc4"))],
+                    impact_cea_reform[scenario != "sc0"])
 
 impact_cea[, model := "IMPACT NCD"]
 
@@ -170,11 +211,11 @@ dat[, outcome := ifelse(outcome == "chd_cpp", "Coronary Heart Disease",
 
 dat[, scenario := ifelse(scenario == "sc1", "Scenario 1",
                          ifelse(scenario == "sc2", "Scenario 2",
-                                ifelse(scenario == "sc3", "Scenario 3", "Scenario 4")))]
+                                ifelse(scenario %in% c("sc32", "sc3"), "Scenario 3", "Scenario 4")))]
 
 setkey(dat, scenario, outcome)
 
-write.xlsx(dat, "./outputs/appendix/table_4.xlsx")
+openxlsx::write.xlsx(dat, "./outputs/appendix/table_4.xlsx")
 
 
 ## Combined plot for all scenarios
@@ -280,7 +321,7 @@ sc4 <- ggplot(dat[outcome == "Incremental QALYs"],
 plot_grid(sc1, sc2, sc3, sc4, align = "v", ncol = 2)
 
 ggsave(paste0(out_path, "Figure_2_cross_validation.tiff"),
-       height = 9, width = 12, dpi = 300)
+       height = 9, width = 14, dpi = 300)
 
 
 
