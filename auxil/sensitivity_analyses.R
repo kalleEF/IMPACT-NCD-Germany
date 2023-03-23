@@ -196,7 +196,7 @@ scenario_sens_4_fn <- function(sp) {
   sp$pop[, sugar_delta := ssb_sugar - (ssb_curr_xps * sugar_per_ssb_new)]
   
   # Recalculate SSB consumption to account for direct effect of reduced sugar SSBs #
-  sp$pop[, ssb_curr_xps := ssb_curr_xps - sugar_delta / sugar_per_ssb]
+  sp$pop[!is.na(sugar_delta), ssb_curr_xps := ssb_curr_xps - sugar_delta / sugar_per_ssb]
   
   
   # Change in BMI after tax #
@@ -295,7 +295,7 @@ scenario_sens_6_fn <- function(sp) {
   sp$pop[, sugar_delta := ssb_sugar - (ssb_curr_xps * sugar_per_ssb_new)]
   
   # Recalculate SSB consumption to account for direct effect of reduced sugar SSBs #
-  sp$pop[, ssb_curr_xps := ssb_curr_xps - sugar_delta / sugar_per_ssb]
+  sp$pop[!is.na(sugar_delta), ssb_curr_xps := ssb_curr_xps - sugar_delta / sugar_per_ssb]
   
   
   # Change in BMI after tax #
