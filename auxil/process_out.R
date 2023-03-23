@@ -4542,8 +4542,8 @@ for(analysis in dirs){
         
         for(j in cea_disc){
         
-          disc <- stringr::str_extract(j, "[0-9]")
-          
+          disc <- gsub("[^0-9]", "", j)
+
           cea <- fread(paste0(in_path, j))
           cea[, `:=` (year = year + 2000,
                       agegrp = fifelse(agegrp %in% c("30-34", "35-39", "40-44", "45-49"), "30-49",
