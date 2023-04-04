@@ -101,8 +101,8 @@ ggplot(cea_agg[scenario != "sc0"], aes(x = incr_qalys_scl,
                      labels = function(y) format(y/1000000000)) +
   scale_x_continuous(name = "Incremental QALYs (in thousands)", c(seq(-1000000,500000,50000)), labels = function(y) format(y/1000)) +
   scale_color_viridis_d(name = "Scenario", option = "viridis",
-                       labels = c("Tax on SSBs", "Tax on SSBs + Fruit Juice",
-                                  "Reformulation", "Reformulation + Reduced Consumption")) +
+                       labels = c("20% ad-valorem tax on SSBs", "20% ad-valorem tax on SSBs & 100% fruit juice",
+                                  "30% reformulation of SSBs & stable consumption", "30% reformulation of SSBs & reduced consumption")) +
   theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
                      panel.grid.minor = element_blank(), strip.text.x = element_text(size = 15),
                      axis.line = element_line(colour = "black"),
@@ -215,7 +215,7 @@ dat[, scenario := ifelse(scenario == "sc1", "Scenario 1",
 
 setkey(dat, scenario, outcome)
 
-openxlsx::write.xlsx(dat, "./outputs/appendix/table_4.xlsx")
+openxlsx::write.xlsx(dat, "./outputs/appendix/table_7.xlsx")
 
 
 ## Combined plot for all scenarios

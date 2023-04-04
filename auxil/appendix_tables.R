@@ -1819,7 +1819,7 @@ setnames(ly, grep("LY_diff_", names(ly), value = TRUE),
 
 qaly <- fread(paste0("./outputs/",
                      analysis,
-                     "/tables/incr_qalys_scl_", analysis, "_disc_NA.csv"))
+                     "/tables/incr_qalys_scl_", analysis, "_disc_.csv"))
 qaly <- qaly[, analysis := NULL]
 qaly[, outcome := "qaly"][, disease := "n/a"][, order := 4]
 setnames(qaly, grep("incr_qalys_", names(qaly), value = TRUE),
@@ -1827,7 +1827,7 @@ setnames(qaly, grep("incr_qalys_", names(qaly), value = TRUE),
 
 cost_chd <- fread(paste0("./outputs/",
                          analysis,
-                         "/tables/incr_cost_chd_scl_", analysis, "_disc_NA.csv"))
+                         "/tables/incr_cost_chd_scl_", analysis, "_disc_.csv"))
 cost_chd <- cost_chd[, analysis := NULL]
 cost_chd[, outcome := "disease_cost"][, disease := "diff_chd"][, order := 9]
 setnames(cost_chd, grep("incr_cost_", names(cost_chd), value = TRUE),
@@ -1835,7 +1835,7 @@ setnames(cost_chd, grep("incr_cost_", names(cost_chd), value = TRUE),
 
 cost_stroke <- fread(paste0("./outputs/",
                             analysis,
-                            "/tables/incr_cost_stroke_scl_", analysis, "_disc_NA.csv"))
+                            "/tables/incr_cost_stroke_scl_", analysis, "_disc_.csv"))
 cost_stroke <- cost_stroke[, analysis := NULL]
 cost_stroke[, outcome := "disease_cost"][, disease := "diff_stroke"][, order := 10]
 setnames(cost_stroke, grep("incr_cost_", names(cost_stroke), value = TRUE),
@@ -1843,7 +1843,7 @@ setnames(cost_stroke, grep("incr_cost_", names(cost_stroke), value = TRUE),
 
 cost_t2dm <- fread(paste0("./outputs/",
                           analysis,
-                          "/tables/incr_cost_t2dm_scl_", analysis, "_disc_NA.csv"))
+                          "/tables/incr_cost_t2dm_scl_", analysis, "_disc_.csv"))
 cost_t2dm <- cost_t2dm[, analysis := NULL]
 cost_t2dm[, outcome := "disease_cost"][, disease := "diff_t2dm"][, order := 8]
 setnames(cost_t2dm, grep("incr_cost_", names(cost_t2dm), value = TRUE),
@@ -1851,7 +1851,7 @@ setnames(cost_t2dm, grep("incr_cost_", names(cost_t2dm), value = TRUE),
 
 cost_other <- fread(paste0("./outputs/",
                            analysis,
-                           "/tables/incr_cost_scl_", analysis, "_disc_NA.csv"))
+                           "/tables/incr_cost_scl_", analysis, "_disc_.csv"))
 cost_other <- cost_other[, analysis := NULL]
 cost_other[, outcome := "disease_cost"][, disease := "diff_other"][, order := 11]
 setnames(cost_other, grep("incr_cost_", names(cost_other), value = TRUE),
@@ -1859,7 +1859,7 @@ setnames(cost_other, grep("incr_cost_", names(cost_other), value = TRUE),
 
 cost_rtr_t2dm <- fread(paste0("./outputs/",
                               analysis,
-                              "/tables/incr_cost_rtr_t2dm_scl_", analysis, "_disc_NA.csv"))
+                              "/tables/incr_cost_rtr_t2dm_scl_", analysis, "_disc_.csv"))
 cost_rtr_t2dm <- cost_rtr_t2dm[, analysis := NULL]
 cost_rtr_t2dm[, outcome := "retire_cost"][, disease := "diff_t2dm"][, order := 12]
 setnames(cost_rtr_t2dm, grep("incr_cost_", names(cost_rtr_t2dm), value = TRUE),
@@ -1867,7 +1867,7 @@ setnames(cost_rtr_t2dm, grep("incr_cost_", names(cost_rtr_t2dm), value = TRUE),
 
 cost_rtr_stroke <- fread(paste0("./outputs/",
                                 analysis,
-                                "/tables/incr_cost_rtr_stroke_scl_", analysis, "_disc_NA.csv"))
+                                "/tables/incr_cost_rtr_stroke_scl_", analysis, "_disc_.csv"))
 cost_rtr_stroke <- cost_rtr_stroke[, analysis := NULL]
 cost_rtr_stroke[, outcome := "retire_cost"][, disease := "diff_stroke"][, order := 14]
 setnames(cost_rtr_stroke, grep("incr_cost_", names(cost_rtr_stroke), value = TRUE),
@@ -1875,7 +1875,7 @@ setnames(cost_rtr_stroke, grep("incr_cost_", names(cost_rtr_stroke), value = TRU
 
 cost_scklv_t2dm <- fread(paste0("./outputs/",
                                 analysis,
-                                "/tables/incr_cost_scklv_t2dm_scl_", analysis, "_disc_NA.csv"))
+                                "/tables/incr_cost_scklv_t2dm_scl_", analysis, "_disc_.csv"))
 cost_scklv_t2dm <- cost_scklv_t2dm[, analysis := NULL]
 cost_scklv_t2dm[, outcome := "sickleave_cost"][, disease := "diff_t2dm"][, order := 13]
 setnames(cost_scklv_t2dm, grep("incr_cost_", names(cost_scklv_t2dm), value = TRUE),
@@ -1883,7 +1883,7 @@ setnames(cost_scklv_t2dm, grep("incr_cost_", names(cost_scklv_t2dm), value = TRU
 
 cost_scklv_stroke <- fread(paste0("./outputs/",
                                   analysis,
-                                  "/tables/incr_cost_scklv_stroke_scl_", analysis, "_disc_NA.csv"))
+                                  "/tables/incr_cost_scklv_stroke_scl_", analysis, "_disc_.csv"))
 cost_scklv_stroke <- cost_scklv_stroke[, analysis := NULL]
 cost_scklv_stroke[, outcome := "sickleave_cost"][, disease := "diff_stroke"][, order := 15]
 setnames(cost_scklv_stroke, grep("incr_cost_", names(cost_scklv_stroke), value = TRUE),
@@ -1891,7 +1891,7 @@ setnames(cost_scklv_stroke, grep("incr_cost_", names(cost_scklv_stroke), value =
 
 cost_death <- fread(paste0("./outputs/",
                            analysis,
-                           "/tables/incr_cost_death_scl_", analysis, "_disc_NA.csv"))
+                           "/tables/incr_cost_death_scl_", analysis, "_disc_.csv"))
 cost_death <- cost_death[, analysis := NULL]
 cost_death[, outcome := "death_cost"][, disease := "diff_all"][, order := 16]
 setnames(cost_death, grep("incr_cost_", names(cost_death), value = TRUE),
@@ -1899,7 +1899,7 @@ setnames(cost_death, grep("incr_cost_", names(cost_death), value = TRUE),
 
 cost_slfmgt_t2dm <- fread(paste0("./outputs/",
                                  analysis,
-                                 "/tables/incr_cost_slfmgt_t2dm_scl_", analysis, "_disc_NA.csv"))
+                                 "/tables/incr_cost_slfmgt_t2dm_scl_", analysis, "_disc_.csv"))
 cost_slfmgt_t2dm <- cost_slfmgt_t2dm[, analysis := NULL]
 cost_slfmgt_t2dm[, outcome := "time_slfmgt_cost"][, disease := "diff_t2dm"][, order := 17]
 setnames(cost_slfmgt_t2dm, grep("incr_cost_", names(cost_slfmgt_t2dm), value = TRUE),
@@ -1907,7 +1907,7 @@ setnames(cost_slfmgt_t2dm, grep("incr_cost_", names(cost_slfmgt_t2dm), value = T
 
 cost_time_t2dm <- fread(paste0("./outputs/",
                                analysis,
-                               "/tables/incr_cost_time_t2dm_scl_", analysis, "_disc_NA.csv"))
+                               "/tables/incr_cost_time_t2dm_scl_", analysis, "_disc_.csv"))
 cost_time_t2dm <- cost_time_t2dm[, analysis := NULL]
 cost_time_t2dm[, outcome := "time_healthservice_cost"][, disease := "diff_t2dm"][, order := 18]
 setnames(cost_time_t2dm, grep("incr_cost_", names(cost_time_t2dm), value = TRUE),
@@ -1915,7 +1915,7 @@ setnames(cost_time_t2dm, grep("incr_cost_", names(cost_time_t2dm), value = TRUE)
 
 cost_time <- fread(paste0("./outputs/",
                           analysis,
-                          "/tables/incr_cost_time_scl_", analysis, "_disc_NA.csv"))
+                          "/tables/incr_cost_time_scl_", analysis, "_disc_.csv"))
 cost_time <- cost_time[, analysis := NULL]
 cost_time[, outcome := "time_healthservice_cost"][, disease := "diff_other"][, order := 19]
 setnames(cost_time, grep("incr_cost_", names(cost_time), value = TRUE),
@@ -1923,7 +1923,7 @@ setnames(cost_time, grep("incr_cost_", names(cost_time), value = TRUE),
 
 cost_healthcare <- fread(paste0("./outputs/",
                                 analysis,
-                                "/tables/incr_tot_dir_costs_scl_", analysis, "_disc_NA.csv"))
+                                "/tables/incr_tot_dir_costs_scl_", analysis, "_disc_.csv"))
 cost_healthcare <- cost_healthcare[, analysis := NULL]
 cost_healthcare[, outcome := "healthcare_perspective_cost"][, disease := "diff_all"][, order := 20]
 setnames(cost_healthcare, grep("incr_tot_dir_costs_", names(cost_healthcare), value = TRUE),
@@ -1931,7 +1931,7 @@ setnames(cost_healthcare, grep("incr_tot_dir_costs_", names(cost_healthcare), va
 
 cost_societal <- fread(paste0("./outputs/",
                               analysis,
-                              "/tables/incr_tot_costs_scl_", analysis, "_disc_NA.csv"))
+                              "/tables/incr_tot_costs_scl_", analysis, "_disc_.csv"))
 cost_societal <- cost_societal[, analysis := NULL]
 cost_societal[, outcome := "societal_perspective_cost"][, disease := "diff_all"][, order := 21]
 setnames(cost_societal, grep("incr_tot_costs_", names(cost_societal), value = TRUE),
