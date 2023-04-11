@@ -567,7 +567,7 @@ for(i in 1:mc_s){
   
   indir_cost_data[, cost_rtr_t2dm := ifelse(t2dm_stat == 1,
                                             qnorm(quantiles[1], mean = 4103 - 3344, sd = (4103 - 3344) * 0.15),
-                                            0)]
+                                            qnorm(quantiles[1], mean = 1981 - 1299, sd = (1981 - 1299) * 0.15))]
   
   infl_ulrich <- 46764/36103 # Same source as Ulrich paper but value for 2021
   infl_2021 <- 116.00733/114.94350 # Additional inflation to 2022 using Arbeitskostenindex
@@ -597,7 +597,7 @@ for(i in 1:mc_s){
   
   indir_cost_data[, cost_scklv_t2dm := ifelse(t2dm_stat == 1,
                                               qnorm(quantiles[3], mean = 3344, sd = (3344 - 1995)/1.96),
-                                                    0)]
+                                              qnorm(quantiles[3], mean = 1299, sd = (1299 - 1185)/1.96))]
   
   indir_cost_data[, cost_scklv_t2dm := cost_scklv_t2dm * infl_ulrich * infl_2021]
   

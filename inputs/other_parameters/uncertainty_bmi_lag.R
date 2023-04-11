@@ -4,7 +4,7 @@ library(fst)
 
 #### Simulate uncertainty in BMI lag -------------------------------
 
-bmi_lag <- 3 # Data from Staudigel EVS paper/tables
+bmi_lag <- 3 
 
 n_samples <- 10000
 

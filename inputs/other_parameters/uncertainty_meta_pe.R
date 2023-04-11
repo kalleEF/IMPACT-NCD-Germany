@@ -1,9 +1,9 @@
 library(data.table)
 library(fst)
 
-#### Simulate uncertainty in tax pass-through (based on Andreyeva et al. 2022) -------------------------------
+#### Simulate uncertainty meta-analytic price elasticity -------------------------------
 
-meta_pe <- -6.74  # Data from Staudigel EVS paper/tables
+meta_pe <- -6.74  # Data from Afshin paper
 meta_pe_se <- (meta_pe + 10.40)/1.96
 
 n_samples <- 10000
