@@ -231,13 +231,19 @@ sc4 <- ggplot(dat[outcome == "Incremental QALYs"],
                      axis.text.y = element_text(size = 10), axis.title = element_text(size = 10),
                      axis.ticks.y = element_blank(), plot.title = element_text(size = 16),
                      strip.text.x = element_blank(), strip.background = element_blank(),
-                     legend.position = "none",
-                     legend.title = element_blank(), legend.text = element_text(size = 12))
+                     legend.title = element_blank(), legend.text = element_text(size = 12)) +
 
-plot_grid(sc1, sc2, sc3, sc4, align = "v", ncol = 2)
+theme(legend.position = "bottom")
 
-ggsave(paste0(out_path, "Figure_X_cross_validation.tiff"),
-       height = 9, width = 12, dpi = 300)
+legend <- get_legend(sc4)
+
+sc4 <- sc4 + theme(legend.position = "none")
+
+ggdraw(plot_grid(plot_grid(sc1, sc2, sc3, sc4, align = "v", ncol = 2),
+                 plot_grid(NULL, legend, ncol = 1), ncol = 1, rel_heights = c(1, 0.05)))
+
+ggsave(paste0(out_path, "Figure_X_cross_validation_RR_sets.tiff"),
+       height = 9, width = 16, dpi = 300)
 
 
 
@@ -443,10 +449,446 @@ sc4 <- ggplot(dat[outcome == "Incremental QALYs"],
                      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
                      axis.text.y = element_text(size = 10), axis.title = element_text(size = 10),
                      axis.ticks.y = element_blank(), plot.title = element_text(size = 16),
-                     legend.position = "none",
-                     legend.title = element_blank(), legend.text = element_text(size = 12))
+                     legend.title = element_blank(), legend.text = element_text(size = 12)) +
+  theme(legend.position = "bottom")
 
-plot_grid(sc1, sc2, sc3, sc4, align = "v", ncol = 2)
+legend <- get_legend(sc4)
 
-ggsave(paste0(out_path, "Figure_X_cross_validation_by_sex.tiff"),
-       height = 9, width = 12, dpi = 300)
+sc4 <- sc4 + theme(legend.position = "none")
+
+ggdraw(plot_grid(plot_grid(sc1, sc2, sc3, sc4, align = "v", ncol = 2),
+                 plot_grid(NULL, legend, ncol = 1), ncol = 1, rel_heights = c(1, 0.05)))
+
+ggsave(paste0(out_path, "Figure_X_cross_validation_RR_sets_by_sex.tiff"),
+       height = 9, width = 16, dpi = 300)
+
+
+## Figure X: Cumulative cases prevented/postponed over time by scenario and sex ## ----
+
+# Epi Results ENTER CORRECT ANALYSIS IN PATH!!!!!
+if(!Sys.info()[1] == "Windows"){
+  impact_epi <- fread("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/with_direct_SSB_effects/tables/cases_prev_post_by_scenario_sex_year.csv")
+  impact_epi_reform <- fread("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/with_direct_SSB_effects_reform/tables/cases_prev_post_by_scenario_sex_year.csv")
+} else {
+  impact_epi <- fread("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/with_direct_SSB_effects/tables/cases_prev_post_by_scenario_sex_year.csv")
+  impact_epi_reform <- fread("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/with_direct_SSB_effects_reform/tables/cases_prev_post_by_scenario_sex_year.csv")
+}
+
+impact_epi <- rbind(impact_epi[scenario %in% c("sc1", "sc2")],
+                    impact_epi_reform[scenario %in% c("sc32", "sc42")])
+
+
+outcome_names <- c(
+  "diff_chd_prvl" = "Coronary heart disease",
+  "diff_obesity_prvl" = "Obesity",
+  "diff_stroke_prvl" = "Stroke",
+  "diff_t2dm_prvl" = "Type 2 diabetes"
+)
+
+outcome_labeller <- as_labeller(outcome_names)
+
+sex_names <- c(
+  "men" = "Men",
+  "women" = "Women"
+)
+
+sex_labeller <- as_labeller(sex_names)
+
+
+sc1 <- ggplot(impact_epi[disease == "diff_t2dm_prvl"], aes(x = year, y = `prvl_rate_50.0%`,
+               ymin = `prvl_rate_2.5%`,
+               ymax = `prvl_rate_97.5%`,
+               fill = scenario,
+               col = scenario)) +
+  ggtitle("Type 2 Diabetes")
+  
+sc1 <- sc1 + geom_line() +
+             geom_hline(yintercept = 0, linetype = "dashed") +
+             geom_ribbon(alpha = 0.3) +
+             facet_wrap(~ sex, scales = "free", labeller = sex_labeller) +
+             scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("Scenario 1",
+                                                                                         "Scenario 2",
+                                                                                         "Scenario 3",
+                                                                                         "Scenario 4")) +
+             scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("Scenario 1",
+                                                                                        "Scenario 2",
+                                                                                        "Scenario 3",
+                                                                                        "Scenario 4")) +
+             scale_x_continuous(name = "Year") +
+             scale_y_continuous(name = "Cumulative cases prevented or postponed") +
+             labs(col = "Sex") +
+             theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                                panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+                                axis.title = element_text(size = 10),
+                                plot.title = element_text(size = 16),
+                                legend.title = element_blank(), legend.text = element_text(size = 12)) +
+             theme(legend.position = "none")
+
+
+sc2 <- ggplot(impact_epi[disease == "diff_chd_prvl"], aes(x = year, y = `prvl_rate_50.0%`,
+                                                           ymin = `prvl_rate_2.5%`,
+                                                           ymax = `prvl_rate_97.5%`,
+                                                           fill = scenario,
+                                                           col = scenario)) +
+  ggtitle("Coronary heart disease")
+
+sc2 <- sc2 + geom_line() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_ribbon(alpha = 0.3) +
+  facet_wrap(~ sex, scales = "free", labeller = sex_labeller) +
+  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("Scenario 1",
+                                                                          "Scenario 2",
+                                                                          "Scenario 3",
+                                                                          "Scenario 4")) +
+  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("Scenario 1",
+                                                                         "Scenario 2",
+                                                                         "Scenario 3",
+                                                                         "Scenario 4")) +
+  scale_x_continuous(name = "Year") +
+  scale_y_continuous(name = "Cumulative cases prevented or postponed") +
+  labs(col = "Sex") +
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+                     axis.title = element_text(size = 10),
+                     plot.title = element_text(size = 16),
+                     legend.title = element_blank(), legend.text = element_text(size = 12)) +
+  theme(legend.position = "none")
+
+
+sc3 <- ggplot(impact_epi[disease == "diff_stroke_prvl"], aes(x = year, y = `prvl_rate_50.0%`,
+                                                           ymin = `prvl_rate_2.5%`,
+                                                           ymax = `prvl_rate_97.5%`,
+                                                           fill = scenario,
+                                                           col = scenario)) +
+  ggtitle("Stroke")
+
+sc3 <- sc3 + geom_line() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_ribbon(alpha = 0.3) +
+  facet_wrap(~ sex, scales = "free", labeller = sex_labeller) +
+  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("Scenario 1",
+                                                                          "Scenario 2",
+                                                                          "Scenario 3",
+                                                                          "Scenario 4")) +
+  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("Scenario 1",
+                                                                         "Scenario 2",
+                                                                         "Scenario 3",
+                                                                         "Scenario 4")) +
+  scale_x_continuous(name = "Year") +
+  scale_y_continuous(name = "Cumulative cases prevented or postponed") +
+  labs(col = "Sex") +
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+                     axis.title = element_text(size = 10),
+                     plot.title = element_text(size = 16),
+                     legend.title = element_blank(), legend.text = element_text(size = 12)) +
+  theme(legend.position = "none")
+
+
+sc4 <- ggplot(impact_epi[disease == "diff_obesity_prvl"], aes(x = year, y = `prvl_rate_50.0%`,
+                                                           ymin = `prvl_rate_2.5%`,
+                                                           ymax = `prvl_rate_97.5%`,
+                                                           fill = scenario,
+                                                           col = scenario)) +
+  ggtitle("Obesity")
+
+sc4 <- sc4 + geom_line() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_ribbon(alpha = 0.3) +
+  facet_wrap(~ sex, scales = "free", labeller = sex_labeller) +
+  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("Scenario 1",
+                                                                          "Scenario 2",
+                                                                          "Scenario 3",
+                                                                          "Scenario 4")) +
+  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("Scenario 1",
+                                                                         "Scenario 2",
+                                                                         "Scenario 3",
+                                                                         "Scenario 4")) +
+  scale_x_continuous(name = "Year") +
+  scale_y_continuous(name = "Cumulative cases prevented or postponed") +
+  labs(col = "Sex") +
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+                     axis.title = element_text(size = 10),
+                     plot.title = element_text(size = 16),
+                     legend.title = element_blank(), legend.text = element_text(size = 12)) +
+  theme(legend.position = "bottom")
+
+legend <- get_legend(sc4)
+
+sc4 <- sc4 + theme(legend.position = "none")
+
+ggdraw(plot_grid(plot_grid(sc1, sc2, sc3, sc4, align = "v", ncol = 2),
+                 plot_grid(NULL, legend, ncol = 1), ncol = 1, rel_heights = c(1, 0.05)))
+
+ggsave(paste0(out_path, "Figure_X_cum_cases_prev_sex.tiff"),
+       height = 9, width = 16, dpi = 300)
+
+
+
+## Figure X: Cumulative case years prevented/postponed over time by scenario and sex ## ----
+
+# Epi Results ENTER CORRECT ANALYSIS IN PATH!!!!!
+if(!Sys.info()[1] == "Windows"){
+  impact_epi <- fread("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/with_direct_SSB_effects/tables/case_years_prev_post_by_scenario_sex_year.csv")
+  impact_epi_reform <- fread("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/with_direct_SSB_effects_reform/tables/case_years_prev_post_by_scenario_sex_year.csv")
+} else {
+  impact_epi <- fread("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/with_direct_SSB_effects/tables/case_years_prev_post_by_scenario_sex_year.csv")
+  impact_epi_reform <- fread("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/with_direct_SSB_effects_reform/tables/case_years_prev_post_by_scenario_sex_year.csv")
+}
+
+impact_epi <- rbind(impact_epi[scenario %in% c("sc1", "sc2")],
+                    impact_epi_reform[scenario %in% c("sc32", "sc42")])
+
+outcome_names <- c(
+  "diff_chd_prvl" = "Coronary heart disease",
+  "diff_obesity_prvl" = "Obesity",
+  "diff_stroke_prvl" = "Stroke",
+  "diff_t2dm_prvl" = "Type 2 diabetes"
+)
+
+outcome_labeller <- as_labeller(outcome_names)
+
+sex_names <- c(
+  "men" = "Men",
+  "women" = "Women"
+)
+
+sex_labeller <- as_labeller(sex_names)
+
+
+sc1 <- ggplot(impact_epi[disease == "diff_t2dm_prvl"], aes(x = year, y = `prvl_rate_50.0%`,
+                                                           ymin = `prvl_rate_2.5%`,
+                                                           ymax = `prvl_rate_97.5%`,
+                                                           fill = scenario,
+                                                           col = scenario)) +
+  ggtitle("Type 2 Diabetes")
+
+sc1 <- sc1 + geom_line() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_ribbon(alpha = 0.3) +
+  facet_wrap(~ sex, scales = "free", labeller = sex_labeller) +
+  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("Scenario 1",
+                                                                          "Scenario 2",
+                                                                          "Scenario 3",
+                                                                          "Scenario 4")) +
+  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("Scenario 1",
+                                                                         "Scenario 2",
+                                                                         "Scenario 3",
+                                                                         "Scenario 4")) +
+  scale_x_continuous(name = "Year") +
+  scale_y_continuous(name = "Cumulative case years prevented or postponed") +
+  labs(col = "Sex") +
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+                     axis.title = element_text(size = 10),
+                     plot.title = element_text(size = 16),
+                     legend.title = element_blank(), legend.text = element_text(size = 12)) +
+  theme(legend.position = "none")
+
+
+sc2 <- ggplot(impact_epi[disease == "diff_chd_prvl"], aes(x = year, y = `prvl_rate_50.0%`,
+                                                          ymin = `prvl_rate_2.5%`,
+                                                          ymax = `prvl_rate_97.5%`,
+                                                          fill = scenario,
+                                                          col = scenario)) +
+  ggtitle("Coronary heart disease")
+
+sc2 <- sc2 + geom_line() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_ribbon(alpha = 0.3) +
+  facet_wrap(~ sex, scales = "free", labeller = sex_labeller) +
+  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("Scenario 1",
+                                                                          "Scenario 2",
+                                                                          "Scenario 3",
+                                                                          "Scenario 4")) +
+  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("Scenario 1",
+                                                                         "Scenario 2",
+                                                                         "Scenario 3",
+                                                                         "Scenario 4")) +
+  scale_x_continuous(name = "Year") +
+  scale_y_continuous(name = "Cumulative case years prevented or postponed") +
+  labs(col = "Sex") +
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+                     axis.title = element_text(size = 10),
+                     plot.title = element_text(size = 16),
+                     legend.title = element_blank(), legend.text = element_text(size = 12)) +
+  theme(legend.position = "none")
+
+
+sc3 <- ggplot(impact_epi[disease == "diff_stroke_prvl"], aes(x = year, y = `prvl_rate_50.0%`,
+                                                             ymin = `prvl_rate_2.5%`,
+                                                             ymax = `prvl_rate_97.5%`,
+                                                             fill = scenario,
+                                                             col = scenario)) +
+  ggtitle("Stroke")
+
+sc3 <- sc3 + geom_line() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_ribbon(alpha = 0.3) +
+  facet_wrap(~ sex, scales = "free", labeller = sex_labeller) +
+  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("Scenario 1",
+                                                                          "Scenario 2",
+                                                                          "Scenario 3",
+                                                                          "Scenario 4")) +
+  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("Scenario 1",
+                                                                         "Scenario 2",
+                                                                         "Scenario 3",
+                                                                         "Scenario 4")) +
+  scale_x_continuous(name = "Year") +
+  scale_y_continuous(name = "Cumulative case years prevented or postponed") +
+  labs(col = "Sex") +
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+                     axis.title = element_text(size = 10),
+                     plot.title = element_text(size = 16),
+                     legend.title = element_blank(), legend.text = element_text(size = 12)) +
+  theme(legend.position = "none")
+
+
+sc4 <- ggplot(impact_epi[disease == "diff_obesity_prvl"], aes(x = year, y = `prvl_rate_50.0%`,
+                                                              ymin = `prvl_rate_2.5%`,
+                                                              ymax = `prvl_rate_97.5%`,
+                                                              fill = scenario,
+                                                              col = scenario)) +
+  ggtitle("Obesity")
+
+sc4 <- sc4 + geom_line() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_ribbon(alpha = 0.3) +
+  facet_wrap(~ sex, scales = "free", labeller = sex_labeller) +
+  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("Scenario 1",
+                                                                          "Scenario 2",
+                                                                          "Scenario 3",
+                                                                          "Scenario 4")) +
+  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("Scenario 1",
+                                                                         "Scenario 2",
+                                                                         "Scenario 3",
+                                                                         "Scenario 4")) +
+  scale_x_continuous(name = "Year") +
+  scale_y_continuous(name = "Cumulative case years prevented or postponed") +
+  labs(col = "Sex") +
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+                     axis.title = element_text(size = 10),
+                     plot.title = element_text(size = 16),
+                     legend.title = element_blank(), legend.text = element_text(size = 12)) +
+  theme(legend.position = "bottom")
+
+legend <- get_legend(sc4)
+
+sc4 <- sc4 + theme(legend.position = "none")
+
+ggdraw(plot_grid(plot_grid(sc1, sc2, sc3, sc4, align = "v", ncol = 2),
+                 plot_grid(NULL, legend, ncol = 1), ncol = 1, rel_heights = c(1, 0.05)))
+
+ggsave(paste0(out_path, "Figure_X_cum_case_years_prev_sex.tiff"),
+       height = 9, width = 16, dpi = 300)
+
+
+## Figure X: Cumulative costs saved by scenario ## ----
+
+# Epi Results ENTER CORRECT ANALYSIS IN PATH!!!!!
+if(!Sys.info()[1] == "Windows"){
+  impact <- fread("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/with_direct_SSB_effects/tables/incr_tot_costs_scl_with_direct_SSB_effects_disc_3_by_year.csv")
+  impact_reform <- fread("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/with_direct_SSB_effects_reform/tables/incr_tot_costs_scl_with_direct_SSB_effects_reform_disc_3_by_year.csv")
+} else {
+  impact <- fread("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/with_direct_SSB_effects/tables/incr_tot_costs_scl_with_direct_SSB_effects_disc_3_by_year.csv")
+  impact_reform <- fread("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/with_direct_SSB_effects_reform/tables/incr_tot_costs_scl_with_direct_SSB_effects_reform_disc_3_by_year.csv")
+}
+
+impact <- rbind(impact[scenario %in% c("sc1", "sc2")],
+                impact_reform[scenario %in% c("sc32", "sc42")])
+
+impact[, analysis := NULL]
+
+impact[, `:=`(costs = cumsum(`incr_tot_costs_scl_50.0%`),
+              costs_low = cumsum(`incr_tot_costs_scl_2.5%`),
+              costs_high = cumsum(`incr_tot_costs_scl_97.5%`)), keyby = c("scenario")]
+
+pnl1 <- ggplot(impact, aes(x = year, y = costs,
+                           ymin = costs_low,
+                           ymax = costs_high,
+                           fill = scenario,
+                           col = scenario)) +
+  ggtitle("Societal perspective") +
+  geom_line() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_vline(xintercept = 2023, linetype = "dotdash") +
+  geom_ribbon(alpha = 0.3) +
+  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("Scenario 1",
+                                                                          "Scenario 2",
+                                                                          "Scenario 3",
+                                                                          "Scenario 4")) +
+  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("Scenario 1",
+                                                                         "Scenario 2",
+                                                                         "Scenario 3",
+                                                                         "Scenario 4")) +
+  scale_x_continuous(name = "Year") +
+  scale_y_continuous(name = "Cumulative costs saved (in millions)", limits = c(-62000000000, 0),
+                     labels = function(y) format(y/1000000)) +
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+                     axis.title = element_text(size = 10),
+                     plot.title = element_text(size = 16),
+                     legend.title = element_blank(), legend.text = element_text(size = 12)) +
+  theme(legend.position = "none")
+
+if(!Sys.info()[1] == "Windows"){
+  impact <- fread("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/with_direct_SSB_effects/tables/incr_tot_dir_costs_scl_with_direct_SSB_effects_disc_3_by_year.csv")
+  impact_reform <- fread("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/with_direct_SSB_effects_reform/tables/incr_tot_dir_costs_scl_with_direct_SSB_effects_reform_disc_3_by_year.csv")
+} else {
+  impact <- fread("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/with_direct_SSB_effects/tables/incr_tot_dir_costs_scl_with_direct_SSB_effects_disc_3_by_year.csv")
+  impact_reform <- fread("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/with_direct_SSB_effects_reform/tables/incr_tot_dir_costs_scl_with_direct_SSB_effects_reform_disc_3_by_year.csv")
+}
+
+impact <- rbind(impact[scenario %in% c("sc1", "sc2")],
+                impact_reform[scenario %in% c("sc32", "sc42")])
+
+impact[, analysis := NULL]
+
+impact[, `:=`(costs = cumsum(`incr_tot_dir_costs_scl_50.0%`),
+              costs_low = cumsum(`incr_tot_dir_costs_scl_2.5%`),
+              costs_high = cumsum(`incr_tot_dir_costs_scl_97.5%`)), keyby = c("scenario")]
+
+pnl2 <- ggplot(impact, aes(x = year, y = costs,
+                           ymin = costs_low,
+                           ymax = costs_high,
+                           fill = scenario,
+                           col = scenario)) +
+  ggtitle("Healthcare perspective") +
+  geom_line() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_vline(xintercept = 2023, linetype = "dotdash") +
+  geom_ribbon(alpha = 0.3) +
+  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("Scenario 1",
+                                                                          "Scenario 2",
+                                                                          "Scenario 3",
+                                                                          "Scenario 4")) +
+  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("Scenario 1",
+                                                                         "Scenario 2",
+                                                                         "Scenario 3",
+                                                                         "Scenario 4")) +
+  scale_x_continuous(name = "Year") +
+  scale_y_continuous(name = "Cumulative costs saved (in millions)", limits = c(-62000000000, 0),
+                     labels = function(y) format(y/1000000)) +
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+                     axis.title = element_text(size = 10),
+                     plot.title = element_text(size = 16),
+                     legend.title = element_blank(), legend.text = element_text(size = 12)) +
+  theme(legend.position = "bottom")
+
+legend <- get_legend(pnl2)
+
+pnl2 <- pnl2 + theme(legend.position = "none")
+
+ggdraw(plot_grid(plot_grid(pnl1, pnl2, align = "h", ncol = 2),
+                 plot_grid(NULL, legend, ncol = 1), ncol = 1, rel_heights = c(1, 0.05)))
+
+ggsave(paste0(out_path, "Figure_X_cum_costs_perspective.tiff"),
+       height = 9, width = 16, dpi = 300)
+
+
+

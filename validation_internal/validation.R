@@ -389,7 +389,7 @@ ggplot(data_orig[sex == "men" & disease == "chd"],
   geom_ribbon(data = impact_disease[sex == "men" & disease == "chd"], 
               aes(x = year, y = `mrtl_rate_50.0%`, ymin = `mrtl_rate_2.5%`, ymax= `mrtl_rate_97.5%`),
               fill = cols[2], alpha = 0.3) +
-  ggtitle("Validation of CHD mortality for men") +
+  #ggtitle("Validation of CHD mortality for men") +
   xlab("Year") + ylab("Mortality rate") +
   theme(legend.title = element_blank(), legend.position = "bottom",
         axis.title.y = element_text(angle = 90))
@@ -412,7 +412,7 @@ ggplot(data_orig[sex == "women" & disease == "chd"],
   geom_ribbon(data = impact_disease[sex == "women" & disease == "chd"], 
               aes(x = year, y = `mrtl_rate_50.0%`, ymin = `mrtl_rate_2.5%`, ymax= `mrtl_rate_97.5%`),
               fill = cols[2], alpha = 0.3) +
-  ggtitle("Validation of CHD mortality for women") +
+  #ggtitle("Validation of CHD mortality for women") +
   xlab("Year") + ylab("Mortality rate") +
   theme(legend.title = element_blank(), legend.position = "bottom",
         axis.title.y = element_text(angle = 90))
@@ -438,7 +438,7 @@ ggplot(data_orig[sex == "men" & disease == "stroke"],
   geom_ribbon(data = impact_disease[sex == "men" & disease == "stroke"], 
               aes(x = year, y = `mrtl_rate_50.0%`, ymin = `mrtl_rate_2.5%`, ymax= `mrtl_rate_97.5%`),
               fill = cols[2], alpha = 0.3) +
-  ggtitle("Validation of stroke mortality for men") +
+ # ggtitle("Validation of stroke mortality for men") +
   xlab("Year") + ylab("Mortality rate") +
   theme(legend.title = element_blank(), legend.position = "bottom",
         axis.title.y = element_text(angle = 90))
@@ -461,7 +461,7 @@ ggplot(data_orig[sex == "women" & disease == "stroke"],
   geom_ribbon(data = impact_disease[sex == "women" & disease == "stroke"], 
               aes(x = year, y = `mrtl_rate_50.0%`, ymin = `mrtl_rate_2.5%`, ymax= `mrtl_rate_97.5%`),
               fill = cols[2], alpha = 0.3) +
-  ggtitle("Validation of stroke mortality for women") +
+  #ggtitle("Validation of stroke mortality for women") +
   xlab("Year") + ylab("Mortality rate") +
   theme(legend.title = element_blank(), legend.position = "bottom",
         axis.title.y = element_text(angle = 90))

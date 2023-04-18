@@ -1057,6 +1057,56 @@ for(analysis in dirs){
         fwrite(d_out, paste0(out_path_tables, "case_years_prev_post_by_scenario_sex.csv"), sep = ";")
         
         
+        # Cumulative case-years prevented or postponed over time #
+        
+        d <- tt[, lapply(.SD, sum), .SDcols = patterns("_prvl$|^popsize$"), keyby = eval(outstrata)]
+        
+        prvls <- grep("_prvl", names(d), value = TRUE)
+        
+        d <- melt(d, id.vars = outstrata)
+        d <- dcast(d, mc + year + sex ~ scenario + variable)
+        
+        diffs0 <- grep("sc0_", names(d), value = TRUE)[-1]
+        
+        d_out <- data.table(NULL)
+        
+        for(j in sc_n){  
+          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-1])
+            sens <- TRUE
+          }
+          for(i in 1:(length(get(paste0("diffs", j))))){
+            
+            d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
+            
+          }
+          
+          dd <- copy(d)
+          
+          dd[, setdiff(names(d), intersect(c("mc", "year", "sex", grep("diff_", names(d), value = TRUE)), names(d))) := NULL]
+          
+          dd <- melt(dd, id.vars = c("mc", "year", "sex"))
+          
+          dd[, value := cumsum(value), by = c("mc", "sex", "variable")]
+          
+          dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("sex", "year")]
+          setnames(dd, c("sex", "year", "disease", percent(prbl, prefix = "prvl_rate_")))
+          
+          if(sens){
+            dd[, scenario := paste0("sens_", j)]
+          } else {dd[, scenario := paste0("sc", j)]}
+          
+          d_out <- rbind(d_out, dd)
+        }
+        
+        fwrite(d_out, paste0(out_path_tables, "case_years_prev_post_by_scenario_sex_year.csv"), sep = ";")
+        
+        
+        
         ## Prevalence by age ## ----
         
         tt <- fread(paste0(in_path, "prvl_scaled_up.csv.gz")
@@ -1518,7 +1568,7 @@ for(analysis in dirs){
         
         outstrata <- c("mc", "year", "sex", "agegrp", "scenario")
         
-                sc_n <- na.omit(as.numeric(gsub("[^1-9]+", "", unique(tt$scenario)))) 
+        sc_n <- na.omit(as.numeric(gsub("[^1-9]+", "", unique(tt$scenario)))) 
         
         # Rate #
         
@@ -1944,12 +1994,61 @@ for(analysis in dirs){
           
           dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = "sex"]
           setnames(dd, c("sex", "disease", percent(prbl, prefix = "prvl_rate_")))
-                    if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
+          if(sens){             dd[, scenario := paste0("sens_", j)]           } else {             dd[, scenario := paste0("sc", j)]           }
           
           d_out <- rbind(d_out, dd)
         }
         
         fwrite(d_out, paste0(out_path_tables, "cases_prev_post_by_scenario_sex.csv"), sep = ";")
+        
+        
+        # Cumulative cases prevented or postponed over time #
+        
+        d <- tt[, lapply(.SD, sum), .SDcols = patterns("_prvl$|^popsize$"), keyby = eval(outstrata)]
+        
+        prvls <- grep("_prvl", names(d), value = TRUE)
+        
+        d <- melt(d, id.vars = outstrata)
+        d <- dcast(d, mc + year + sex ~ scenario + variable)
+        
+        diffs0 <- grep("sc0_", names(d), value = TRUE)[-1]
+        
+        d_out <- data.table(NULL)
+        
+        for(j in sc_n){  
+          
+          if(length(grep(paste0("sc", j, "_"), names(d), value = TRUE)) != 0){
+            assign(paste0("diffs", j), grep(paste0("sc", j, "_"), names(d), value = TRUE)[-1])
+            sens <- FALSE
+          } else {
+            assign(paste0("diffs", j), grep(paste0("sens_", j, "_"), names(d), value = TRUE)[-1])
+            sens <- TRUE
+          }
+          for(i in 1:(length(get(paste0("diffs", j))))){
+            
+            d[, paste0("diff_", prvls)[i] := list(get(get(paste0("diffs", j))[i]) - get(diffs0[i]))]
+            
+          }
+          
+          dd <- copy(d)
+          
+          dd[, setdiff(names(d), intersect(c("mc", "year", "sex", grep("diff_", names(d), value = TRUE)), names(d))) := NULL]
+          
+          dd <- melt(dd, id.vars = c("mc", "year", "sex"))
+          
+          dd[, value := cumsum(value), by = c("mc", "sex", "variable")]
+          
+          dd <- dd[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("sex", "year")]
+          setnames(dd, c("sex", "year", "disease", percent(prbl, prefix = "prvl_rate_")))
+          
+          if(sens){
+            dd[, scenario := paste0("sens_", j)]
+          } else {dd[, scenario := paste0("sc", j)]}
+          
+          d_out <- rbind(d_out, dd)
+        }
+        
+        fwrite(d_out, paste0(out_path_tables, "cases_prev_post_by_scenario_sex_year.csv"), sep = ";")
         
         
         ## Incidence by age ## ----
@@ -2174,6 +2273,7 @@ for(analysis in dirs){
         }
         
         fwrite(d_out, paste0(out_path_tables, "cases_prev_post_by_scenario_agegrp.csv"), sep = ";")
+        
         
         
         ## Incidence total ## ----

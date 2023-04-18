@@ -315,10 +315,15 @@ sc4 <- ggplot(dat[outcome == "Incremental QALYs"],
                      axis.text.y = element_text(size = 10), axis.title = element_text(size = 10),
                      axis.ticks.y = element_blank(), plot.title = element_text(size = 16),
                      strip.text.x = element_blank(), strip.background = element_blank(),
-                     legend.position = "none",
-                     legend.title = element_blank(), legend.text = element_text(size = 12))
+                     legend.title = element_blank(), legend.text = element_text(size = 12)) +
+  theme(legend.position = "bottom")
 
-plot_grid(sc1, sc2, sc3, sc4, align = "v", ncol = 2)
+legend <- get_legend(sc4)
+
+sc4 <- sc4 + theme(legend.position = "none")
+
+ggdraw(plot_grid(plot_grid(sc1, sc2, sc3, sc4, align = "v", ncol = 2),
+                 plot_grid(NULL, legend, ncol = 1), ncol = 1, rel_heights = c(1, 0.05)))
 
 ggsave(paste0(out_path, "Figure_2_cross_validation.tiff"),
        height = 9, width = 14, dpi = 300)

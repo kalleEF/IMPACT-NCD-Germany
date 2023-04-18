@@ -8,6 +8,8 @@ library(ggthemes)
 library(scales)
 library(cowplot)
 
+prbl = c(0.5, 0.025, 0.975, 0.1, 0.9) # Quantiles for uncertainty of results
+
 theme_set(new = theme_hc())
 theme_update(axis.text.x = element_text(size = 9), plot.title = element_text(hjust = 0.5))
 
@@ -17,11 +19,43 @@ if(!file.exists(paste0("./validation_internal/external_sources/"))){
   dir.create(paste0("./validation_internal/external_sources/"))
 }
 
+analysis <- "with_direct_SSB_effects"
+
+tt <- fread(paste0("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/",
+                   analysis, "/summaries/", "prvl_scaled_up.csv.gz")
+)[, `:=` (year = year + 2000)]
+
+outstrata <- c("mc", "year", "sex", "agegrp", "scenario")
+
+sc_n <- na.omit(as.numeric(gsub("[^1-9]+", "", unique(tt$scenario)))) 
+
+d <- tt[, lapply(.SD, sum), .SDcols = patterns("_prvl$|^popsize$"), keyby = eval(outstrata)
+][, lapply(.SD, function(x) x/popsize), keyby = outstrata]
+d <- melt(d, id.vars = outstrata)
+d <- d[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(setdiff(outstrata, "mc"))]
+setnames(d, c(setdiff(outstrata, "mc"), "disease", percent(prbl, prefix = "prvl_rate_")))
+
+
+tt <- fread(paste0("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/",
+                   analysis, "/summaries/", "incd_scaled_up.csv.gz")
+)[, `:=` (year = year + 2000)]
+
+outstrata <- c("mc", "year", "sex", "agegrp", "scenario")
+
+sc_n <- na.omit(as.numeric(gsub("[^1-9]+", "", unique(tt$scenario)))) 
+
+e <- tt[, lapply(.SD, sum), .SDcols = patterns("_prvl$|^popsize$"), keyby = eval(outstrata)
+][, lapply(.SD, function(x) x/popsize), keyby = outstrata]
+e <- melt(e, id.vars = outstrata)
+e <- e[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(setdiff(outstrata, "mc"))]
+setnames(e, c(setdiff(outstrata, "mc"), "disease", percent(prbl, prefix = "prvl_rate_")))
+
+
 ## Coronary Heart Disease ----
 
 # Prevalence
 
-impact_chd_prev <- fread("./outputs/with_direct_SSB_effects/tables/prevalence_rate_by_year_agegrp_sex.csv")[
+impact_chd_prev <- d[
   scenario == "sc0" & disease == "chd_prvl" & year <= 2020,
   c("year", "agegrp", "sex", "prvl_rate_50.0%", "prvl_rate_2.5%", "prvl_rate_97.5%")
 ][, `:=`(study = "IMPACT", comment = "12-month no recurrence")]
@@ -52,8 +86,8 @@ ext1 <- ggplot(prev_dat[study == "GEDA" & year == 2014]) +
                scale_fill_viridis_d(name = "Age group") +
                scale_y_continuous(breaks = seq(0, 0.3, 0.05)) +
   expand_limits(y = c(0, 0.3)) +
-               ggtitle("CHD prevalence in Germany from GEDA 2014") + 
-               ylab("12-month prevalence rate") +
+               ggtitle("GEDA 2014") + 
+               ylab("Prevalence rate") +
                xlab("Age group") +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
@@ -69,9 +103,29 @@ ext2 <- ggplot(prev_dat[study == "GEDA" & year == 2019]) +
                scale_fill_viridis_d(name = "Age group") +
   scale_y_continuous(breaks = seq(0, 0.3, 0.05)) +
   expand_limits(y = c(0, 0.3)) +
-                   ggtitle("CHD prevalence in Germany from GEDA 2019") + 
-               ylab("12-month prevalence rate") +
+                   ggtitle("GEDA 2019") + 
+               ylab("Prevalence rate") +
                xlab("Age group") +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.line.x = element_blank(),
+        axis.title.y = element_text(angle = 90))
+
+
+# Source: KV
+
+# Year 2013-2018
+
+ext3 <- ggplot(prev_dat[study == "KV"]) +
+  aes(x = year, y = `prvl_rate_50.0%`, color = agegrp) +
+  facet_wrap(~ sex, scales = "fixed") +
+  geom_line() + 
+  scale_color_viridis_d(name = "Age group") +
+  scale_y_continuous(breaks = seq(0, 0.5, 0.05)) +
+  expand_limits(y = c(0, 0.45)) +
+  ggtitle("KV 2013-2018") + 
+  ylab("Prevalence rate") +
+  xlab("Age group") +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
         axis.line.x = element_blank(),
@@ -92,8 +146,8 @@ imp1 <- ggplot(prev_dat[study == "IMPACT" & year == 2014]) +
                scale_fill_viridis_d(name = "Age group") +
   scale_y_continuous(breaks = seq(0, 0.3, 0.05)) +
   expand_limits(y = c(0, 0.3)) +
-                   ggtitle("CHD prevalence in Germany from IMPACT NCD for 2014") + 
-               ylab("12-month prevalence rate") +
+                   ggtitle("IMPACT NCD Germany 2014") + 
+               ylab("Prevalence rate") +
                xlab("Age group") +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
@@ -111,34 +165,54 @@ imp2 <- ggplot(prev_dat[study == "IMPACT" & year == 2019]) +
                scale_fill_viridis_d(name = "Age group") +
   scale_y_continuous(breaks = seq(0, 0.3, 0.05)) +
   expand_limits(y = c(0, 0.3)) +
-                   ggtitle("CHD prevalence in Germany from IMPACT NCD for 2019") + 
-               ylab("12-month prevalence rate") +
+                   ggtitle("IMPACT NCD Germany 2019") + 
+               ylab("Prevalence rate") +
                xlab("Age group") +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
         axis.line.x = element_blank(),
         axis.title.y = element_text(angle = 90))
 
+# Year 2013-2018
+
+imp3 <- ggplot(prev_dat[study == "IMPACT" & year %in% c(2013:2018)]) +
+  aes(x = year, y = `prvl_rate_50.0%`, color = agegrp, fill = agegrp) +
+  facet_wrap(~ sex, scales = "fixed") +
+  geom_line() +
+  geom_ribbon(aes(ymin = `prvl_rate_2.5%`, ymax = `prvl_rate_97.5%`), alpha = 0.05, color = NA) +
+  scale_color_viridis_d(name = "Age group") +
+  scale_fill_viridis_d(name = "Age group") +
+  scale_y_continuous(breaks = seq(0, 0.5, 0.05)) +
+  expand_limits(y = c(0, 0.45)) +
+  ggtitle("IMPACT NCD Germany 2013-2018") + 
+  ylab("Prevalence rate") +
+  xlab("Year") +
+  theme(axis.line.x = element_blank(),
+        axis.title.y = element_text(angle = 90))
+
 
 plot_grid(ext1, imp1, align = "h", ncol = 1)
 
 ggsave("./validation_internal/external_sources/validation_ext_chd_prev_2014.tiff",
-       height = 9, width = 12, dpi = 300)
+       height = 9, width = 16, dpi = 300)
 
 
 plot_grid(ext2, imp2, align = "h", ncol = 1)
 
 ggsave("./validation_internal/external_sources/validation_ext_chd_prev_2019.tiff",
-       height = 9, width = 12, dpi = 300)
+       height = 9, width = 16, dpi = 300)
 
+plot_grid(ext3, imp3, align = "h", ncol = 1)
 
+ggsave("./validation_internal/external_sources/validation_ext_chd_prev_2013_2019.tiff",
+       height = 9, width = 16, dpi = 300)
 
 
 ## Stroke ----
 
 # Prevalence
 
-impact_stroke_prev <- fread("./outputs/with_direct_SSB_effects/tables/prevalence_rate_by_year_agegrp_sex.csv")[
+impact_stroke_prev <- d[
   scenario == "sc0" & disease == "stroke_prvl" & year <= 2020,
   c("year", "agegrp", "sex", "prvl_rate_50.0%", "prvl_rate_2.5%", "prvl_rate_97.5%")
 ][, `:=`(study = "IMPACT", comment = "12-month no recurrence")]
@@ -169,8 +243,8 @@ ext1 <- ggplot(prev_dat[study == "GEDA" & year == 2014]) +
   scale_fill_viridis_d(name = "Age group") +
   scale_y_continuous(breaks = seq(0, 0.3, 0.05)) +
   expand_limits(y = c(0, 0.3)) +
-  ggtitle("Stroke prevalence in Germany from GEDA 2014") + 
-  ylab("12-month prevalence rate") +
+  ggtitle("GEDA 2014") + 
+  ylab("Prevalence rate") +
   xlab("Age group") +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
@@ -186,8 +260,8 @@ ext2 <- ggplot(prev_dat[study == "GEDA" & year == 2019]) +
   scale_fill_viridis_d(name = "Age group") +
   scale_y_continuous(breaks = seq(0, 0.3, 0.05)) +
   expand_limits(y = c(0, 0.3)) +
-  ggtitle("Stroke prevalence in Germany from GEDA 2019") + 
-  ylab("12-month prevalence rate") +
+  ggtitle("GEDA 2019") + 
+  ylab("Prevalence rate") +
   xlab("Age group") +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
@@ -206,8 +280,8 @@ ext3 <- ggplot(prev_dat[study == "AOK" & year == 2010]) +
   scale_fill_viridis_d(name = "Age group") +
   scale_y_continuous(breaks = seq(0, 0.3, 0.05)) +
   expand_limits(y = c(0, 0.3)) +
-  ggtitle("Stroke prevalence in Germany from AOK 2010") + 
-  ylab("12-month prevalence rate") +
+  ggtitle("AOK 2010") + 
+  ylab("Prevalence rate") +
   xlab("Age group") +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
@@ -223,8 +297,8 @@ ext4 <- ggplot(prev_dat[study == "AOK" & year == 2011]) +
   scale_fill_viridis_d(name = "Age group") +
   scale_y_continuous(breaks = seq(0, 0.3, 0.05)) +
   expand_limits(y = c(0, 0.3)) +
-  ggtitle("Stroke prevalence in Germany from AOK 2011") + 
-  ylab("12-month prevalence rate") +
+  ggtitle("AOK 2011") + 
+  ylab("Prevalence rate") +
   xlab("Age group") +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
@@ -247,8 +321,8 @@ imp1 <- ggplot(prev_dat[study == "IMPACT" & year == 2014]) +
   scale_fill_viridis_d(name = "Age group") +
   scale_y_continuous(breaks = seq(0, 0.3, 0.05)) +
   expand_limits(y = c(0, 0.3)) +
-  ggtitle("Stroke prevalence in Germany from IMPACT NCD for 2014") + 
-  ylab("12-month prevalence rate") +
+  ggtitle("IMPACT NCD Germany 2014") + 
+  ylab("Prevalence rate") +
   xlab("Age group") +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
@@ -266,8 +340,8 @@ imp2 <- ggplot(prev_dat[study == "IMPACT" & year == 2019]) +
   scale_fill_viridis_d(name = "Age group") +
   scale_y_continuous(breaks = seq(0, 0.3, 0.05)) +
   expand_limits(y = c(0, 0.3)) +
-  ggtitle("Stroke prevalence in Germany from IMPACT NCD for 2019") + 
-  ylab("12-month prevalence rate") +
+  ggtitle("IMPACT NCD Germany 2019") + 
+  ylab("Prevalence rate") +
   xlab("Age group") +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
@@ -285,8 +359,8 @@ imp3 <- ggplot(prev_dat[study == "IMPACT" & year == 2013]) +
   scale_fill_viridis_d(name = "Age group") +
   scale_y_continuous(breaks = seq(0, 0.3, 0.05)) +
   expand_limits(y = c(0, 0.3)) +
-  ggtitle("Stroke prevalence in Germany from IMPACT NCD for 2013") + 
-  ylab("12-month prevalence rate") +
+  ggtitle("IMPACT NCD Germany 2013") + 
+  ylab("Prevalence rate") +
   xlab("Age group") +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
@@ -297,27 +371,27 @@ imp3 <- ggplot(prev_dat[study == "IMPACT" & year == 2013]) +
 plot_grid(ext1, imp1, align = "h", ncol = 1)
 
 ggsave("./validation_internal/external_sources/validation_ext_stroke_prev_2014.tiff",
-       height = 9, width = 12, dpi = 300)
+       height = 9, width = 16, dpi = 300)
 
 plot_grid(ext2, imp2, align = "h", ncol = 1)
 
 ggsave("./validation_internal/external_sources/validation_ext_stroke_prev_2019.tiff",
-       height = 9, width = 12, dpi = 300)
+       height = 9, width = 16, dpi = 300)
 
 plot_grid(ext3, imp3, align = "h", ncol = 1)
 
 ggsave("./validation_internal/external_sources/validation_ext_stroke_prev_2010.tiff",
-       height = 9, width = 12, dpi = 300)
+       height = 9, width = 16, dpi = 300)
 
 plot_grid(ext4, imp3, align = "h", ncol = 1)
 
 ggsave("./validation_internal/external_sources/validation_ext_stroke_prev_2011.tiff",
-       height = 9, width = 12, dpi = 300)
+       height = 9, width = 16, dpi = 300)
 
 
 # Incidence
 
-impact_stroke_incd <- fread("./outputs/with_direct_SSB_effects/tables/incidence_rate_by_year_agegrp_sex.csv")[
+impact_stroke_incd <- e[
   scenario == "sc0" & disease == "stroke_prvl" & year <= 2020,
   c("year", "agegrp", "sex", "prvl_rate_50.0%", "prvl_rate_2.5%", "prvl_rate_97.5%")
 ][, `:=`(study = "IMPACT", comment = "12-month no recurrence")]
@@ -348,8 +422,8 @@ ext1 <- ggplot(incd_dat[study == "AOK" & year == 2010]) +
   scale_fill_viridis_d(name = "Age group") +
   scale_y_continuous(breaks = seq(0, 0.05, 0.025)) +
   expand_limits(y = c(0, 0.05)) +
-  ggtitle("Stroke incidence in Germany from AOK 2010") + 
-  ylab("12-month cumulative incidence") +
+  ggtitle("AOK 2010") + 
+  ylab("Cumulative incidence") +
   xlab("Age group") +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
@@ -365,8 +439,8 @@ ext2 <- ggplot(incd_dat[study == "AOK" & year == 2011]) +
   scale_fill_viridis_d(name = "Age group") +
   scale_y_continuous(breaks = seq(0, 0.05, 0.025)) +
   expand_limits(y = c(0, 0.05)) +
-  ggtitle("Stroke incidence in Germany from AOK 2011") + 
-  ylab("12-month cumulative incidence") +
+  ggtitle("AOK 2011") + 
+  ylab("Cumulative incidence") +
   xlab("Age group") +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
@@ -389,8 +463,8 @@ imp1 <- ggplot(incd_dat[study == "IMPACT" & year == 2013]) +
   scale_fill_viridis_d(name = "Age group") +
   scale_y_continuous(breaks = seq(0, 0.05, 0.025)) +
   expand_limits(y = c(0, 0.05)) +
-  ggtitle("Stroke incidence in Germany from IMPACT NCD for 2013") + 
-  ylab("12-month incidence rate") +
+  ggtitle("IMPACT NCD Germany 2013") + 
+  ylab("Cumulative incidence") +
   xlab("Age group") +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
@@ -401,19 +475,19 @@ imp1 <- ggplot(incd_dat[study == "IMPACT" & year == 2013]) +
 plot_grid(ext1, imp1, align = "h", ncol = 1)
 
 ggsave("./validation_internal/external_sources/validation_ext_stroke_incd_2010.tiff",
-       height = 9, width = 12, dpi = 300)
+       height = 9, width = 16, dpi = 300)
 
 plot_grid(ext2, imp1, align = "h", ncol = 1)
 
 ggsave("./validation_internal/external_sources/validation_ext_stroke_incd_2011.tiff",
-       height = 9, width = 12, dpi = 300)
+       height = 9, width = 16, dpi = 300)
 
 
 ## Type 2 Diabetes ----
 
 # Prevalence
 
-impact_t2dm_prev <- fread("./outputs/with_direct_SSB_effects/tables/prevalence_rate_by_year_agegrp_sex.csv")[
+impact_t2dm_prev <- d[
   scenario == "sc0" & disease == "t2dm_prvl" & year <= 2020,
   c("year", "agegrp", "sex", "prvl_rate_50.0%", "prvl_rate_2.5%", "prvl_rate_97.5%")
 ][, `:=`(study = "IMPACT", comment = "12-month no recurrence")]
@@ -444,8 +518,8 @@ ext1 <- ggplot(prev_dat[study == "GEDA" & year == 2014]) +
   scale_fill_viridis_d(name = "Age group") +
   scale_y_continuous(breaks = seq(0, 0.5, 0.05)) +
   expand_limits(y = c(0, 0.5)) +
-  ggtitle("Type 2 diabetes prevalence in Germany from GEDA 2014") + 
-  ylab("12-month prevalence rate") +
+  ggtitle("GEDA 2014") + 
+  ylab("Prevalence rate") +
   xlab("Age group") +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
@@ -461,8 +535,8 @@ ext2 <- ggplot(prev_dat[study == "GEDA" & year == 2019]) +
   scale_fill_viridis_d(name = "Age group") +
   scale_y_continuous(breaks = seq(0, 0.5, 0.05)) +
   expand_limits(y = c(0, 0.5)) +
-  ggtitle("Type 2 diabetes prevalence in Germany from GEDA 2019") + 
-  ylab("12-month prevalence rate") +
+  ggtitle("GEDA 2019") + 
+  ylab("Prevalence rate") +
   xlab("Age group") +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
@@ -503,8 +577,8 @@ imp1 <- ggplot(prev_dat[study == "IMPACT" & year == 2014]) +
   scale_fill_viridis_d(name = "Age group") +
   scale_y_continuous(breaks = seq(0, 0.5, 0.05)) +
   expand_limits(y = c(0, 0.5)) +
-  ggtitle("Type 2 diabetes prevalence in Germany from IMPACT NCD for 2014") + 
-  ylab("12-month prevlence rate") +
+  ggtitle("IMPACT NCD Germany 2014") + 
+  ylab("Prevalence rate") +
   xlab("Age group") +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
@@ -522,8 +596,8 @@ imp2 <- ggplot(prev_dat[study == "IMPACT" & year == 2019]) +
   scale_fill_viridis_d(name = "Age group") +
   scale_y_continuous(breaks = seq(0, 0.5, 0.05)) +
   expand_limits(y = c(0, 0.5)) +
-  ggtitle("Type 2 diabetes prevalence in Germany from IMPACT NCD for 2019") + 
-  ylab("12-month prevlence rate") +
+  ggtitle("IMPACT NCD Germany 2019") + 
+  ylab("Prevalence rate") +
   xlab("Age group") +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
@@ -553,22 +627,22 @@ imp3 <- ggplot(prev_dat[study == "IMPACT" & year == 2013]) +
 plot_grid(ext1, imp1, align = "h", ncol = 1)
 
 ggsave("./validation_internal/external_sources/validation_ext_t2dm_prev_2014.tiff",
-       height = 9, width = 12, dpi = 300)
+       height = 9, width = 16, dpi = 300)
 
 plot_grid(ext2, imp2, align = "h", ncol = 1)
 
 ggsave("./validation_internal/external_sources/validation_ext_t2dm_prev_2019.tiff",
-       height = 9, width = 12, dpi = 300)
+       height = 9, width = 16, dpi = 300)
 
 plot_grid(ext3, imp3, align = "h", ncol = 1)
 
 ggsave("./validation_internal/external_sources/validation_ext_t2dm_prev_2013.tiff",
-       height = 9, width = 12, dpi = 300)
+       height = 9, width = 16, dpi = 300)
 
 
 # Incidence
 
-impact_t2dm_incd <- fread("./outputs/with_direct_SSB_effects/tables/incidence_rate_by_year_agegrp_sex.csv")[
+impact_t2dm_incd <- e[
   scenario == "sc0" & disease == "t2dm_prvl" & year <= 2020,
   c("year", "agegrp", "sex", "prvl_rate_50.0%", "prvl_rate_2.5%", "prvl_rate_97.5%")
 ][, `:=`(study = "IMPACT", comment = "12-month no recurrence")]

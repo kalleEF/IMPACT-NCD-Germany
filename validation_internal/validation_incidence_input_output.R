@@ -12,7 +12,7 @@ prbl = c(0.5, 0.025, 0.975, 0.1, 0.9)
 theme_set(new = theme_hc())
 theme_update(axis.text.x = element_text(size = 9), plot.title = element_text(hjust = 0.5))
 
-analysis <- "without_direct_SSB_effects"
+analysis <- "with_direct_SSB_effects"
 
 ## Incidence ## ----
 
@@ -82,7 +82,7 @@ for(i in unique(de$disease)){
   scale_y_continuous(name = "Incidence") +
   scale_fill_viridis_d(begin = 0.1, end = 0.7) +
   scale_color_viridis_d(begin = 0.1, end = 0.7) +
-  ggtitle(paste("Comparison of", dis_nam, "input and output incidence rates")) +
+  #ggtitle(paste("Comparison of", dis_nam, "input and output incidence rates")) +
   expand_limits(y = 0) +
   theme(legend.title = element_blank(), legend.position = "bottom",
         axis.title.y = element_text(angle = 90))
@@ -162,7 +162,7 @@ for(i in unique(d$disease)){
     scale_y_continuous(name = "Prevalence") +
     scale_fill_viridis_d(begin = 0.1, end = 0.7) +
     scale_color_viridis_d(begin = 0.1, end = 0.7) +
-    ggtitle(paste("Comparison of", dis_nam, "input and output prevalence rates")) +
+    #ggtitle(paste("Comparison of", dis_nam, "input and output prevalence rates")) +
     expand_limits(y = 0) +
     theme(legend.title = element_blank(), legend.position = "bottom",
           axis.title.y = element_text(angle = 90))
