@@ -34,31 +34,31 @@ if(!Sys.info()[1] == "Windows"){
 
 if(!Sys.info()[1] == "Windows"){
   cea_wo <- fread(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/", "without_direct_SSB_effects", "/summaries/cea_results.csv.gz"))
-  cea_wo[, analysis := "only BMI-mediated effects"]
+  cea_wo[, analysis := "Only BMI-mediated effects"]
   cea_w <- fread(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/", "with_direct_SSB_effects", "/summaries/cea_results3.csv.gz"))
-  cea_w[, analysis := "incl. direct SSB effects"]
+  cea_w[, analysis := "All exposure pathways"]
   
   # Include new scenario 3
   cea_wo_reform <- fread(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/", "without_direct_SSB_effects_reform", "/summaries/cea_results.csv.gz"))
-  cea_wo_reform[, analysis := "only BMI-mediated effects"]
+  cea_wo_reform[, analysis := "Only BMI-mediated effects"]
   cea_w_reform <- fread(paste0("/media/php-workstation/Storage_1/IMPACT_Storage/outputs/", "with_direct_SSB_effects_reform", "/summaries/cea_results3.csv.gz"))
-  cea_w_reform[, analysis := "incl. direct SSB effects"]
+  cea_w_reform[, analysis := "All exposure pathways"]
   
 } else {
   cea_wo <- fread(paste0("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/",
                          "without_direct_SSB_effects", "/summaries/cea_results.csv.gz"))
-  cea_wo[, analysis := "only BMI-mediated effects"]
+  cea_wo[, analysis := "Only BMI-mediated effects"]
   cea_w <- fread(paste0("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/",
                         "with_direct_SSB_effects", "/summaries/cea_results3.csv.gz"))
-  cea_w[, analysis := "incl. direct SSB effects"]
+  cea_w[, analysis := "All exposure pathways"]
   
   # Include new scenario 3
   cea_wo_reform <- fread(paste0("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/",
                          "without_direct_SSB_effects_reform", "/summaries/cea_results.csv.gz"))
-  cea_wo_reform[, analysis := "only BMI-mediated effects"]
+  cea_wo_reform[, analysis := "Only BMI-mediated effects"]
   cea_w_reform <- fread(paste0("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Model/IMPACT-NCD-Germany/outputs/",
                         "with_direct_SSB_effects_reform", "/summaries/cea_results3.csv.gz"))
-  cea_w_reform[, analysis := "incl. direct SSB effects"]
+  cea_w_reform[, analysis := "All exposure pathways"]
 }
 
 cea <- rbind(cea_w[!(scenario %in% c("sc3", "sc4"))],
@@ -84,25 +84,25 @@ cea_point[, `:=`(scenario = x.scenario, y.scenario = NULL, ymin.scenario = NULL,
                  ymin_cost = ymin.V1, ymax_cost = ymax.V1, ymin.V1 = NULL, ymax.V1 = NULL,
                  xmin_qaly = xmin.V1, xmax_qaly = xmax.V1, xmin.V1 = NULL, xmax.V1 = NULL)]
 
-ggplot(cea_agg[scenario != "sc0"], aes(x = incr_qalys_scl,
+ggplot(cea_agg[scenario %in% c("sc1", "sc2", "sc32")], aes(x = incr_qalys_scl,
                                        y = incr_tot_costs_scl,
                                        col = scenario)) +
   facet_wrap(~ analysis) +
   geom_point(shape = 16, alpha = 0.5, size = 3) +
   #geom_point(data = cea_point, aes(x = mean_qaly, y = mean_cost, col = scenario), shape = 4, size = 5, stroke = 1.5) +
-  geom_errorbar(data = cea_point, aes(x = mean_qaly, y = mean_cost, ymin = ymin_cost, ymax = ymax_cost), inherit.aes = FALSE) +
-  geom_errorbar(data = cea_point, aes(x = mean_qaly, y = mean_cost, xmin = xmin_qaly, xmax = xmax_qaly), inherit.aes = FALSE) +
-  geom_point(data = cea_point, aes(x = mean_qaly, y = mean_cost), shape = 1, size = 2, col = "black") +
+  geom_errorbar(data = cea_point[scenario %in% c("sc1", "sc2", "sc32")], aes(x = mean_qaly, y = mean_cost, ymin = ymin_cost, ymax = ymax_cost), inherit.aes = FALSE) +
+  geom_errorbar(data = cea_point[scenario %in% c("sc1", "sc2", "sc32")], aes(x = mean_qaly, y = mean_cost, xmin = xmin_qaly, xmax = xmax_qaly), inherit.aes = FALSE) +
+  geom_point(data = cea_point[scenario %in% c("sc1", "sc2", "sc32")], aes(x = mean_qaly, y = mean_cost), shape = 1, size = 2, col = "black") +
   #geom_point(data = cea_point, aes(x = mean_qaly, y = mean_cost), shape = 4, size = 4, col = "black") +
   geom_vline(xintercept = 0) +
   geom_hline(yintercept = 0) +
   #expand_limits(x = -8e4, y = 2e9) +
-  scale_y_continuous(name = "Incremental costs (in billions)", c(seq(0,80000000000,5000000000)*-1),
+  scale_y_continuous(name = "Incremental costs (in €-billions)", c(seq(0,80000000000,5000000000)*-1),
                      labels = function(y) format(y/1000000000)) +
   scale_x_continuous(name = "Incremental QALYs (in thousands)", c(seq(-1000000,500000,50000)), labels = function(y) format(y/1000)) +
   scale_color_viridis_d(name = "Scenario", option = "viridis",
-                       labels = c("20% ad-valorem tax on SSBs", "20% ad-valorem tax on SSBs & 100% fruit juice",
-                                  "30% reformulation of SSBs & stable consumption", "30% reformulation of SSBs & reduced consumption")) +
+                       labels = c("20% ad-valorem tax on SSBs", "20% ad-valorem tax on SSBs & fruit juice",
+                                  "Tiered tax with 30% reformulation")) +
   theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
                      panel.grid.minor = element_blank(), strip.text.x = element_text(size = 15),
                      axis.line = element_line(colour = "black"),
@@ -113,6 +113,8 @@ ggplot(cea_agg[scenario != "sc0"], aes(x = incr_qalys_scl,
 
 ggsave(paste0(out_path, "Figure_1_cost_effectiveness_plane.tiff"),
        height = 9, width = 14, dpi = 300)
+
+
 
 
 ## Figure 3: Cross-validation IMPACT vs PRIMEtime ## ----
@@ -209,14 +211,15 @@ dat[, outcome := ifelse(outcome == "chd_cpp", "Coronary Heart Disease",
                                ifelse(outcome == "incr_qaly", "Incremental QALYs",
                                "Type 2 Diabetes")))]
 
-dat[, scenario := ifelse(scenario == "sc1", "Scenario 1",
-                         ifelse(scenario == "sc2", "Scenario 2",
-                                ifelse(scenario %in% c("sc32", "sc3"), "Scenario 3", "Scenario 4")))]
+dat[, scenario := ifelse(scenario == "sc1", "Ad-valorem\ntax",
+                         ifelse(scenario == "sc2", "Extended\nad-valorem\ntax",
+                                ifelse(scenario %in% c("sc32", "sc3"), "Tiered tax", "Scenario 4")))]
 
 setkey(dat, scenario, outcome)
 
 openxlsx::write.xlsx(dat, "./outputs/appendix/table_7.xlsx")
 
+dat <- dat[scenario != "Scenario 4"]
 
 ## Combined plot for all scenarios
 
