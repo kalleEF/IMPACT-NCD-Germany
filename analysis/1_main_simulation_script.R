@@ -13,6 +13,10 @@ runif(1)
 
 # New runs?
 new_runs <- FALSE
+new_export <- TRUE
+
+# Exports
+export_type = "cea"
 
 if(new_runs){
   
@@ -117,9 +121,9 @@ if(new_runs){
     
   }
 }
-
-IMPACTncd$export_summaries(multicore = TRUE, type = "xps")
-
+if(new_export){
+IMPACTncd$export_summaries(multicore = TRUE, type = export_type)
+}
 
 ### Alternative analysis: Excluding direct SSB effects ----
 
@@ -161,7 +165,7 @@ if(new_runs){
   }
 }
 
-IMPACTncd$export_summaries(multicore = TRUE, type = "xps")
+IMPACTncd$export_summaries(multicore = TRUE, type = export_type)
 
 
 ### Policy sensitivity analyses 1 (no changes in modelled pathways) ----
@@ -199,9 +203,9 @@ if(new_runs){
       
   }
 }
-
-IMPACTncd$export_summaries(multicore = TRUE, type = "xps")
-
+if(new_export){
+  IMPACTncd$export_summaries(multicore = TRUE, type = export_type)
+}
 
 ### Other sensitivity analyses (no changes in modelled pathways) ----
 
@@ -233,13 +237,13 @@ if(new_runs){
     
   }
 }
-
-IMPACTncd$export_summaries(multicore = TRUE, type = "xps")
-
+if(new_export){
+  IMPACTncd$export_summaries(multicore = TRUE, type = export_type)
+}
 
 ### Sensitivity analyses: Discounting ----
 
-if(new_runs){
+if(new_export){
   
   load_RRs(c("bmi~chd", "bmi~obesity", "bmi~stroke", "bmi~t2dm",
              "ssb~chd", "ssb~t2dm",
