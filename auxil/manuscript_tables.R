@@ -406,7 +406,7 @@ table_2_reform <- rbind(xps_levels, xps_diff)
 
 table_2_reform[, scenario := ifelse(scenario == "sc32", "sc3", "sc4")]
 
-table_2 <- rbind(table_2[scenario %in% c("sc1", "sc2")], table_2_reform)
+table_2 <- rbind(table_2[scenario %in% c("sc0", "sc1", "sc2")], table_2_reform)
 
 setkey(table_2, scenario)
 
@@ -451,7 +451,7 @@ table_2_age_sex_reform <- rbind(xps_levels_age_sex, xps_diff_age_sex)
 
 table_2_age_sex_reform[, scenario := ifelse(scenario == "sc32", "sc3", "sc4")]
 
-table_2_age_sex <- rbind(table_2_age_sex[scenario %in% c("sc1", "sc2")], table_2_age_sex_reform)
+table_2_age_sex <- rbind(table_2_age_sex[scenario %in% c("sc0", "sc1", "sc2")], table_2_age_sex_reform)
 
 table_2 <- rbind(table_2, table_2_age_sex)
 
@@ -460,6 +460,8 @@ setkey(table_2, scenario, year, xps, sex)
 table_2[, (grep("%", names(table_2), value = TRUE)) := lapply(.SD, round, 2), .SDcols = !c("scenario", "xps",
                                                                                            "outcome", "year",
                                                                                            "agegrp", "sex")]
+
+table_2 <- table_2[scenario != "sc4"]
 
 write.xlsx(table_2, "./outputs/manuscript/table_2.xlsx")
 
