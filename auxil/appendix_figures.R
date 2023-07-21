@@ -364,13 +364,15 @@ dat <- dat[scenario != "Scenario 4"]
 
 dodge <- position_dodge(width=0.9)
 
+facet_labels <- c("Men" = "Male", "Women" = "Female")
+
 # Panel A: CHD #
 sc1 <- ggplot(dat[outcome == "Coronary Heart Disease"],
               aes(y = scenario, x = `prvl_rate_50.0%` * -1,
                   xmin = `prvl_rate_2.5%` * -1,
                   xmax = `prvl_rate_97.5%` * -1,
                   by = scenario, fill = model)) +
-  facet_wrap(~ sex, scales = "fixed", ncol = 1, nrow = 4) +
+  facet_wrap(~ sex, scales = "fixed", ncol = 1, nrow = 4, labeller = as_labeller(facet_labels)) +
   geom_bar(stat = "identity", position = "dodge") +
   geom_col(position = "dodge") +
   geom_errorbar(aes(xmin = `prvl_rate_2.5%` * -1, xmax = `prvl_rate_97.5%` * -1),
@@ -393,7 +395,7 @@ sc2 <- ggplot(dat[outcome == "Stroke"],
                   xmin = `prvl_rate_2.5%` * -1,
                   xmax = `prvl_rate_97.5%` * -1,
                   by = scenario, fill = model)) +
-  facet_wrap(~ sex, scales = "fixed", ncol = 1, nrow = 4) +
+  facet_wrap(~ sex, scales = "fixed", ncol = 1, nrow = 4, labeller = as_labeller(facet_labels)) +
   geom_bar(stat = "identity", position = "dodge") +
   geom_col(position = "dodge") +
   geom_errorbar(aes(xmin = `prvl_rate_2.5%` * -1, xmax = `prvl_rate_97.5%` * -1),
@@ -416,7 +418,7 @@ sc3 <- ggplot(dat[outcome == "Type 2 Diabetes"],
                   xmin = `prvl_rate_2.5%` * -1,
                   xmax = `prvl_rate_97.5%` * -1,
                   by = scenario, fill = model)) +
-  facet_wrap(~ sex, scales = "fixed", ncol = 1, nrow = 4) +
+  facet_wrap(~ sex, scales = "fixed", ncol = 1, nrow = 4, labeller = as_labeller(facet_labels)) +
   geom_bar(stat = "identity", position = "dodge") +
   geom_col(position = "dodge") +
   geom_errorbar(aes(xmin = `prvl_rate_2.5%` * -1, xmax = `prvl_rate_97.5%` * -1),
@@ -439,7 +441,7 @@ sc4 <- ggplot(dat[outcome == "Incremental QALYs"],
                   xmin = `prvl_rate_2.5%` * -1,
                   xmax = `prvl_rate_97.5%` * -1,
                   by = scenario, fill = model)) +
-  facet_wrap(~ sex, scales = "fixed", ncol = 1, nrow = 4) +
+  facet_wrap(~ sex, scales = "fixed", ncol = 1, nrow = 4, labeller = as_labeller(facet_labels)) +
   geom_bar(stat = "identity", position = "dodge") +
   geom_col(position = "dodge") +
   geom_errorbar(aes(xmin = `prvl_rate_2.5%` * -1, xmax = `prvl_rate_97.5%` * -1),
@@ -492,8 +494,8 @@ outcome_names <- c(
 outcome_labeller <- as_labeller(outcome_names)
 
 sex_names <- c(
-  "men" = "Men",
-  "women" = "Women"
+  "men" = "Male",
+  "women" = "Female"
 )
 
 sex_labeller <- as_labeller(sex_names)
@@ -638,9 +640,10 @@ outcome_names <- c(
 outcome_labeller <- as_labeller(outcome_names)
 
 sex_names <- c(
-  "men" = "Men",
-  "women" = "Women"
+  "men" = "Male",
+  "women" = "Female"
 )
+
 
 sex_labeller <- as_labeller(sex_names)
 
@@ -779,7 +782,7 @@ impact[, `:=`(costs = cumsum(`incr_tot_costs_scl_50.0%`),
               costs_low = cumsum(`incr_tot_costs_scl_2.5%`),
               costs_high = cumsum(`incr_tot_costs_scl_97.5%`)), keyby = c("scenario")]
 
-pnl1 <- ggplot(impact[scenario != "sc42"], aes(x = year, y = costs,
+pnl1 <- ggplot(impact[scenario != "sc42" & scenario != "sc2"], aes(x = year, y = costs,
                            ymin = costs_low,
                            ymax = costs_high,
                            fill = scenario,
@@ -789,18 +792,19 @@ pnl1 <- ggplot(impact[scenario != "sc42"], aes(x = year, y = costs,
   geom_hline(yintercept = 0, linetype = "dashed") +
   geom_vline(xintercept = 2023, linetype = "dotdash") +
   geom_ribbon(alpha = 0.2, color = NA) +
-  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", "20% ad-valorem tax on SSBs & fruit juice",
+  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", #"20% ad-valorem tax on SSBs & fruit juice",
                                                                           "Tiered tax with 30% reformulation")) +
-  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", "20% ad-valorem tax on SSBs & fruit juice",
+  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", #"20% ad-valorem tax on SSBs & fruit juice",
                                                                          "Tiered tax with 30% reformulation")) +
   scale_x_continuous(name = "Year", limits = c(2023, 2043)) +
   scale_y_continuous(name = "Cumulative costs saved (in millions)", limits = c(-40000000000, 0),
                      labels = function(y) format(y/1000000)) +
   theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
                      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-                     axis.title = element_text(size = 10),
-                     plot.title = element_text(size = 16),
-                     legend.title = element_blank(), legend.text = element_text(size = 12)) +
+                     axis.title = element_text(size = 8),
+                     axis.text = element_text(size = 8),
+                     plot.title = element_text(size = 10),
+                     legend.title = element_blank(), legend.text = element_text(size = 8)) +
   theme(legend.position = "none")
 
 if(!Sys.info()[1] == "Windows"){
@@ -820,7 +824,7 @@ impact[, `:=`(costs = cumsum(`incr_tot_dir_costs_scl_50.0%`),
               costs_low = cumsum(`incr_tot_dir_costs_scl_2.5%`),
               costs_high = cumsum(`incr_tot_dir_costs_scl_97.5%`)), keyby = c("scenario")]
 
-pnl2 <- ggplot(impact[scenario != "sc42"], aes(x = year, y = costs,
+pnl2 <- ggplot(impact[scenario != "sc42" & scenario != "sc2"], aes(x = year, y = costs,
                            ymin = costs_low,
                            ymax = costs_high,
                            fill = scenario,
@@ -830,18 +834,19 @@ pnl2 <- ggplot(impact[scenario != "sc42"], aes(x = year, y = costs,
   geom_hline(yintercept = 0, linetype = "dashed") +
   geom_vline(xintercept = 2023, linetype = "dotdash") +
   geom_ribbon(alpha = 0.2, color = NA) +
-  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", "20% ad-valorem tax on SSBs & fruit juice",
+  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", #"20% ad-valorem tax on SSBs & fruit juice",
                                                                           "Tiered tax with 30% reformulation")) +
-  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", "20% ad-valorem tax on SSBs & fruit juice",
+  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", #"20% ad-valorem tax on SSBs & fruit juice",
                                                                          "Tiered tax with 30% reformulation")) +
   scale_x_continuous(name = "Year", limits = c(2023, 2043)) +
   scale_y_continuous(name = "Cumulative costs saved (in millions)", limits = c(-40000000000, 0),
                      labels = function(y) format(y/1000000)) +
   theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
                      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-                     axis.title = element_text(size = 10),
-                     plot.title = element_text(size = 16),
-                     legend.title = element_blank(), legend.text = element_text(size = 12)) +
+                     axis.title = element_text(size = 8),
+                     axis.text = element_text(size = 8),
+                     plot.title = element_text(size = 10),
+                     legend.title = element_blank(), legend.text = element_text(size = 8)) +
   theme(legend.position = "bottom")
 
 legend <- get_legend(pnl2)
@@ -851,8 +856,9 @@ pnl2 <- pnl2 + theme(legend.position = "none")
 ggdraw(plot_grid(plot_grid(pnl1, pnl2, align = "h", ncol = 2),
                  plot_grid(NULL, legend, ncol = 1), ncol = 1, rel_heights = c(1, 0.05)))
 
-ggsave(paste0(out_path, "Figure_X_cum_costs_perspective.tiff"),
-       height = 9, width = 16, dpi = 300)
+ggsave(paste0(out_path, "Figure_X_cum_costs_perspective_Michael.tiff"),
+       units = "in",
+       height = 6, width = 7.5, dpi = 300)
 
 
 

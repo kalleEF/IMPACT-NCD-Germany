@@ -71,15 +71,18 @@ for(i in unique(de$disease)){
   if(i == "stroke"){dis_nam <- "Stroke"}
   if(i == "t2dm"){dis_nam <- "Type 2 Diabetes"}
   
+  facet_labels <- c(`Men` = "Male",
+                    `Women` = "Female")
+  
   ggplot(de[disease == i], aes(x = agegrp, y = value, fill = type, col = type
   )) +
-  facet_wrap(~ sex) +
+  facet_wrap(~ sex, labeller = as_labeller(facet_labels)) +
   geom_point(alpha = 0.2,
              position = position_jitterdodge(jitter.width = 0.4, jitter.height = 0, dodge.width = 1.0)) +
   geom_violin(scale = "width", draw_quantiles = c(0.025, 0.5, 0.975), alpha = 0.3,
               position = position_jitterdodge(jitter.width = 0, jitter.height = 0, dodge.width = 1.0)) +
-  scale_x_discrete(name = "Age") +
-  scale_y_continuous(name = "Incidence") +
+  scale_x_discrete(name = "Age (years)") +
+  scale_y_continuous(name = "Incidence rate") +
   scale_fill_viridis_d(begin = 0.1, end = 0.7) +
   scale_color_viridis_d(begin = 0.1, end = 0.7) +
   #ggtitle(paste("Comparison of", dis_nam, "input and output incidence rates")) +
@@ -153,13 +156,13 @@ for(i in unique(d$disease)){
   
   ggplot(de[disease == i], aes(x = agegrp, y = value, fill = type, col = type
   )) +
-    facet_wrap(~ sex) +
+    facet_wrap(~ sex, labeller = as_labeller(facet_labels)) +
     geom_point(alpha = 0.2,
                position = position_jitterdodge(jitter.width = 0.4, jitter.height = 0, dodge.width = 1.0)) +
     geom_violin(scale = "width", draw_quantiles = c(0.025, 0.5, 0.975), alpha = 0.3,
                 position = position_jitterdodge(jitter.width = 0, jitter.height = 0, dodge.width = 1.0)) +
-    scale_x_discrete(name = "Age") +
-    scale_y_continuous(name = "Prevalence") +
+    scale_x_discrete(name = "Age (years)") +
+    scale_y_continuous(name = "Prevalence rate") +
     scale_fill_viridis_d(begin = 0.1, end = 0.7) +
     scale_color_viridis_d(begin = 0.1, end = 0.7) +
     #ggtitle(paste("Comparison of", dis_nam, "input and output prevalence rates")) +

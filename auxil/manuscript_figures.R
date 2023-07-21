@@ -87,9 +87,9 @@ cea_point[, `:=`(scenario = x.scenario, y.scenario = NULL, ymin.scenario = NULL,
 ggplot(cea_agg[scenario %in% c("sc1", "sc2", "sc32")], aes(x = incr_qalys_scl,
                                        y = incr_tot_costs_scl,
                                        col = scenario)) +
-  stat_ellipse(size = 1.2, type = "t") + 
+  stat_ellipse(size = 0.5, type = "t") + 
   facet_wrap(~ analysis) +
-  geom_point(shape = 16, alpha = 0.5, size = 3) +
+  geom_point(shape = 16, alpha = 0.5, size = 1) +
   #geom_point(data = cea_point, aes(x = mean_qaly, y = mean_cost, col = scenario), shape = 4, size = 5, stroke = 1.5) +
   #geom_errorbar(data = cea_point[scenario %in% c("sc1", "sc2", "sc32")], aes(x = mean_qaly, y = mean_cost, ymin = ymin_cost, ymax = ymax_cost), inherit.aes = FALSE) +
   #geom_errorbar(data = cea_point[scenario %in% c("sc1", "sc2", "sc32")], aes(x = mean_qaly, y = mean_cost, xmin = xmin_qaly, xmax = xmax_qaly), inherit.aes = FALSE) +
@@ -98,22 +98,24 @@ ggplot(cea_agg[scenario %in% c("sc1", "sc2", "sc32")], aes(x = incr_qalys_scl,
   geom_vline(xintercept = 0) +
   geom_hline(yintercept = 0) +
   #expand_limits(x = -8e4, y = 2e9) +
-  scale_y_continuous(name = "Incremental costs (in €-billions)", c(seq(0,80000000000,5000000000)*-1),
-                     labels = function(y) format(y/1000000000)) +
+  scale_y_continuous(name = "Incremental costs (in €-millions)", c(seq(0,80000000000,5000000000)*-1),
+                     labels = function(y) format(y/1000000)) +
   scale_x_continuous(name = "Incremental QALYs (in thousands)", c(seq(-1000000,500000,50000)), labels = function(y) format(y/1000)) +
   scale_color_viridis_d(name = "Scenario", option = "viridis",
                        labels = c("20% ad-valorem tax on SSBs", "20% ad-valorem tax on SSBs & fruit juice",
                                   "Tiered tax with 30% reformulation")) +
   theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-                     panel.grid.minor = element_blank(), strip.text.x = element_text(size = 15),
+                     panel.grid.minor = element_blank(), strip.text.x = element_text(size = 8),
                      axis.line = element_line(colour = "black"),
-                     axis.text=element_text(size=13), axis.title=element_text(size=15),
-                     legend.position = c(0.8,0.3),
-                     legend.title = element_text(size = 15), legend.text = element_text(size = 13))
+                     axis.text = element_text(size = 8), axis.title = element_text(size = 8),
+                     legend.position = c(0.78,0.3),
+                     #legend.position = "bottom",
+                     legend.title = element_text(size = 10), legend.text = element_text(size = 8))
 
 
 ggsave(paste0(out_path, "Figure_1_cost_effectiveness_plane.tiff"),
-       height = 9, width = 14, dpi = 300)
+       units = "in",
+       height = 6, width = 7.5, dpi = 300)
 
 
 
@@ -244,11 +246,11 @@ sc1 <- ggplot(dat[outcome == "Coronary Heart Disease"],
   ggtitle("A - Coronary Heart Disease") +
   theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
                      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-                     axis.text.y = element_text(size = 10), axis.title = element_text(size = 10),
-                     axis.ticks.y = element_blank(), plot.title = element_text(size = 16),
+                     axis.text.y = element_text(size = 8), axis.title = element_text(size = 8),
+                     axis.ticks.y = element_blank(), plot.title = element_text(size = 10),
                      strip.text.x = element_blank(), strip.background = element_blank(),
                      legend.position = "none",
-                     legend.title = element_blank(), legend.text = element_text(size = 12))
+                     legend.title = element_blank(), legend.text = element_text(size = 8))
 
 # Panel B: Stroke #
 sc2 <- ggplot(dat[outcome == "Stroke"],
@@ -268,11 +270,11 @@ sc2 <- ggplot(dat[outcome == "Stroke"],
   ggtitle("B - Stroke") +
   theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
                      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-                     axis.text.y = element_text(size = 10), axis.title = element_text(size = 10),
-                     axis.ticks.y = element_blank(), plot.title = element_text(size = 16),
+                     axis.text.y = element_text(size = 8), axis.title = element_text(size = 8),
+                     axis.ticks.y = element_blank(), plot.title = element_text(size = 10),
                      strip.text.x = element_blank(), strip.background = element_blank(),
                      legend.position = "none",
-                     legend.title = element_blank(), legend.text = element_text(size = 12))
+                     legend.title = element_blank(), legend.text = element_text(size = 8))
 
 # Panel C: Type 2 Diabetes #
 sc3 <- ggplot(dat[outcome == "Type 2 Diabetes"],
@@ -292,11 +294,11 @@ sc3 <- ggplot(dat[outcome == "Type 2 Diabetes"],
   ggtitle("C - Type 2 Diabetes") +
   theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
                      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-                     axis.text.y = element_text(size = 10), axis.title = element_text(size = 10),
-                     axis.ticks.y = element_blank(), plot.title = element_text(size = 16),
+                     axis.text.y = element_text(size = 8), axis.title = element_text(size = 8),
+                     axis.ticks.y = element_blank(), plot.title = element_text(size = 10),
                      strip.text.x = element_blank(), strip.background = element_blank(),
                      legend.position = "none",
-                     legend.title = element_blank(), legend.text = element_text(size = 12))
+                     legend.title = element_blank(), legend.text = element_text(size = 8))
 
 # Panel D: QALYs #
 sc4 <- ggplot(dat[outcome == "Incremental QALYs"],
@@ -316,10 +318,10 @@ sc4 <- ggplot(dat[outcome == "Incremental QALYs"],
   ggtitle("D - Incremental QALYs") +
   theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
                      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-                     axis.text.y = element_text(size = 10), axis.title = element_text(size = 10),
-                     axis.ticks.y = element_blank(), plot.title = element_text(size = 16),
+                     axis.text.y = element_text(size = 8), axis.title = element_text(size = 8),
+                     axis.ticks.y = element_blank(), plot.title = element_text(size = 10),
                      strip.text.x = element_blank(), strip.background = element_blank(),
-                     legend.title = element_blank(), legend.text = element_text(size = 12)) +
+                     legend.title = element_blank(), legend.text = element_text(size = 8)) +
   theme(legend.position = "bottom")
 
 legend <- get_legend(sc4)
@@ -330,7 +332,8 @@ ggdraw(plot_grid(plot_grid(sc1, sc2, sc3, sc4, align = "v", ncol = 2),
                  plot_grid(NULL, legend, ncol = 1), ncol = 1, rel_heights = c(1, 0.05)))
 
 ggsave(paste0(out_path, "Figure_2_cross_validation.tiff"),
-       height = 9, width = 14, dpi = 300)
+       units = "in",
+       height = 6, width = 7.5, dpi = 300)
 
 
 

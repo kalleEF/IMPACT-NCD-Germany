@@ -234,6 +234,14 @@ setwd("G:/Meine Ablage/PhD/Publications/2021_Diet_simulation_modeling_Germany/Mo
 
 cols <- viridisLite::viridis(2, begin = 0.1, end = 0.7)
 
+## Add appropriate labels ##
+
+data_orig[, agegrp := paste(agegrp, "years")]
+impact_disease[, agegrp := paste(agegrp, "years")]
+data_fdm[, agegrp := paste(agegrp, "years")]
+
+
+
 # Men #
 
 ggplot(data_orig[sex == "men" & disease == "other"],
@@ -247,7 +255,7 @@ ggplot(data_orig[sex == "men" & disease == "other"],
   geom_ribbon(data = impact_disease[sex == "men" & disease == "nonmodelled"], 
               aes(x = year, y = `mrtl_rate_50.0%`, ymin = `mrtl_rate_2.5%`, ymax= `mrtl_rate_97.5%`),
               fill = cols[2], alpha = 0.3) +
-  ggtitle("Validation of non-modelled mortality for men") +
+  #ggtitle("Validation of non-modelled mortality for men") +
   xlab("Year") + ylab("Mortality rate") +
   theme(legend.title = element_blank(), legend.position = "bottom",
         axis.title.y = element_text(angle = 90))
@@ -270,7 +278,7 @@ ggplot(data_orig[sex == "women" & disease == "other"],
   geom_ribbon(data = impact_disease[sex == "women" & disease == "nonmodelled"], 
               aes(x = year, y = `mrtl_rate_50.0%`, ymin = `mrtl_rate_2.5%`, ymax= `mrtl_rate_97.5%`),
               fill = cols[2], alpha = 0.3) +
-  ggtitle("Validation of non-modelled mortality for women") +
+  #ggtitle("Validation of non-modelled mortality for women") +
   xlab("Year") + ylab("Mortality rate") +
   theme(legend.title = element_blank(), legend.position = "bottom",
         axis.title.y = element_text(angle = 90))

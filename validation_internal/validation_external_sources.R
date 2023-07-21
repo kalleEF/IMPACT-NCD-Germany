@@ -73,7 +73,7 @@ ext_chd_prev[, `:=`(`prvl_rate_50.0%` = prevalence/100,
 
 prev_dat <- rbind(impact_chd_prev, ext_chd_prev)
 
-prev_dat[, sex := ifelse(sex == "women", "Women", "Men")]
+prev_dat[, sex := ifelse(sex == "women", "Female", "Male")][, agegrp := paste(agegrp, "years")]
 
 # Source: GEDA
 
@@ -126,9 +126,9 @@ ext3 <- ggplot(prev_dat[study == "KV"]) +
   ggtitle("KV 2013-2018") + 
   ylab("Prevalence rate") +
   xlab("Age group") +
-  theme(axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        axis.line.x = element_blank(),
+  theme(#axis.text.x = element_blank(),
+        #axis.ticks.x = element_blank(),
+        #axis.line.x = element_blank(),
         axis.title.y = element_text(angle = 90))
 
 # Source: IMPACT
@@ -230,7 +230,7 @@ ext_stroke_prev[, `:=`(`prvl_rate_50.0%` = prevalence/100,
 
 prev_dat <- rbind(impact_stroke_prev, ext_stroke_prev)
 
-prev_dat[, sex := ifelse(sex == "women", "Women", "Men")]
+prev_dat[, sex := ifelse(sex == "women", "Female", "Male")][, agegrp := paste(agegrp, "years")]
 
 # Source: GEDA
 
@@ -409,7 +409,7 @@ ext_stroke_incd[, `:=`(`prvl_rate_50.0%` = incidence/100,
 
 incd_dat <- rbind(impact_stroke_incd, ext_stroke_incd)
 
-incd_dat[, sex := ifelse(sex == "women", "Women", "Men")]
+incd_dat[, sex := ifelse(sex == "women", "Female", "Male")][, agegrp := paste(agegrp, "years")]
 
 # Source: AOK
 
@@ -505,7 +505,7 @@ ext_t2dm_prev[, `:=`(`prvl_rate_50.0%` = prevalence/100,
 
 prev_dat <- rbind(impact_t2dm_prev, ext_t2dm_prev)
 
-prev_dat[, sex := ifelse(sex == "women", "Women", "Men")]
+prev_dat[, sex := ifelse(sex == "women", "Female", "Male")][, agegrp := paste(agegrp, "years")]
 
 # Source: GEDA
 
@@ -660,7 +660,7 @@ ext_t2dm_incd[, `:=`(`prvl_rate_50.0%` = incidence/100,
 
 incd_dat <- rbind(impact_t2dm_incd, ext_t2dm_incd)
 
-incd_dat[, sex := ifelse(sex == "women", "Women", "Men")]
+incd_dat[, sex := ifelse(sex == "women", "Female", "Male")][, agegrp := paste(agegrp, "years")]
 
 # Source: Diabetes Surveillance
 

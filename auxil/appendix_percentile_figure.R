@@ -21,7 +21,7 @@ ggplot(sp, aes(x = bmi_curr_xps, col = factor(age))) +
                col = "black", linewidth = 1, linetype = "dashed") +
   xlab("BMI (kg/m²)") +
   ylab("Percentile") +
-  labs(col = "Age") +
+  labs(col = "Age (years)") +
   scale_x_continuous(limits = c(12, 50))
 
 ggsave2("Percentile_example.jpg", width = 9, height = 7, units = "cm",

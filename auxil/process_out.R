@@ -7,6 +7,8 @@ library(CKutils)
 library(ggplot2)
 library(ggthemes)
 library(scales)
+library(gamlss)
+library(fst)
 
 # Note: Analyses are nested in the output folder!
 if(Sys.info()["sysname"] == "Windows"){
@@ -72,12 +74,21 @@ for(analysis in dirs){
     
     if("xps_scaled_up.csv.gz" %in% list.files(in_path)){
       
+        ## Compute correct weights by age group and sex ##
+      
+        ttw <- fread(paste0(in_path, "prvl_scaled_up.csv.gz"))
+        
+        ttw <- ttw[, (grep("_prvl", names(ttw), value = TRUE)) := NULL]
+      
         ## Exposures and changes by age and sex ## ----
-        tt <- fread(paste0(in_path, "xps_scaled_up.csv.gz")
-        )[, `:=` (year = year + 2000,
-                  agegrp = fifelse(agegrp %in% c("30-34", "35-39", "40-44", "45-49"), "30-49",
-                                   ifelse(agegrp %in% c("50-54", "55-59", "60-64", "65-69"), "50-69",
-                                          "70-90")))]
+        tt <- fread(paste0(in_path, "xps_scaled_up.csv.gz"))
+        
+        absorb_dt(tt, ttw)
+        
+        tt[, `:=` (year = year + 2000,
+                   agegrp = fifelse(agegrp %in% c("30-34", "35-39", "40-44", "45-49"), "30-49",
+                                    ifelse(agegrp %in% c("50-54", "55-59", "60-64", "65-69"), "50-69",
+                                           "70-90")))]
         
         # Convert changes to negative values
         tt[, (grep("_delta_", names(tt), value = TRUE)) := lapply(.SD, `*`, -1), .SDcols = (grep("_delta_", names(tt), value = TRUE))]
@@ -93,7 +104,7 @@ for(analysis in dirs){
         
         # Exposure level and changes over time #
         
-        d <- tt[, lapply(.SD, mean), .SDcols = patterns("_xps$"), keyby = eval(outstrata)]
+        d <- tt[, lapply(.SD, weighted.mean, popsize), .SDcols = patterns("_xps$"), keyby = eval(outstrata)]
         d <- melt(d, id.vars = outstrata)
         d <- d[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(setdiff(outstrata, "mc"))]
         setnames(d, c(setdiff(outstrata, "mc"), "xps", percent(prbl, prefix = "xps_mean_")))
@@ -135,9 +146,52 @@ for(analysis in dirs){
                height = 9, width = 16)
         
         
+        ## REVISION: Percentage change in exposures ## ----
+        
+        d <- tt[, lapply(.SD, weighted.mean, popsize), .SDcols = patterns("_xps$"), keyby = eval(outstrata)]
+        
+        tbl <-
+          read_fst("./inputs/exposure_distributions/juice_sugar_table.fst",
+                   as.data.table = TRUE)
+        
+        tbl[, juice_sugar := qBCPE(0.5, mu, sigma, nu, tau)]
+        
+        juice_sugar <- mean(tbl[, juice_sugar])
+        
+        tbl <-
+          read_fst("./inputs/exposure_distributions/ssb_sugar_table.fst",
+                   as.data.table = TRUE)
+        
+        tbl[, ssb_sugar := qBCPEo(0.5, mu, sigma, nu, tau)]
+        
+        ssb_sugar <- mean(tbl[, ssb_sugar])
+        
+        
+        d[, `:=`(juice_sugar = juice_sugar, ssb_sugar = ssb_sugar)]
+        d[, `:=`(bev_sugar = juice_curr_xps * juice_sugar + ssb_curr_xps * ssb_sugar)]
+        
+        dc <- copy(d[year %in% c(2023, 2043)])
+        
+        # Recomupte original sugar consumption at baseline (2023) using median sugar per bev (see above)
+        # This works for all scenarios because baseline consumption is accurate
+        # Actual sugar consumption in 2043 is not recoverable because of the direct SSB effect workaround in SC3
+        # This solution uses the actual computed sugar reduction in 2043 and the recomputed sugar consumption at baseline.
+        
+        dc[, sugar_delta_perc := sugar_delta_xps/shift(bev_sugar) * 100, by = .(mc, agegrp, sex, scenario)]
+        
+        dc <- dc[year == 2043]
+        
+        dc <- melt(dc, id.vars = outstrata)
+        dc <- dc[variable == "sugar_delta_perc"]
+        dc <- dc[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(setdiff(outstrata, "mc"))]
+        setnames(dc, c(setdiff(outstrata, "mc"), "xps", percent(prbl, prefix = "xps_perc_change_")))
+        
+        fwrite(dc, paste0(out_path_tables, "rev_xps_sugar_changes_by_agegrp_sex.csv"), sep = ";")
+        
+        
         # Exposure level and change differences over time #
         
-        d <- tt[, lapply(.SD, mean), .SDcols = patterns("_xps$"), keyby = eval(outstrata)]
+        d <- tt[, lapply(.SD, weighted.mean, popsize), .SDcols = patterns("_xps$"), keyby = eval(outstrata)]
         
         xps_ <- grep("_xps", names(d), value = TRUE)
         
@@ -210,11 +264,14 @@ for(analysis in dirs){
         
         
         ## Exposures and changes by sex ## ----
-        tt <- fread(paste0(in_path, "xps_scaled_up.csv.gz")
-        )[, `:=` (year = year + 2000,
-                  agegrp = fifelse(agegrp %in% c("30-34", "35-39", "40-44", "45-49"), "30-49",
-                                   ifelse(agegrp %in% c("50-54", "55-59", "60-64", "65-69"), "50-69",
-                                          "70-90")))]
+        tt <- fread(paste0(in_path, "xps_scaled_up.csv.gz"))
+        
+        absorb_dt(tt, ttw)
+        
+        tt[, `:=` (year = year + 2000,
+                   agegrp = fifelse(agegrp %in% c("30-34", "35-39", "40-44", "45-49"), "30-49",
+                                    ifelse(agegrp %in% c("50-54", "55-59", "60-64", "65-69"), "50-69",
+                                           "70-90")))]
         
         # Convert changes to negative values
         tt[, (grep("_delta_", names(tt), value = TRUE)) := lapply(.SD, `*`, -1), .SDcols = (grep("_delta_", names(tt), value = TRUE))]
@@ -230,7 +287,7 @@ for(analysis in dirs){
         
         # Exposure level and changes over time #
         
-        d <- tt[, lapply(.SD, mean), .SDcols = patterns("_xps$"), keyby = eval(outstrata)]
+        d <- tt[, lapply(.SD, weighted.mean, popsize), .SDcols = patterns("_xps$"), keyby = eval(outstrata)]
         d <- melt(d, id.vars = outstrata)
         d <- d[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(setdiff(outstrata, "mc"))]
         setnames(d, c(setdiff(outstrata, "mc"), "xps", percent(prbl, prefix = "xps_mean_")))
@@ -272,7 +329,7 @@ for(analysis in dirs){
         
         # Exposure level and change differences over time #
         
-        d <- tt[, lapply(.SD, mean), .SDcols = patterns("_xps$"), keyby = eval(outstrata)]
+        d <- tt[, lapply(.SD, weighted.mean, popsize), .SDcols = patterns("_xps$"), keyby = eval(outstrata)]
         
         xps_ <- grep("_xps", names(d), value = TRUE)
         
@@ -337,11 +394,14 @@ for(analysis in dirs){
         
         
         ## Exposures and changes by age ## ----
-        tt <- fread(paste0(in_path, "xps_scaled_up.csv.gz")
-        )[, `:=` (year = year + 2000,
-                  agegrp = fifelse(agegrp %in% c("30-34", "35-39", "40-44", "45-49"), "30-49",
-                                   ifelse(agegrp %in% c("50-54", "55-59", "60-64", "65-69"), "50-69",
-                                          "70-90")))]
+        tt <- fread(paste0(in_path, "xps_scaled_up.csv.gz"))
+        
+        absorb_dt(tt, ttw)
+        
+        tt[, `:=` (year = year + 2000,
+                   agegrp = fifelse(agegrp %in% c("30-34", "35-39", "40-44", "45-49"), "30-49",
+                                    ifelse(agegrp %in% c("50-54", "55-59", "60-64", "65-69"), "50-69",
+                                           "70-90")))]
         
         # Convert changes to negative values
         tt[, (grep("_delta_", names(tt), value = TRUE)) := lapply(.SD, `*`, -1), .SDcols = (grep("_delta_", names(tt), value = TRUE))]
@@ -357,7 +417,7 @@ for(analysis in dirs){
         
         # Exposure level and changes over time #
         
-        d <- tt[, lapply(.SD, mean), .SDcols = patterns("_xps$"), keyby = eval(outstrata)]
+        d <- tt[, lapply(.SD, weighted.mean, popsize), .SDcols = patterns("_xps$"), keyby = eval(outstrata)]
         d <- melt(d, id.vars = outstrata)
         d <- d[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(setdiff(outstrata, "mc"))]
         setnames(d, c(setdiff(outstrata, "mc"), "xps", percent(prbl, prefix = "xps_mean_")))
@@ -401,7 +461,7 @@ for(analysis in dirs){
         
         # Exposure level and change differences over time #
         
-        d <- tt[, lapply(.SD, mean), .SDcols = patterns("_xps$"), keyby = eval(outstrata)]
+        d <- tt[, lapply(.SD, weighted.mean, popsize), .SDcols = patterns("_xps$"), keyby = eval(outstrata)]
         
         xps_ <- grep("_xps", names(d), value = TRUE)
         
@@ -467,11 +527,14 @@ for(analysis in dirs){
         
         
         ## Exposures and changes total ## ----
-        tt <- fread(paste0(in_path, "xps_scaled_up.csv.gz")
-        )[, `:=` (year = year + 2000,
-                  agegrp = fifelse(agegrp %in% c("30-34", "35-39", "40-44", "45-49"), "30-49",
-                                   ifelse(agegrp %in% c("50-54", "55-59", "60-64", "65-69"), "50-69",
-                                          "70-90")))]
+        tt <- fread(paste0(in_path, "xps_scaled_up.csv.gz"))
+        
+        absorb_dt(tt, ttw)
+        
+        tt[, `:=` (year = year + 2000,
+                   agegrp = fifelse(agegrp %in% c("30-34", "35-39", "40-44", "45-49"), "30-49",
+                                    ifelse(agegrp %in% c("50-54", "55-59", "60-64", "65-69"), "50-69",
+                                           "70-90")))]
         
         # Convert changes to negative values
         tt[, (grep("_delta_", names(tt), value = TRUE)) := lapply(.SD, `*`, -1), .SDcols = (grep("_delta_", names(tt), value = TRUE))]
@@ -487,7 +550,7 @@ for(analysis in dirs){
         
         # Exposure level and changes over time #
         
-        d <- tt[, lapply(.SD, mean), .SDcols = patterns("_xps$"), keyby = eval(outstrata)]
+        d <- tt[, lapply(.SD, weighted.mean, popsize), .SDcols = patterns("_xps$"), keyby = eval(outstrata)]
         d <- melt(d, id.vars = outstrata)
         d <- d[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(setdiff(outstrata, "mc"))]
         setnames(d, c(setdiff(outstrata, "mc"), "xps", percent(prbl, prefix = "xps_mean_")))
@@ -527,9 +590,52 @@ for(analysis in dirs){
                height = 9, width = 16)
         
         
+        ## REVISION: Percentage change in exposures ## ----
+        
+        d <- tt[, lapply(.SD, weighted.mean, popsize), .SDcols = patterns("_xps$"), keyby = eval(outstrata)]
+        
+        tbl <-
+          read_fst("./inputs/exposure_distributions/juice_sugar_table.fst",
+                   as.data.table = TRUE)
+        
+        tbl[, juice_sugar := qBCPE(0.5, mu, sigma, nu, tau)]
+        
+        juice_sugar <- mean(tbl[, juice_sugar])
+        
+        tbl <-
+          read_fst("./inputs/exposure_distributions/ssb_sugar_table.fst",
+                   as.data.table = TRUE)
+        
+        tbl[, ssb_sugar := qBCPEo(0.5, mu, sigma, nu, tau)]
+        
+        ssb_sugar <- mean(tbl[, ssb_sugar])
+        
+        
+        d[, `:=`(juice_sugar = juice_sugar, ssb_sugar = ssb_sugar)]
+        d[, `:=`(bev_sugar = juice_curr_xps * juice_sugar + ssb_curr_xps * ssb_sugar)]
+        
+        dc <- copy(d[year %in% c(2023, 2043)])
+        
+        # Recomupte original sugar consumption at baseline (2023) using median sugar per bev (see above)
+        # This works for all scenarios because baseline consumption is accurate
+        # Actual sugar consumption in 2043 is not recoverable because of the direct SSB effect workaround in SC3
+        # This solution uses the actual computed sugar reduction in 2043 and the recomputed sugar consumption at baseline.
+        
+        dc[, sugar_delta_perc := sugar_delta_xps/shift(bev_sugar) * 100, by = .(mc, scenario)]
+        
+        dc <- dc[year == 2043]
+        
+        dc <- melt(dc, id.vars = outstrata)
+        dc <- dc[variable == "sugar_delta_perc"]
+        dc <- dc[, fquantile_byid(value, prbl, id = as.character(variable)), keyby = eval(setdiff(outstrata, "mc"))]
+        setnames(dc, c(setdiff(outstrata, "mc"), "xps", percent(prbl, prefix = "xps_perc_change_")))
+        
+        fwrite(dc, paste0(out_path_tables, "rev_xps_sugar_changes.csv"), sep = ";")
+        
+        
         # Exposure level and change differences over time #
         
-        d <- tt[, lapply(.SD, mean), .SDcols = patterns("_xps$"), keyby = eval(outstrata)]
+        d <- tt[, lapply(.SD, weighted.mean, popsize), .SDcols = patterns("_xps$"), keyby = eval(outstrata)]
         
         xps_ <- grep("_xps", names(d), value = TRUE)
         
