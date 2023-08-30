@@ -466,3 +466,66 @@ table_2 <- table_2[scenario != "sc4"]
 write.xlsx(table_2, "./outputs/manuscript/table_2.xlsx")
 
 
+# Revision Table 2: Percentage changes of exposures (incl. stratification) ----
+
+
+analysis <- "with_direct_SSB_effects"
+
+xps_levels <- fread(paste0("./outputs/", analysis, "/tables/rev_xps_sugar_changes.csv"))
+xps_levels[, outcome := "xps_perc"][, sex := "total"][, agegrp := "total"]
+
+table_2 <- xps_levels
+
+analysis <- "with_direct_SSB_effects_reform"
+
+xps_levels <- fread(paste0("./outputs/", analysis, "/tables/rev_xps_sugar_changes.csv"))
+xps_levels[, outcome := "xps_perc"][, sex := "total"][, agegrp := "total"]
+
+table_2_reform <- xps_levels[scenario != "sc0"]
+
+table_2_reform[, scenario := ifelse(scenario == "sc32", "sc3", "sc4")]
+
+table_2 <- rbind(table_2[scenario %in% c("sc0", "sc1", "sc2")], table_2_reform)
+
+setkey(table_2, scenario)
+
+table_2[outcome %in% grep("_perc", table_2$outcome, value = TRUE),
+        (grep("%", names(table_2), value = TRUE)) := lapply(.SD, round, 2), .SDcols = !c("scenario", "xps",
+                                                                                          "outcome", "sex", "agegrp", "year")]
+
+analysis <- "with_direct_SSB_effects"
+
+xps_levels <- fread(paste0("./outputs/", analysis, "/tables/rev_xps_sugar_changes_by_agegrp_sex.csv"))
+xps_levels[, outcome := "xps_perc"]
+
+table_2_age_sex <- xps_levels
+
+analysis <- "with_direct_SSB_effects_reform"
+
+xps_levels <- fread(paste0("./outputs/", analysis, "/tables/rev_xps_sugar_changes_by_agegrp_sex.csv"))
+xps_levels[, outcome := "xps_perc"]
+
+table_2_age_sex_reform <- xps_levels[scenario != "sc0"]
+
+table_2_age_sex_reform[, scenario := ifelse(scenario == "sc32", "sc3", "sc4")]
+
+table_2_age_sex <- rbind(table_2_age_sex[scenario %in% c("sc0", "sc1", "sc2")], table_2_age_sex_reform)
+
+table_2 <- rbind(table_2, table_2_age_sex)
+
+setkey(table_2, scenario, year, xps, sex)
+
+table_2[outcome %in% grep("_perc", table_2$outcome, value = TRUE),
+        (grep("%", names(table_2), value = TRUE)) := lapply(.SD, round, 2), .SDcols = !c("scenario", "xps",
+                                                                                         "outcome", "sex", "agegrp", "year")]
+
+table_2 <- table_2[scenario != "sc4"]
+
+write.xlsx(table_2, "./outputs/manuscript/table_2_perc_rev.xlsx")
+
+
+
+
+
+
+
