@@ -1,6 +1,10 @@
-## IMPACTncdEngl is an implementation of the IMPACTncd framework, developed by Chris
-## Kypridemos with contributions from Peter Crowther (Melandra Ltd), Maria
-## Guzman-Castillo, Amandine Robert, and Piotr Bandosz.
+## IMPACTncdGer is an implementation of the IMPACTncd framework adapted from
+## the IMPACTncdEngl model, developed by Chris Kypridemos with contributions
+## from Peter Crowther (Melandra Ltd), Maria Guzman-Castillo, Amandine Robert,
+## and Piotr Bandosz. This work has been funded by NIHR  HTA Project:
+## 16/165/01 - IMPACTncdEngl: Health Outcomes Research Simulation Environment.
+## The views expressed are those of the authors and not necessarily those of
+## the NHS, the NIHR or the Department of Health.
 ##
 ## Copyright (C) 2018-2020 University of Liverpool, Chris Kypridemos
 ##
@@ -14,7 +18,6 @@
 ## along with this program; if not, see <http://www.gnu.org/licenses/> or write
 ## to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ## Boston, MA 02110-1301 USA.
-
 
 
 # From
@@ -282,7 +285,7 @@ Simulation <-
               "gamlss.dist",
               "dqrng",
               "CKutils",
-              "IMPACTncdEngl",
+              "IMPACTncdGer",
               "fst",
               "data.table"
             ),
@@ -370,7 +373,7 @@ Simulation <-
             .packages = c(
               "R6",
               "CKutils",
-              "IMPACTncdEngl",
+              "IMPACTncdGer",
               "data.table",
               "MESS"
             ),

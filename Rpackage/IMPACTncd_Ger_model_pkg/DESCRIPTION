@@ -1,11 +1,11 @@
-Package: IMPACTncdEngl
+Package: IMPACTncdGer
 Type: Package
-Title: Utility Functions for IMPACTncdEngl Model
+Title: Utility Functions for IMPACTncdGer Model
 Version: 0.0.2
-Date: 2022-04-14
-Author: Chris Kypridemos
-Maintainer: Chris Kypridemos <christodoulosk@gmail.com>
-Description: This package contains the functions that are necessary for IMPACTncdEngl model. 
+Date: 2023-08-30
+Author: Chris Kypridemos, Karl M.F. Emmert-Fees
+Maintainer:  Karl M.F. Emmert-Fees <karlfees@gmail.com>
+Description: This package contains the functions that are necessary for IMPACTncdGer model, adapted from the IMPACTncdEngl model.
 License: GPL (>=3)
 Encoding: UTF-8
 LazyData: true

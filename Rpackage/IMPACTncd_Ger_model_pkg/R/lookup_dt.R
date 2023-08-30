@@ -1,10 +1,10 @@
-## IMPACTncdEngl is an implementation of the IMPACTncd framework, developed by Chris
-## Kypridemos with contributions from Peter Crowther (Melandra Ltd), Maria
-## Guzman-Castillo, Amandine Robert, and Piotr Bandosz. This work has been
-## funded by NIHR  HTA Project: 16/165/01 - IMPACTncdEngl: Health Outcomes
-## Research Simulation Environment.  The views expressed are those of the
-## authors and not necessarily those of the NHS, the NIHR or the Department of
-## Health.
+## IMPACTncdGer is an implementation of the IMPACTncd framework adapted from
+## the IMPACTncdEngl model, developed by Chris Kypridemos with contributions
+## from Peter Crowther (Melandra Ltd), Maria Guzman-Castillo, Amandine Robert,
+## and Piotr Bandosz. This work has been funded by NIHR  HTA Project:
+## 16/165/01 - IMPACTncdEngl: Health Outcomes Research Simulation Environment.
+## The views expressed are those of the authors and not necessarily those of
+## the NHS, the NIHR or the Department of Health.
 ##
 ## Copyright (C) 2018-2020 University of Liverpool, Chris Kypridemos
 ##
