@@ -81,7 +81,7 @@ for(i in unique(de$disease)){
              position = position_jitterdodge(jitter.width = 0.4, jitter.height = 0, dodge.width = 1.0)) +
   geom_violin(scale = "width", draw_quantiles = c(0.025, 0.5, 0.975), alpha = 0.3,
               position = position_jitterdodge(jitter.width = 0, jitter.height = 0, dodge.width = 1.0)) +
-  scale_x_discrete(name = "Age (years)") +
+  scale_x_discrete(name = "Age group (years)") +
   scale_y_continuous(name = "Incidence rate") +
   scale_fill_viridis_d(begin = 0.1, end = 0.7) +
   scale_color_viridis_d(begin = 0.1, end = 0.7) +
@@ -161,7 +161,7 @@ for(i in unique(d$disease)){
                position = position_jitterdodge(jitter.width = 0.4, jitter.height = 0, dodge.width = 1.0)) +
     geom_violin(scale = "width", draw_quantiles = c(0.025, 0.5, 0.975), alpha = 0.3,
                 position = position_jitterdodge(jitter.width = 0, jitter.height = 0, dodge.width = 1.0)) +
-    scale_x_discrete(name = "Age (years)") +
+    scale_x_discrete(name = "Age group (years)") +
     scale_y_continuous(name = "Prevalence rate") +
     scale_fill_viridis_d(begin = 0.1, end = 0.7) +
     scale_color_viridis_d(begin = 0.1, end = 0.7) +

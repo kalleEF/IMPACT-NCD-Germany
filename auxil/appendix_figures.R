@@ -5,6 +5,7 @@ library(data.table)
 library(CKutils)
 library(ggplot2)
 library(ggthemes)
+library(ggtext)
 library(scales)
 library(viridis)
 library(cowplot)
@@ -92,7 +93,7 @@ prime_impact <- melt(prime_impact[, c("mc", "scenario",
 prime_impact <- prime_impact[, CKutils:::fquantile_byid(value, prbl, id = as.character(variable)), keyby = "scenario"]
 setnames(prime_impact, c("scenario", "outcome", scales:::percent(prbl, prefix = "prvl_rate_")))
 
-prime_impact[, model := "PRIMEtime CE (IMPACT RRs)"][, outcome := ifelse(outcome == "incr_qalys", "incr_qaly", outcome)]
+prime_impact[, model := "PRIMEtime (IMPACT RRs)"][, outcome := ifelse(outcome == "incr_qalys", "incr_qaly", outcome)]
 
 
 ## PRIMEtime Results with original RRs
@@ -114,7 +115,7 @@ prime_original <- melt(prime_original[, c("mc", "scenario",
 prime_original <- prime_original[, CKutils:::fquantile_byid(value, prbl, id = as.character(variable)), keyby = "scenario"]
 setnames(prime_original, c("scenario", "outcome", scales:::percent(prbl, prefix = "prvl_rate_")))
 
-prime_original[, model := "PRIMEtime CE (Original RRs)"][, outcome := ifelse(outcome == "incr_qalys", "incr_qaly", outcome)]
+prime_original[, model := "PRIMEtime (Original RRs)"][, outcome := ifelse(outcome == "incr_qalys", "incr_qaly", outcome)]
 
 
 ## Combine datasets for plot
@@ -313,7 +314,7 @@ prime_impact <- melt(prime_impact[, c("mc", "scenario", "sex",
 prime_impact <- prime_impact[, CKutils:::fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("sex", "scenario")]
 setnames(prime_impact, c("sex", "scenario", "outcome", scales:::percent(prbl, prefix = "prvl_rate_")))
 
-prime_impact[, model := "PRIMEtime CE (IMPACT RRs)"][, outcome := ifelse(outcome == "incr_qalys", "incr_qaly", outcome)]
+prime_impact[, model := "PRIMEtime (IMPACT RRs)"][, outcome := ifelse(outcome == "incr_qalys", "incr_qaly", outcome)]
 
 
 ## PRIMEtime Results with original RRs
@@ -335,7 +336,7 @@ prime_original <- melt(prime_original[, c("mc", "scenario", "sex",
 prime_original <- prime_original[, CKutils:::fquantile_byid(value, prbl, id = as.character(variable)), keyby = c("sex", "scenario")]
 setnames(prime_original, c("sex", "scenario", "outcome", scales:::percent(prbl, prefix = "prvl_rate_")))
 
-prime_original[, model := "PRIMEtime CE (Original RRs)"][, outcome := ifelse(outcome == "incr_qalys", "incr_qaly", outcome)]
+prime_original[, model := "PRIMEtime (Original RRs)"][, outcome := ifelse(outcome == "incr_qalys", "incr_qaly", outcome)]
 
 
 prime_original[, sex := ifelse(sex == "male", "Men", "Women")]
@@ -511,11 +512,11 @@ sc1 <- ggplot(impact_epi[disease == "diff_t2dm_prvl" & scenario != "sc42"], aes(
 sc1 <- sc1 + geom_line() +
              geom_hline(yintercept = 0, linetype = "dashed") +
              geom_ribbon(alpha = 0.3) +
-             facet_wrap(~ sex, scales = "free", labeller = sex_labeller) +
-             scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", "20% ad-valorem tax on SSBs & fruit juice",
-                                                                                     "Tiered tax with 30% reformulation")) +
-             scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", "20% ad-valorem tax on SSBs & fruit juice",
-                                                                                    "Tiered tax with 30% reformulation")) +
+             facet_wrap(~ sex, scales = "fixed", labeller = sex_labeller) +
+             scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c(sc1 = "*Ad-valorem* tax<sup>*</sup>", sc2 = "Extended *ad-valorem* tax<sup>#</sup>",
+                                                                                     sc32 = "Tiered tax<sup>&#8225;</sup>")) +
+             scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c(sc1 = "*Ad-valorem* tax<sup>*</sup>", sc2 = "Extended *ad-valorem* tax<sup>#</sup>",
+                                                                                    sc32 = "Tiered tax<sup>&#8225;</sup>")) +
              scale_x_continuous(name = "Year") +
              scale_y_continuous(name = "Cumulative cases prevented or postponed") +
              labs(col = "Sex") +
@@ -523,7 +524,8 @@ sc1 <- sc1 + geom_line() +
                                 panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
                                 axis.title = element_text(size = 10),
                                 plot.title = element_text(size = 16),
-                                legend.title = element_blank(), legend.text = element_text(size = 12)) +
+                                strip.text = element_text(size = 10),
+                                legend.title = element_blank(), legend.text = element_markdown(size = 12)) +
              theme(legend.position = "none")
 
 
@@ -537,11 +539,11 @@ sc2 <- ggplot(impact_epi[disease == "diff_chd_prvl" & scenario != "sc42"], aes(x
 sc2 <- sc2 + geom_line() +
   geom_hline(yintercept = 0, linetype = "dashed") +
   geom_ribbon(alpha = 0.3) +
-  facet_wrap(~ sex, scales = "free", labeller = sex_labeller) +
-  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", "20% ad-valorem tax on SSBs & fruit juice",
-                                                                          "Tiered tax with 30% reformulation")) +
-  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", "20% ad-valorem tax on SSBs & fruit juice",
-                                                                         "Tiered tax with 30% reformulation")) +
+  facet_wrap(~ sex, scales = "fixed", labeller = sex_labeller) +
+  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c(sc1 = "*Ad-valorem* tax<sup>*</sup>", sc2 = "Extended *ad-valorem* tax<sup>#</sup>",
+                                                                          sc32 = "Tiered tax<sup>&#8225;</sup>")) +
+  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c(sc1 = "*Ad-valorem* tax<sup>*</sup>", sc2 = "Extended *ad-valorem* tax<sup>#</sup>",
+                                                                         sc32 = "Tiered tax<sup>&#8225;</sup>")) +
   scale_x_continuous(name = "Year") +
   scale_y_continuous(name = "Cumulative cases prevented or postponed") +
   labs(col = "Sex") +
@@ -549,7 +551,8 @@ sc2 <- sc2 + geom_line() +
                      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
                      axis.title = element_text(size = 10),
                      plot.title = element_text(size = 16),
-                     legend.title = element_blank(), legend.text = element_text(size = 12)) +
+                     strip.text = element_text(size = 10),
+                     legend.title = element_blank(), legend.text = element_markdown(size = 12)) +
   theme(legend.position = "none")
 
 
@@ -563,11 +566,11 @@ sc3 <- ggplot(impact_epi[disease == "diff_stroke_prvl" & scenario != "sc42"], ae
 sc3 <- sc3 + geom_line() +
   geom_hline(yintercept = 0, linetype = "dashed") +
   geom_ribbon(alpha = 0.3) +
-  facet_wrap(~ sex, scales = "free", labeller = sex_labeller) +
-  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", "20% ad-valorem tax on SSBs & fruit juice",
-                                                                          "Tiered tax with 30% reformulation")) +
-  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", "20% ad-valorem tax on SSBs & fruit juice",
-                                                                         "Tiered tax with 30% reformulation")) +
+  facet_wrap(~ sex, scales = "fixed", labeller = sex_labeller) +
+  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c(sc1 = "*Ad-valorem* tax<sup>*</sup>", sc2 = "Extended *ad-valorem* tax<sup>#</sup>",
+                                                                          sc32 = "Tiered tax<sup>&#8225;</sup>")) +
+  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c(sc1 = "*Ad-valorem* tax<sup>*</sup>", sc2 = "Extended *ad-valorem* tax<sup>#</sup>",
+                                                                         sc32 = "Tiered tax<sup>&#8225;</sup>")) +
   scale_x_continuous(name = "Year") +
   scale_y_continuous(name = "Cumulative cases prevented or postponed") +
   labs(col = "Sex") +
@@ -575,7 +578,8 @@ sc3 <- sc3 + geom_line() +
                      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
                      axis.title = element_text(size = 10),
                      plot.title = element_text(size = 16),
-                     legend.title = element_blank(), legend.text = element_text(size = 12)) +
+                     strip.text = element_text(size = 10),
+                     legend.title = element_blank(), legend.text = element_markdown(size = 12)) +
   theme(legend.position = "none")
 
 
@@ -589,11 +593,11 @@ sc4 <- ggplot(impact_epi[disease == "diff_obesity_prvl" & scenario != "sc42"], a
 sc4 <- sc4 + geom_line() +
   geom_hline(yintercept = 0, linetype = "dashed") +
   geom_ribbon(alpha = 0.3) +
-  facet_wrap(~ sex, scales = "free", labeller = sex_labeller) +
-  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", "20% ad-valorem tax on SSBs & fruit juice",
-                                                                          "Tiered tax with 30% reformulation")) +
-  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", "20% ad-valorem tax on SSBs & fruit juice",
-                                                                         "Tiered tax with 30% reformulation")) +
+  facet_wrap(~ sex, scales = "fixed", labeller = sex_labeller) +
+  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c(sc1 = "*Ad-valorem* tax<sup>*</sup>", sc2 = "Extended *ad-valorem* tax<sup>#</sup>",
+                                                                          sc32 = "Tiered tax<sup>&#8225;</sup>")) +
+  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c(sc1 = "*Ad-valorem* tax<sup>*</sup>", sc2 = "Extended *ad-valorem* tax<sup>#</sup>",
+                                                                         sc32 = "Tiered tax<sup>&#8225;</sup>")) +
   scale_x_continuous(name = "Year") +
   scale_y_continuous(name = "Cumulative cases prevented or postponed") +
   labs(col = "Sex") +
@@ -601,7 +605,8 @@ sc4 <- sc4 + geom_line() +
                      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
                      axis.title = element_text(size = 10),
                      plot.title = element_text(size = 16),
-                     legend.title = element_blank(), legend.text = element_text(size = 12)) +
+                     strip.text = element_text(size = 10),
+                     legend.title = element_blank(), legend.text = element_markdown(size = 12)) +
   theme(legend.position = "bottom")
 
 legend <- get_legend(sc4)
@@ -658,11 +663,11 @@ sc1 <- ggplot(impact_epi[disease == "diff_t2dm_prvl" & scenario != "sc42"], aes(
 sc1 <- sc1 + geom_line() +
   geom_hline(yintercept = 0, linetype = "dashed") +
   geom_ribbon(alpha = 0.3) +
-  facet_wrap(~ sex, scales = "free", labeller = sex_labeller) +
-  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", "20% ad-valorem tax on SSBs & fruit juice",
-                                                                          "Tiered tax with 30% reformulation")) +
-  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", "20% ad-valorem tax on SSBs & fruit juice",
-                                                                         "Tiered tax with 30% reformulation")) +
+  facet_wrap(~ sex, scales = "fixed", labeller = sex_labeller) +
+  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c(sc1 = "*Ad-valorem* tax<sup>*</sup>", sc2 = "Extended *ad-valorem* tax<sup>#</sup>",
+                                                                          sc32 = "Tiered tax<sup>&#8225;</sup>")) +
+  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c(sc1 = "*Ad-valorem* tax<sup>*</sup>", sc2 = "Extended *ad-valorem* tax<sup>#</sup>",
+                                                                         sc32 = "Tiered tax<sup>&#8225;</sup>")) +
   scale_x_continuous(name = "Year") +
   scale_y_continuous(name = "Cumulative case years prevented or postponed") +
   labs(col = "Sex") +
@@ -670,7 +675,8 @@ sc1 <- sc1 + geom_line() +
                      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
                      axis.title = element_text(size = 10),
                      plot.title = element_text(size = 16),
-                     legend.title = element_blank(), legend.text = element_text(size = 12)) +
+                     strip.text = element_text(size = 10),
+                     legend.title = element_blank(), legend.text = element_markdown(size = 12)) +
   theme(legend.position = "none")
 
 
@@ -684,11 +690,11 @@ sc2 <- ggplot(impact_epi[disease == "diff_chd_prvl" & scenario != "sc42"], aes(x
 sc2 <- sc2 + geom_line() +
   geom_hline(yintercept = 0, linetype = "dashed") +
   geom_ribbon(alpha = 0.3) +
-  facet_wrap(~ sex, scales = "free", labeller = sex_labeller) +
-  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", "20% ad-valorem tax on SSBs & fruit juice",
-                                                                          "Tiered tax with 30% reformulation")) +
-  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", "20% ad-valorem tax on SSBs & fruit juice",
-                                                                         "Tiered tax with 30% reformulation")) +
+  facet_wrap(~ sex, scales = "fixed", labeller = sex_labeller) +
+  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c(sc1 = "*Ad-valorem* tax<sup>*</sup>", sc2 = "Extended *ad-valorem* tax<sup>#</sup>",
+                                                                          sc32 = "Tiered tax<sup>&#8225;</sup>")) +
+  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c(sc1 = "*Ad-valorem* tax<sup>*</sup>", sc2 = "Extended *ad-valorem* tax<sup>#</sup>",
+                                                                         sc32 = "Tiered tax<sup>&#8225;</sup>")) +
   scale_x_continuous(name = "Year") +
   scale_y_continuous(name = "Cumulative case years prevented or postponed") +
   labs(col = "Sex") +
@@ -696,7 +702,8 @@ sc2 <- sc2 + geom_line() +
                      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
                      axis.title = element_text(size = 10),
                      plot.title = element_text(size = 16),
-                     legend.title = element_blank(), legend.text = element_text(size = 12)) +
+                     strip.text = element_text(size = 10),
+                     legend.title = element_blank(), legend.text = element_markdown(size = 12)) +
   theme(legend.position = "none")
 
 
@@ -710,11 +717,11 @@ sc3 <- ggplot(impact_epi[disease == "diff_stroke_prvl" & scenario != "sc42"], ae
 sc3 <- sc3 + geom_line() +
   geom_hline(yintercept = 0, linetype = "dashed") +
   geom_ribbon(alpha = 0.3) +
-  facet_wrap(~ sex, scales = "free", labeller = sex_labeller) +
-  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", "20% ad-valorem tax on SSBs & fruit juice",
-                                                                          "Tiered tax with 30% reformulation")) +
-  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", "20% ad-valorem tax on SSBs & fruit juice",
-                                                                         "Tiered tax with 30% reformulation")) +
+  facet_wrap(~ sex, scales = "fixed", labeller = sex_labeller) +
+  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c(sc1 = "*Ad-valorem* tax<sup>*</sup>", sc2 = "Extended *ad-valorem* tax<sup>#</sup>",
+                                                                          sc32 = "Tiered tax<sup>&#8225;</sup>")) +
+  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c(sc1 = "*Ad-valorem* tax<sup>*</sup>", sc2 = "Extended *ad-valorem* tax<sup>#</sup>",
+                                                                         sc32 = "Tiered tax<sup>&#8225;</sup>")) +
   scale_x_continuous(name = "Year") +
   scale_y_continuous(name = "Cumulative case years prevented or postponed") +
   labs(col = "Sex") +
@@ -722,7 +729,8 @@ sc3 <- sc3 + geom_line() +
                      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
                      axis.title = element_text(size = 10),
                      plot.title = element_text(size = 16),
-                     legend.title = element_blank(), legend.text = element_text(size = 12)) +
+                     strip.text = element_text(size = 10),
+                     legend.title = element_blank(), legend.text = element_markdown(size = 12)) +
   theme(legend.position = "none")
 
 
@@ -736,11 +744,11 @@ sc4 <- ggplot(impact_epi[disease == "diff_obesity_prvl" & scenario != "sc42"], a
 sc4 <- sc4 + geom_line() +
   geom_hline(yintercept = 0, linetype = "dashed") +
   geom_ribbon(alpha = 0.3) +
-  facet_wrap(~ sex, scales = "free", labeller = sex_labeller) +
-  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", "20% ad-valorem tax on SSBs & fruit juice",
-                                                                          "Tiered tax with 30% reformulation")) +
-  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", "20% ad-valorem tax on SSBs & fruit juice",
-                                                                         "Tiered tax with 30% reformulation")) +
+  facet_wrap(~ sex, scales = "fixed", labeller = sex_labeller) +
+  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c(sc1 = "*Ad-valorem* tax<sup>*</sup>", sc2 = "Extended *ad-valorem* tax<sup>#</sup>",
+                                                                                   sc32 = "Tiered tax<sup>&#8225;</sup>")) +
+  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c(sc1 = "*Ad-valorem* tax<sup>*</sup>", sc2 = "Extended *ad-valorem* tax<sup>#</sup>",
+                                                                         sc32 = "Tiered tax<sup>&#8225;</sup>")) +
   scale_x_continuous(name = "Year") +
   scale_y_continuous(name = "Cumulative case years prevented or postponed") +
   labs(col = "Sex") +
@@ -748,7 +756,8 @@ sc4 <- sc4 + geom_line() +
                      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
                      axis.title = element_text(size = 10),
                      plot.title = element_text(size = 16),
-                     legend.title = element_blank(), legend.text = element_text(size = 12)) +
+                     strip.text = element_text(size = 10),
+                     legend.title = element_blank(), legend.text = element_markdown(size = 12)) +
   theme(legend.position = "bottom")
 
 legend <- get_legend(sc4)
@@ -782,7 +791,7 @@ impact[, `:=`(costs = cumsum(`incr_tot_costs_scl_50.0%`),
               costs_low = cumsum(`incr_tot_costs_scl_2.5%`),
               costs_high = cumsum(`incr_tot_costs_scl_97.5%`)), keyby = c("scenario")]
 
-pnl1 <- ggplot(impact[scenario != "sc42" & scenario != "sc2"], aes(x = year, y = costs,
+pnl1 <- ggplot(impact[scenario != "sc42"], aes(x = year, y = costs,
                            ymin = costs_low,
                            ymax = costs_high,
                            fill = scenario,
@@ -792,19 +801,19 @@ pnl1 <- ggplot(impact[scenario != "sc42" & scenario != "sc2"], aes(x = year, y =
   geom_hline(yintercept = 0, linetype = "dashed") +
   geom_vline(xintercept = 2023, linetype = "dotdash") +
   geom_ribbon(alpha = 0.2, color = NA) +
-  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", #"20% ad-valorem tax on SSBs & fruit juice",
-                                                                          "Tiered tax with 30% reformulation")) +
-  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", #"20% ad-valorem tax on SSBs & fruit juice",
-                                                                         "Tiered tax with 30% reformulation")) +
+  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c(sc1 = "*Ad-valorem* tax<sup>*</sup>", sc2 = "Extended *ad-valorem* tax<sup>#</sup>",
+                                                                          sc32 = "Tiered tax<sup>&#8225;</sup>")) +
+  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c(sc1 = "*Ad-valorem* tax<sup>*</sup>", sc2 = "Extended *ad-valorem* tax<sup>#</sup>",
+                                                                         sc32 = "Tiered tax<sup>&#8225;</sup>")) +
   scale_x_continuous(name = "Year", limits = c(2023, 2043)) +
-  scale_y_continuous(name = "Cumulative costs saved (in millions)", limits = c(-40000000000, 0),
+  scale_y_continuous(name = "Cumulative costs saved (in €-millions)", limits = c(-40000000000, 0),
                      labels = function(y) format(y/1000000)) +
   theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
                      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
                      axis.title = element_text(size = 8),
                      axis.text = element_text(size = 8),
                      plot.title = element_text(size = 10),
-                     legend.title = element_blank(), legend.text = element_text(size = 8)) +
+                     legend.title = element_blank(), legend.text = element_markdown(size = 10)) +
   theme(legend.position = "none")
 
 if(!Sys.info()[1] == "Windows"){
@@ -824,7 +833,7 @@ impact[, `:=`(costs = cumsum(`incr_tot_dir_costs_scl_50.0%`),
               costs_low = cumsum(`incr_tot_dir_costs_scl_2.5%`),
               costs_high = cumsum(`incr_tot_dir_costs_scl_97.5%`)), keyby = c("scenario")]
 
-pnl2 <- ggplot(impact[scenario != "sc42" & scenario != "sc2"], aes(x = year, y = costs,
+pnl2 <- ggplot(impact[scenario != "sc42"], aes(x = year, y = costs,
                            ymin = costs_low,
                            ymax = costs_high,
                            fill = scenario,
@@ -834,19 +843,19 @@ pnl2 <- ggplot(impact[scenario != "sc42" & scenario != "sc2"], aes(x = year, y =
   geom_hline(yintercept = 0, linetype = "dashed") +
   geom_vline(xintercept = 2023, linetype = "dotdash") +
   geom_ribbon(alpha = 0.2, color = NA) +
-  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", #"20% ad-valorem tax on SSBs & fruit juice",
-                                                                          "Tiered tax with 30% reformulation")) +
-  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c("20% ad-valorem tax on SSBs", #"20% ad-valorem tax on SSBs & fruit juice",
-                                                                         "Tiered tax with 30% reformulation")) +
+  scale_color_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c(sc1 = "*Ad-valorem* tax<sup>*</sup>", sc2 = "Extended *ad-valorem* tax<sup>#</sup>",
+                                                                          sc32 = "Tiered tax<sup>&#8225;</sup>")) +
+  scale_fill_viridis_d(name = "Scenario", begin = 0, end = 1, labels = c(sc1 = "*Ad-valorem* tax<sup>*</sup>", sc2 = "Extended *ad-valorem* tax<sup>#</sup>",
+                                                                         sc32 = "Tiered tax<sup>&#8225;</sup>")) +
   scale_x_continuous(name = "Year", limits = c(2023, 2043)) +
-  scale_y_continuous(name = "Cumulative costs saved (in millions)", limits = c(-40000000000, 0),
+  scale_y_continuous(name = "Cumulative costs saved (in €-millions)", limits = c(-40000000000, 0),
                      labels = function(y) format(y/1000000)) +
   theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
                      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
                      axis.title = element_text(size = 8),
                      axis.text = element_text(size = 8),
                      plot.title = element_text(size = 10),
-                     legend.title = element_blank(), legend.text = element_text(size = 8)) +
+                     legend.title = element_blank(), legend.text = element_markdown(size = 10)) +
   theme(legend.position = "bottom")
 
 legend <- get_legend(pnl2)
@@ -856,7 +865,7 @@ pnl2 <- pnl2 + theme(legend.position = "none")
 ggdraw(plot_grid(plot_grid(pnl1, pnl2, align = "h", ncol = 2),
                  plot_grid(NULL, legend, ncol = 1), ncol = 1, rel_heights = c(1, 0.05)))
 
-ggsave(paste0(out_path, "Figure_X_cum_costs_perspective_Michael.tiff"),
+ggsave(paste0(out_path, "Figure_X_cum_costs_perspective.tiff"),
        units = "in",
        height = 6, width = 7.5, dpi = 300)
 

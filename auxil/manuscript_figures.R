@@ -5,6 +5,7 @@ library(data.table)
 library(CKutils)
 library(ggplot2)
 library(ggthemes)
+library(ggtext)
 library(scales)
 library(viridis)
 library(cowplot)
@@ -102,15 +103,15 @@ ggplot(cea_agg[scenario %in% c("sc1", "sc2", "sc32")], aes(x = incr_qalys_scl,
                      labels = function(y) format(y/1000000)) +
   scale_x_continuous(name = "Incremental QALYs (in thousands)", c(seq(-1000000,500000,50000)), labels = function(y) format(y/1000)) +
   scale_color_viridis_d(name = "Scenario", option = "viridis",
-                       labels = c("20% ad-valorem tax on SSBs", "20% ad-valorem tax on SSBs & fruit juice",
-                                  "Tiered tax with 30% reformulation")) +
+                       labels = c(sc1 = "*Ad-valorem* tax<sup>*</sup>", sc2 = "Extended *ad-valorem* tax<sup>#</sup>",
+                                  sc32 = "Tiered tax<sup>&#8225;</sup>")) +
   theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
                      panel.grid.minor = element_blank(), strip.text.x = element_text(size = 8),
                      axis.line = element_line(colour = "black"),
                      axis.text = element_text(size = 8), axis.title = element_text(size = 8),
                      legend.position = c(0.78,0.3),
                      #legend.position = "bottom",
-                     legend.title = element_text(size = 10), legend.text = element_text(size = 8))
+                     legend.title = element_text(size = 10), legend.text = element_markdown(size = 9))
 
 
 ggsave(paste0(out_path, "Figure_1_cost_effectiveness_plane.tiff"),
@@ -198,7 +199,7 @@ prime_impact <- melt(prime_impact[, c("mc", "scenario",
 prime_impact <- prime_impact[, CKutils:::fquantile_byid(value, prbl, id = as.character(variable)), keyby = "scenario"]
 setnames(prime_impact, c("scenario", "outcome", scales:::percent(prbl, prefix = "prvl_rate_")))
 
-prime_impact[, model := "PRIMEtime CE"][, outcome := ifelse(outcome == "incr_qalys", "incr_qaly", outcome)]
+prime_impact[, model := "PRIMEtime"][, outcome := ifelse(outcome == "incr_qalys", "incr_qaly", outcome)]
 
 
 ## Combine datasets for plot

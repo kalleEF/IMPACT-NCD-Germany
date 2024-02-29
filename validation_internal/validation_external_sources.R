@@ -116,16 +116,17 @@ ext2 <- ggplot(prev_dat[study == "GEDA" & year == 2019]) +
 
 # Year 2013-2018
 
-ext3 <- ggplot(prev_dat[study == "KV"]) +
+ext3 <- ggplot(prev_dat[study == "KV" & year %in% c(2013:2018)]) +
   aes(x = year, y = `prvl_rate_50.0%`, color = agegrp) +
   facet_wrap(~ sex, scales = "fixed") +
   geom_line() + 
-  scale_color_viridis_d(name = "Age group") +
+  scale_color_viridis_d(name = "Year") +
   scale_y_continuous(breaks = seq(0, 0.5, 0.05)) +
-  expand_limits(y = c(0, 0.45)) +
+  scale_x_continuous(breaks = seq(2013, 2018, 1)) +
+  expand_limits(y = c(0, 0.45), x = c(2013, 2018)) +
   ggtitle("KV 2013-2018") + 
   ylab("Prevalence rate") +
-  xlab("Age group") +
+  xlab("Year") +
   theme(#axis.text.x = element_blank(),
         #axis.ticks.x = element_blank(),
         #axis.line.x = element_blank(),
@@ -179,10 +180,12 @@ imp3 <- ggplot(prev_dat[study == "IMPACT" & year %in% c(2013:2018)]) +
   aes(x = year, y = `prvl_rate_50.0%`, color = agegrp, fill = agegrp) +
   facet_wrap(~ sex, scales = "fixed") +
   geom_line() +
-  geom_ribbon(aes(ymin = `prvl_rate_2.5%`, ymax = `prvl_rate_97.5%`), alpha = 0.05, color = NA) +
+  geom_ribbon(aes(ymin = `prvl_rate_2.5%`, ymax = `prvl_rate_97.5%`), alpha = 0.18, color = NA) +
   scale_color_viridis_d(name = "Age group") +
   scale_fill_viridis_d(name = "Age group") +
   scale_y_continuous(breaks = seq(0, 0.5, 0.05)) +
+  scale_x_continuous(breaks = seq(2013, 2018, 1)) +
+  expand_limits(y = c(0, 0.45), x = c(2013, 2018)) +
   expand_limits(y = c(0, 0.45)) +
   ggtitle("IMPACT NCD Germany 2013-2018") + 
   ylab("Prevalence rate") +
