@@ -1,0 +1,19 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: IMPACT_NCD Germany
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Karl
+    family-names: Emmert-Fees
+    email: karl.emmert-fees@tum.de
+    affiliation: Technical University of Munich
+identifiers:
+  - type: url
+    value: 'https://github.com/kalleEF/IMPACT-NCD-Germany'
+    description: Github page of model.
+repository-code: 'https://github.com/kalleEF/IMPACT-NCD-Germany'
