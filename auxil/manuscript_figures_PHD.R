@@ -119,7 +119,7 @@ ggsave(paste0(out_path, "Figure_1_cost_effectiveness_plane.tiff"),
        height = 6, width = 7.5, dpi = 300)
 
 # PhD Presentation format:
-ggplot(cea_agg[scenario %in% c("sc1", "sc2", "sc32") & analysis == "All exposure pathways"], aes(x = incr_qalys_scl,
+ggplot(cea_agg[scenario %in% c("sc1", "sc32") & analysis == "All exposure pathways"], aes(x = incr_qalys_scl,
                                                            y = incr_tot_costs_scl,
                                                            col = scenario)) +
   stat_ellipse(linewidth = 0.5, type = "t") + 
@@ -136,7 +136,7 @@ ggplot(cea_agg[scenario %in% c("sc1", "sc2", "sc32") & analysis == "All exposure
                      labels = function(y) format(y/1000000)) +
   scale_x_continuous(name = "Incremental QALYs (in thousands)", c(seq(-1000000,500000,50000)), labels = function(y) format(y/1000)) +
   scale_color_viridis_d(name = "Scenario", option = "viridis",
-                        labels = c(sc1 = "*Ad-valorem* tax", sc2 = "Extended *ad-valorem* tax",
+                        labels = c(sc1 = "*Ad-valorem* tax", 
                                    sc32 = "Tiered tax")) +
   theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
                      panel.grid.minor = element_blank(), strip.text.x = element_text(size = 8),
@@ -147,6 +147,38 @@ ggplot(cea_agg[scenario %in% c("sc1", "sc2", "sc32") & analysis == "All exposure
                      legend.title = element_text(size = 10), legend.text = element_markdown(size = 9))
 
 ggsave(paste0(out_path, "Figure_1_cost_effectiveness_plane_pres_phd.tiff"),
+       units = "in",
+       height = 3.8, width = 8, dpi = 300)
+
+ggplot(cea_agg[scenario %in% c("sc1", "sc32")], aes(x = incr_qalys_scl,
+                                                                                          y = incr_tot_costs_scl,
+                                                                                          col = scenario)) +
+  stat_ellipse(linewidth = 0.5, type = "t") + 
+  facet_wrap(~ analysis) +
+  geom_point(shape = 16, alpha = 0.5, size = 1) +
+  #geom_point(data = cea_point, aes(x = mean_qaly, y = mean_cost, col = scenario), shape = 4, size = 5, stroke = 1.5) +
+  #geom_errorbar(data = cea_point[scenario %in% c("sc1", "sc2", "sc32")], aes(x = mean_qaly, y = mean_cost, ymin = ymin_cost, ymax = ymax_cost), inherit.aes = FALSE) +
+  #geom_errorbar(data = cea_point[scenario %in% c("sc1", "sc2", "sc32")], aes(x = mean_qaly, y = mean_cost, xmin = xmin_qaly, xmax = xmax_qaly), inherit.aes = FALSE) +
+  #geom_point(data = cea_point[scenario %in% c("sc1", "sc2", "sc32")], aes(x = mean_qaly, y = mean_cost), shape = 1, size = 2, col = "black") +
+  #geom_point(data = cea_point, aes(x = mean_qaly, y = mean_cost), shape = 4, size = 4, col = "black") +
+  geom_vline(xintercept = 0) +
+  geom_hline(yintercept = 0) +
+  #expand_limits(x = -8e4, y = 2e9) +
+  scale_y_continuous(name = "Incremental costs (in €-millions)", c(seq(0,80000000000,5000000000)*-1),
+                     labels = function(y) format(y/1000000)) +
+  scale_x_continuous(name = "Incremental QALYs (in thousands)", c(seq(-1000000,500000,50000)), labels = function(y) format(y/1000)) +
+  scale_color_viridis_d(name = "Scenario", option = "viridis",
+                        labels = c(sc1 = "*Ad-valorem* tax", 
+                                   sc32 = "Tiered tax")) +
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(), strip.text.x = element_text(size = 8),
+                     axis.line = element_line(colour = "black"),
+                     axis.text = element_text(size = 8), axis.title = element_text(size = 8),
+                     legend.position = c(0.73,0.3),
+                     #legend.position = "bottom",
+                     legend.title = element_text(size = 10), legend.text = element_markdown(size = 9))
+
+ggsave(paste0(out_path, "Figure_1_cost_effectiveness_plane_pres_phd_both.tiff"),
        units = "in",
        height = 3.8, width = 8, dpi = 300)
 
@@ -260,7 +292,7 @@ dat <- dat[scenario != "Scenario 4"]
 dodge <- position_dodge(width=0.9)
 
 # Panel A: CHD #
-sc1 <- ggplot(dat[outcome == "Coronary Heart Disease"],
+sc1 <- ggplot(dat[outcome == "Coronary Heart Disease" & scenario != "Extended\nad-valorem\ntax"],
               aes(y = scenario, x = `prvl_rate_50.0%` * -1,
                                    xmin = `prvl_rate_2.5%` * -1,
                                    xmax = `prvl_rate_97.5%` * -1,
@@ -284,7 +316,7 @@ sc1 <- ggplot(dat[outcome == "Coronary Heart Disease"],
                      legend.title = element_blank(), legend.text = element_text(size = 8))
 
 # Panel B: Stroke #
-sc2 <- ggplot(dat[outcome == "Stroke"],
+sc2 <- ggplot(dat[outcome == "Stroke" & scenario != "Extended\nad-valorem\ntax"],
               aes(y = scenario, x = `prvl_rate_50.0%` * -1,
                   xmin = `prvl_rate_2.5%` * -1,
                   xmax = `prvl_rate_97.5%` * -1,
@@ -308,7 +340,7 @@ sc2 <- ggplot(dat[outcome == "Stroke"],
                      legend.title = element_blank(), legend.text = element_text(size = 8))
 
 # Panel C: Type 2 Diabetes #
-sc3 <- ggplot(dat[outcome == "Type 2 Diabetes"],
+sc3 <- ggplot(dat[outcome == "Type 2 Diabetes" & scenario != "Extended\nad-valorem\ntax"],
               aes(y = scenario, x = `prvl_rate_50.0%` * -1,
                   xmin = `prvl_rate_2.5%` * -1,
                   xmax = `prvl_rate_97.5%` * -1,
@@ -332,7 +364,7 @@ sc3 <- ggplot(dat[outcome == "Type 2 Diabetes"],
                      legend.title = element_blank(), legend.text = element_text(size = 8))
 
 # Panel D: QALYs #
-sc4 <- ggplot(dat[outcome == "Incremental QALYs"],
+sc4 <- ggplot(dat[outcome == "Incremental QALYs" & scenario != "Extended\nad-valorem\ntax"],
               aes(y = scenario, x = `prvl_rate_50.0%` * -1,
                   xmin = `prvl_rate_2.5%` * -1,
                   xmax = `prvl_rate_97.5%` * -1,
@@ -362,9 +394,9 @@ sc4 <- sc4 + theme(legend.position = "none")
 ggdraw(plot_grid(plot_grid(sc1, sc2, sc3, sc4, align = "v", ncol = 2),
                  plot_grid(NULL, legend, ncol = 1), ncol = 1, rel_heights = c(1, 0.12)))
 
-ggsave(paste0(out_path, "Figure_2_cross_validation.tiff"),
-       units = "in",
-       height = 6, width = 7.5, dpi = 300)
+# ggsave(paste0(out_path, "Figure_2_cross_validation.tiff"),
+#        units = "in",
+#        height = 6, width = 7.5, dpi = 300)
 
 # Presentation format: 
 ggsave(paste0(out_path, "Figure_2_cross_validation_pres_phd.tiff"),

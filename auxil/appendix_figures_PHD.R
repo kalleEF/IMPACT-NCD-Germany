@@ -504,7 +504,7 @@ sex_labeller <- as_labeller(sex_names)
 
 # PhD Presentation plots:
 # Type 2 Diabetes
-ggplot(impact_epi[year == 2043 & disease == "diff_t2dm_prvl" & scenario != "sc42"],
+ggplot(impact_epi[year == 2043 & disease == "diff_t2dm_prvl" & scenario != "sc42" & scenario != "sc2"],
        aes(x = scenario, y = `prvl_rate_50.0%`, ymin = `prvl_rate_2.5%`, ymax = `prvl_rate_97.5%`,
            col = scenario, fill = scenario)) +
   facet_wrap(~ sex, labeller = sex_labeller) +
@@ -746,7 +746,7 @@ sex_labeller <- as_labeller(sex_names)
 
 # PhD Presentation plots:
 # Type 2 Diabetes
-ggplot(impact_epi[year == 2043 & disease == "diff_obesity_prvl" & scenario != "sc42"],
+ggplot(impact_epi[year == 2043 & disease == "diff_obesity_prvl" & scenario != "sc42" & scenario != "sc2"],
        aes(x = scenario, y = `prvl_rate_50.0%`, ymin = `prvl_rate_2.5%`, ymax = `prvl_rate_97.5%`,
            col = scenario, fill = scenario)) +
   facet_wrap(~ sex, labeller = sex_labeller) +
