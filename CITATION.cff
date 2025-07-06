@@ -7,11 +7,15 @@ message: >-
   If you use this software, please cite it using the
   metadata from this file.
 type: software
+date-released: "2023-10-21"
 authors:
   - given-names: Karl
     family-names: Emmert-Fees
     email: karl.emmert-fees@tum.de
     affiliation: Technical University of Munich
+  - given-names: Chris
+    family-names: Kypridemos
+    affiliation: University of Liverpool
 identifiers:
   - type: url
     value: 'https://github.com/kalleEF/IMPACT-NCD-Germany'
