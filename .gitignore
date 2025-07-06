@@ -1,3 +1,5 @@
+# Enter files and folders that are ignored by git here #
+
 # History files
 .Rhistory
 .Rapp.history
