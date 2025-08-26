@@ -4,7 +4,7 @@ Title: Utility Functions for IMPACTncdGer Model
 Version: 0.0.2
 Date: 2023-08-30
 Author: Chris Kypridemos, Karl M.F. Emmert-Fees
-Maintainer:  Karl M.F. Emmert-Fees <karlfees@gmail.com>
+Maintainer: Karl M.F. Emmert-Fees <karlfees@gmail.com>
 Description: This package contains the functions that are necessary for IMPACTncdGer model, adapted from the IMPACTncdEngl model.
 License: GPL (>=3)
 Encoding: UTF-8
@@ -32,4 +32,4 @@ LinkingTo: Rcpp,
            sitmo,
            BH,
            data.table
-RoxygenNote: 7.2.0
+RoxygenNote: 7.3.2

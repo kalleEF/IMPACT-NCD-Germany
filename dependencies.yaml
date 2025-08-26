@@ -29,8 +29,5 @@
 - piggyback
 - igraph # For topological ordering of diseases
 - data.table
-# - gamlss, # only necessary when fitting the models
-# - gamlss.tr, # only necessary when fitting the models
-# - mc2d, # only necessary for generating fixed_mc
-# - mc2d, # for rpert()
-# - shinydashboardPlus
+#- gamlss, # only necessary when fitting the models
+#- mc2d, # only necessary for generating fixed_mc

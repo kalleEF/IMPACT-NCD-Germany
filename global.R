@@ -38,7 +38,7 @@ options(future.rng.onMisuse = "ignore") # Remove false warning
 options(datatable.verbose = FALSE)
 options(datatable.showProgress = FALSE)
 
-dependencies(yaml::read_yaml("./dependencies.yaml"))
+dependencies(yaml::read_yaml("./dependencies.yaml"), verbose = TRUE, quiet = FALSE)
 
 if (interactive()) {
   snfile <- "./Rpackage/.IMPACTncd_Ger_model_pkg_snapshot.qs"
