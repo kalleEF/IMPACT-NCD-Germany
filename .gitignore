@@ -33,7 +33,7 @@
 
 # RStudio files
 .Rproj.user/
-/rstudio/.local/
+/rstudio/
 
 # produced vignettes
 vignettes/*.html
