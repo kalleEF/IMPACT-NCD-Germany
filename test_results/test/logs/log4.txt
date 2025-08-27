@@ -1,0 +1,260 @@
+$path
+[1] "/home/IMPACT/test_results/synthpop_e30e3a513f36aae27579edb28ffdd741_4.fst"
+
+$checksum
+[1] "e30e3a513f36aae27579edb28ffdd741"
+
+$mc
+[1] 4
+
+$n
+[1] 100
+
+$sim_horizon_max
+[1] 30
+
+$init_year_long
+[1] 2013
+
+$maxlag
+[1] 10
+
+$ageL
+[1] 30
+
+$ageH
+[1] 90
+
+$jumpiness
+[1] 1
+
+[1] "t2dm"
+[1] "bmi"
+
+<NA> 
+   0 
+[1] "ssb"
+
+<NA> 
+   0 
+[1] "bmi"
+
+<NA> 
+   0 
+[1] "ssb"
+
+<NA> 
+   0 
+[1] "chd"
+[1] "bmi"
+
+<NA> 
+   0 
+[1] "ssb"
+
+<NA> 
+   0 
+[1] "t2dm_prvl"
+
+<NA> 
+   0 
+[1] "bmi"
+
+<NA> 
+   0 
+[1] "ssb"
+
+<NA> 
+   0 
+[1] "t2dm_prvl"
+
+<NA> 
+   0 
+[1] "stroke"
+[1] "bmi"
+
+<NA> 
+   0 
+[1] "t2dm_prvl"
+
+<NA> 
+   0 
+[1] "bmi"
+
+<NA> 
+   0 
+[1] "t2dm_prvl"
+
+<NA> 
+   0 
+[1] "obesity"
+[1] "bmi"
+
+<NA> 
+   0 
+[1] "nonmodelled"
+[1] "t2dm_prvl"
+
+<NA> 
+   0 
+[1] "t2dm"
+[1] "bmi"
+
+<NA> 
+   0 
+[1] "ssb"
+
+<NA> 
+   0 
+[1] "chd"
+[1] "bmi"
+
+<NA> 
+   0 
+[1] "ssb"
+
+<NA> 
+   0 
+[1] "t2dm_prvl"
+
+<NA> 
+   0 
+[1] "stroke"
+[1] "bmi"
+
+<NA> 
+   0 
+[1] "t2dm_prvl"
+
+<NA> 
+   0 
+[1] "obesity"
+[1] "bmi"
+
+<NA> 
+   0 
+[1] "nonmodelled"
+[1] "t2dm_prvl"
+
+<NA> 
+   0 
+$path
+[1] "/home/IMPACT/test_results/synthpop_e30e3a513f36aae27579edb28ffdd741_4.fst"
+
+$checksum
+[1] "e30e3a513f36aae27579edb28ffdd741"
+
+$mc
+[1] 4
+
+$n
+[1] 100
+
+$sim_horizon_max
+[1] 30
+
+$init_year_long
+[1] 2013
+
+$maxlag
+[1] 10
+
+$ageL
+[1] 30
+
+$ageH
+[1] 90
+
+$jumpiness
+[1] 1
+
+[1] "t2dm"
+[1] "bmi"
+
+<NA> 
+   0 
+[1] "ssb"
+
+<NA> 
+   0 
+[1] "chd"
+$path
+[1] "/home/IMPACT/test_results/synthpop_e30e3a513f36aae27579edb28ffdd741_4.fst"
+
+$checksum
+[1] "e30e3a513f36aae27579edb28ffdd741"
+
+$mc
+[1] 4
+
+$n
+[1] 100
+
+$sim_horizon_max
+[1] 30
+
+$init_year_long
+[1] 2013
+
+$maxlag
+[1] 10
+
+$ageL
+[1] 30
+
+$ageH
+[1] 90
+
+$jumpiness
+[1] 1
+
+[1] "t2dm"
+[1] "bmi"
+
+<NA> 
+   0 
+[1] "ssb"
+
+<NA> 
+   0 
+[1] "chd"
+$path
+[1] "/home/IMPACT/test_results/synthpop_e30e3a513f36aae27579edb28ffdd741_4.fst"
+
+$checksum
+[1] "e30e3a513f36aae27579edb28ffdd741"
+
+$mc
+[1] 4
+
+$n
+[1] 100
+
+$sim_horizon_max
+[1] 30
+
+$init_year_long
+[1] 2013
+
+$maxlag
+[1] 10
+
+$ageL
+[1] 30
+
+$ageH
+[1] 90
+
+$jumpiness
+[1] 1
+
+[1] "t2dm"
+[1] "bmi"
+
+<NA> 
+   0 
+[1] "ssb"
+
+<NA> 
+   0 
+[1] "chd"

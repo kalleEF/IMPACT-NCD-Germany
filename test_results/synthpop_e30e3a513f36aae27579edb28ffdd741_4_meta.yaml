@@ -1,0 +1,7 @@
+'n': 100
+sim_horizon_max: 30
+init_year_long: 2013
+maxlag: 10
+ageL: 30
+ageH: 90
+jumpiness: 1.0

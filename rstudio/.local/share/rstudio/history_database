@@ -1,0 +1,383 @@
+1751740262644:# Load packages
+1751740262644:source("./global.R")
+1751740281437:# Load packages
+1751740281437:source("./global.R")
+1751740515638:install.packages("pillar")
+1751740532654:# Load packages
+1751740532654:source("./global.R")
+1751740574898:cat("Initialising IMPACTncd_Ger model...\n\n")
+1751740575998:if (interactive() && !nzchar(system.file(package = "CKutils"))) {
+1751740575998:if (!nzchar(system.file(package = "remotes"))) install.packages("remotes")
+1751740575998:remotes::install_github("ChristK/CKutils", force = TRUE, upgrade = "never")
+1751740575999:}
+1751740577686:library(CKutils)
+1751740578460:options(rgl.useNULL = TRUE)  # suppress error by demography in rstudio server
+1751740578723:options(future.fork.enable = TRUE) # TODO remove for production
+1751740578906:options(future.rng.onMisuse = "ignore") # Remove false warning
+1751740579089:options(datatable.verbose = FALSE)
+1751740579288:options(datatable.showProgress = FALSE)
+1751740579879:dependencies(yaml::read_yaml("./dependencies.yaml"))
+1751740607643:install.packages("ggplot2")
+1751740619742:dependencies(yaml::read_yaml("./dependencies.yaml"))
+1751740635582:library(ggplot2)
+1751740661633:install.packages("pillar")
+1751740683757:install.packages("tidyverse")
+1751740715795:dependencies(yaml::read_yaml("./dependencies.yaml"))
+1751740727685:library(ggplot2)
+1751747929116:cat("Initialising IMPACTncd_Ger model...\n\n")
+1751747931142:if (interactive() && !nzchar(system.file(package = "CKutils"))) {
+1751747931142:if (!nzchar(system.file(package = "remotes"))) install.packages("remotes")
+1751747931142:remotes::install_github("ChristK/CKutils", force = TRUE, upgrade = "never")
+1751747931142:}
+1751747932454:library(CKutils)
+1751747934094:options(rgl.useNULL = TRUE)  # suppress error by demography in rstudio server
+1751747934325:options(future.fork.enable = TRUE) # TODO remove for production
+1751747934542:options(future.rng.onMisuse = "ignore") # Remove false warning
+1751747934756:options(datatable.verbose = FALSE)
+1751747935191:options(datatable.showProgress = FALSE)
+1751747935703:dependencies(yaml::read_yaml("./dependencies.yaml"))
+1751748028025:getOption("repos")
+1751748177268:getOption("repos")
+1751748180757:dependencies(yaml::read_yaml("./dependencies.yaml"))
+1751748188297:dependencies(yaml::read_yaml("./dependencies.yaml"))
+1751748219039:install.packages("pillar")
+1751748245256:install.packages("pillar", repos = "https://packagemanager.rstudio.com/all/__linux__/focal/latest")
+1751748253322:dependencies(yaml::read_yaml("./dependencies.yaml"))
+1751748342309:install.packages("igraph", repos = "https://packagemanager.rstudio.com/all/__linux__/focal/latest")
+1751748354475:dependencies(yaml::read_yaml("./dependencies.yaml"))
+1751748363137:install.packages("igraph", repos = "https://packagemanager.rstudio.com/all/__linux__/focal/latest")
+1751748368733:dependencies(yaml::read_yaml("./dependencies.yaml"))
+1751748424570:install.packages("igraph", repos = "https://cloud.r-project.org/")
+1751748634197:dependencies
+1751748638675:options(repos = c(CRAN = "https://cloud.r-project.org/"))
+1751748638943:dependencies(yaml::read_yaml("./dependencies.yaml"))
+1751748705653:library(igraph)
+1751748720535:remove.packages("igraph")
+1751748728492:dependencies(yaml::read_yaml("./dependencies.yaml"))
+1751748908053:cat("Initialising IMPACTncd_Ger model...\n\n")
+1751748908054:if (interactive() && !nzchar(system.file(package = "CKutils"))) {
+1751748908054:if (!nzchar(system.file(package = "remotes"))) install.packages("remotes")
+1751748908054:remotes::install_github("ChristK/CKutils", force = TRUE, upgrade = "never")
+1751748908054:}
+1751748908056:library(CKutils)
+1751748908737:options(rgl.useNULL = TRUE)  # suppress error by demography in rstudio server
+1751748908738:options(future.fork.enable = TRUE) # TODO remove for production
+1751748908738:options(future.rng.onMisuse = "ignore") # Remove false warning
+1751748908738:options(datatable.verbose = FALSE)
+1751748908738:options(datatable.showProgress = FALSE)
+1751748908738:options(repos = c(CRAN = "https://cloud.r-project.org/"))
+1751748908738:dependencies(yaml::read_yaml("./dependencies.yaml"))
+1751748915772:if (interactive()) {
+1751748915773:snfile <- "./Rpackage/.IMPACTncd_Ger_model_pkg_snapshot.qs"
+1751748915773:if (file.exists(snfile)) snapshot <- changedFiles(qread(snfile))
+1751748915773:if (!nzchar(system.file(package = "IMPACTncdGer")) ||
+1751748915773:!file.exists(snfile) || any(nzchar(snapshot$added),
+1751748915773:nzchar(snapshot$deleted),
+1751748915773:nzchar(snapshot$changed))) {
+1751748915773:if (!nzchar(system.file(package = "remotes")))
+1751748915773:install.packages("remotes")
+1751748915774:if (nzchar(system.file(package = "roxygen2")))
+1751748915774:roxygen2::roxygenise("./Rpackage/IMPACTncd_Ger_model_pkg/", clean = TRUE)
+1751748915774:detach_package <- function(pkg, character.only = FALSE)
+1751748915774:{
+1751748915774:if(!character.only)
+1751748915774:{
+1751748915774:pkg <- deparse(substitute(pkg))
+1751748915774:}
+1751748915775:search_item <- paste("package", pkg, sep = ":")
+1751748915775:while(search_item %in% search())
+1751748915775:{
+1751748915775:detach(search_item, unload = TRUE, character.only = TRUE)
+1751748915775:}
+1751748915775:}
+1751748915775:detach_package(IMPACTncdGer)
+1751748915775:remotes::install_local("./Rpackage/IMPACTncd_Ger_model_pkg/",
+1751748915776:force = TRUE,
+1751748915776:upgrade = "never")
+1751748915776:if (file.exists(snfile)) file.remove(snfile)
+1751748915776:qsave(
+1751748915776:fileSnapshot(
+1751748915776:"./Rpackage/IMPACTncd_Ger_model_pkg/",
+1751748915776:timestamp = NULL,
+1751748915777:md5sum = TRUE,
+1751748915777:recursive = TRUE
+1751748915777:),
+1751748915777:snfile
+1751748915777:)
+1751748915777:}
+1751748915777:}
+1751749333735:.Last.error
+1751749559684:interactive()
+1751749574332:snfile <- "./Rpackage/.IMPACTncd_Ger_model_pkg_snapshot.qs"
+1751749621868:file.exists(snfile)
+1751749655685:snapshot <- changedFiles(qread(snfile))
+1751749717626:is_docker <- file.exists("/.dockerenv")
+1751749717626:print(is_docker)
+1751749773943:if (file.exists("/.dockerenv")) {file.remove("./Rpackage/.IMPACTncd_Ger_model_pkg_snapshot.qs")}
+1751749790996:file.exists("/.dockerenv")
+1751749802371:if (file.exists("/.dockerenv")) file.remove("./Rpackage/.IMPACTncd_Ger_model_pkg_snapshot.qs")
+1751749820545:file.exists("/.dockerenv")
+1751749914542:file.exists("/.dockerenv") && file.exists(snfile)
+1751749922103:if (interactive()) {
+1751749922103:snfile <- "./Rpackage/.IMPACTncd_Ger_model_pkg_snapshot.qs"
+1751749922103:if (file.exists("/.dockerenv") && file.exists(snfile)) file.remove("./Rpackage/.IMPACTncd_Ger_model_pkg_snapshot.qs")
+1751749922104:if (file.exists(snfile)) snapshot <- changedFiles(qread(snfile))
+1751749922104:if (!nzchar(system.file(package = "IMPACTncdGer")) ||
+1751749922104:!file.exists(snfile) || any(nzchar(snapshot$added),
+1751749922104:nzchar(snapshot$deleted),
+1751749922104:nzchar(snapshot$changed))) {
+1751749922104:if (!nzchar(system.file(package = "remotes")))
+1751749922104:install.packages("remotes")
+1751749922105:if (nzchar(system.file(package = "roxygen2")))
+1751749922105:roxygen2::roxygenise("./Rpackage/IMPACTncd_Ger_model_pkg/", clean = TRUE)
+1751749922105:detach_package <- function(pkg, character.only = FALSE)
+1751749922105:{
+1751749922105:if(!character.only)
+1751749922105:{
+1751749922105:pkg <- deparse(substitute(pkg))
+1751749922105:}
+1751749922105:search_item <- paste("package", pkg, sep = ":")
+1751749922106:while(search_item %in% search())
+1751749922106:{
+1751749922106:detach(search_item, unload = TRUE, character.only = TRUE)
+1751749922106:}
+1751749922106:}
+1751749922106:detach_package(IMPACTncdGer)
+1751749922106:remotes::install_local("./Rpackage/IMPACTncd_Ger_model_pkg/",
+1751749922106:force = TRUE,
+1751749922107:upgrade = "never")
+1751749922107:if (file.exists(snfile)) file.remove(snfile)
+1751749922107:qsave(
+1751749922107:fileSnapshot(
+1751749922107:"./Rpackage/IMPACTncd_Ger_model_pkg/",
+1751749922107:timestamp = NULL,
+1751749922108:md5sum = TRUE,
+1751749922108:recursive = TRUE
+1751749922108:),
+1751749922108:snfile
+1751749922108:)
+1751749922108:}
+1751749922108:}
+1751749952847:dependencies(yaml::read_yaml("./dependencies.yaml"))
+1751749971930:dependencies(yaml::read_yaml("./dependencies.yaml"))
+1751749984571:options(repos = c(CRAN = "https://cloud.r-project.org/"))
+1751749984855:dependencies(yaml::read_yaml("./dependencies.yaml"))
+1751750004036:dependencies(yaml::read_yaml("./dependencies.yaml"))
+1751750157085:dependencies(yaml::read_yaml("./dependencies.yaml"))
+1751750183530:install.packages("ggpubr")
+1756289151386:getwd()
+1756289176363:getwd()
+1756289188753:list.dirs()
+1756289209736:source("./global.R")
+1756289275397:install.packages("plotly")
+1756289365934:cat("Initialising IMPACTncd_Ger model...\n\n")
+1756289366568:if (interactive() && !nzchar(system.file(package = "CKutils"))) {
+1756289366589:if (!nzchar(system.file(package = "remotes"))) install.packages("remotes")
+1756289366610:remotes::install_github("ChristK/CKutils", force = TRUE, upgrade = "never")
+1756289366632:}
+1756289367321:library(CKutils)
+1756289368049:options(rgl.useNULL = TRUE)  # suppress error by demography in rstudio server
+1756289368658:options(future.fork.enable = TRUE) # TODO remove for production
+1756289369334:options(future.rng.onMisuse = "ignore") # Remove false warning
+1756289369492:options(datatable.verbose = FALSE)
+1756289369664:options(datatable.showProgress = FALSE)
+1756289369827:options(repos = c(CRAN = "https://cloud.r-project.org/"))
+1756289384808:dependencies(yaml::read_yaml("./dependencies.yaml"))
+1756289397810:if (interactive()) {
+1756289397834:snfile <- "./Rpackage/.IMPACTncd_Ger_model_pkg_snapshot.qs"
+1756289397858:if (file.exists("/.dockerenv") && file.exists(snfile)) file.remove("./Rpackage/.IMPACTncd_Ger_model_pkg_snapshot.qs")
+1756289397891:if (file.exists(snfile)) snapshot <- changedFiles(qread(snfile))
+1756289397924:if (!nzchar(system.file(package = "IMPACTncdGer")) ||
+1756289397945:!file.exists(snfile) || any(nzchar(snapshot$added),
+1756289397968:nzchar(snapshot$deleted),
+1756289397991:nzchar(snapshot$changed))) {
+1756289398014:if (!nzchar(system.file(package = "remotes")))
+1756289398042:install.packages("remotes")
+1756289398070:if (nzchar(system.file(package = "roxygen2")))
+1756289398094:roxygen2::roxygenise("./Rpackage/IMPACTncd_Ger_model_pkg/", clean = TRUE)
+1756289398115:detach_package <- function(pkg, character.only = FALSE)
+1756289398137:{
+1756289398159:if(!character.only)
+1756289398180:{
+1756289398199:pkg <- deparse(substitute(pkg))
+1756289398217:}
+1756289398235:search_item <- paste("package", pkg, sep = ":")
+1756289398252:while(search_item %in% search())
+1756289398270:{
+1756289398287:detach(search_item, unload = TRUE, character.only = TRUE)
+1756289398304:}
+1756289398322:}
+1756289398340:detach_package(IMPACTncdGer)
+1756289398358:remotes::install_local("./Rpackage/IMPACTncd_Ger_model_pkg/",
+1756289398376:force = TRUE,
+1756289398394:upgrade = "never")
+1756289398422:if (file.exists(snfile)) file.remove(snfile)
+1756289398441:qsave(
+1756289398459:fileSnapshot(
+1756289398477:"./Rpackage/IMPACTncd_Ger_model_pkg/",
+1756289398495:timestamp = NULL,
+1756289398513:md5sum = TRUE,
+1756289398530:recursive = TRUE
+1756289398548:),
+1756289398568:snfile
+1756289398587:)
+1756289398606:}
+1756289398625:}
+1756289491124:snfile <- "./Rpackage/.IMPACTncd_Ger_model_pkg_snapshot.qs"
+1756289492561:if (file.exists("/.dockerenv") && file.exists(snfile)) file.remove("./Rpackage/.IMPACTncd_Ger_model_pkg_snapshot.qs")
+1756289493444:if (file.exists(snfile)) snapshot <- changedFiles(qread(snfile))
+1756289495657:if (!nzchar(system.file(package = "IMPACTncdGer")) ||
+1756289495685:!file.exists(snfile) || any(nzchar(snapshot$added),
+1756289495727:nzchar(snapshot$deleted),
+1756289495763:nzchar(snapshot$changed))) {
+1756289495795:if (!nzchar(system.file(package = "remotes")))
+1756289495830:install.packages("remotes")
+1756289495866:if (nzchar(system.file(package = "roxygen2")))
+1756289495899:roxygen2::roxygenise("./Rpackage/IMPACTncd_Ger_model_pkg/", clean = TRUE)
+1756289495934:detach_package <- function(pkg, character.only = FALSE)
+1756289495968:{
+1756289496001:if(!character.only)
+1756289496035:{
+1756289496063:pkg <- deparse(substitute(pkg))
+1756289496107:}
+1756289496145:search_item <- paste("package", pkg, sep = ":")
+1756289496195:while(search_item %in% search())
+1756289496231:{
+1756289496271:detach(search_item, unload = TRUE, character.only = TRUE)
+1756289496312:}
+1756289496348:}
+1756289496383:detach_package(IMPACTncdGer)
+1756289496417:remotes::install_local("./Rpackage/IMPACTncd_Ger_model_pkg/",
+1756289496451:force = TRUE,
+1756289496485:upgrade = "never")
+1756289496533:if (file.exists(snfile)) file.remove(snfile)
+1756289496563:qsave(
+1756289496594:fileSnapshot(
+1756289496623:"./Rpackage/IMPACTncd_Ger_model_pkg/",
+1756289496653:timestamp = NULL,
+1756289496683:md5sum = TRUE,
+1756289496712:recursive = TRUE
+1756289496740:),
+1756289496769:snfile
+1756289496798:)
+1756289496826:}
+1756289562976:snfile <- "./Rpackage/.IMPACTncd_Ger_model_pkg_snapshot.qs"
+1756289563217:if (file.exists("/.dockerenv") && file.exists(snfile)) file.remove("./Rpackage/.IMPACTncd_Ger_model_pkg_snapshot.qs")
+1756289563469:if (file.exists(snfile)) snapshot <- changedFiles(qread(snfile))
+1756289563729:if (!nzchar(system.file(package = "IMPACTncdGer")) ||
+1756289563753:!file.exists(snfile) || any(nzchar(snapshot$added),
+1756289563776:nzchar(snapshot$deleted),
+1756289563796:nzchar(snapshot$changed))) {
+1756289563821:if (!nzchar(system.file(package = "remotes")))
+1756289563840:install.packages("remotes")
+1756289563862:if (nzchar(system.file(package = "roxygen2")))
+1756289563882:roxygen2::roxygenise("./Rpackage/IMPACTncd_Ger_model_pkg/", clean = TRUE)
+1756289563903:detach_package <- function(pkg, character.only = FALSE)
+1756289563921:{
+1756289563941:if(!character.only)
+1756289563961:{
+1756289563980:pkg <- deparse(substitute(pkg))
+1756289564003:}
+1756289564027:search_item <- paste("package", pkg, sep = ":")
+1756289564051:while(search_item %in% search())
+1756289564072:{
+1756289564094:detach(search_item, unload = TRUE, character.only = TRUE)
+1756289564114:}
+1756289564134:}
+1756289564153:detach_package(IMPACTncdGer)
+1756289564173:remotes::install_local("./Rpackage/IMPACTncd_Ger_model_pkg/",
+1756289564195:force = TRUE,
+1756289564216:upgrade = "never")
+1756289564249:if (file.exists(snfile)) file.remove(snfile)
+1756289564269:qsave(
+1756289564289:fileSnapshot(
+1756289564308:"./Rpackage/IMPACTncd_Ger_model_pkg/",
+1756289564328:timestamp = NULL,
+1756289564351:md5sum = TRUE,
+1756289564370:recursive = TRUE
+1756289564390:),
+1756289564410:snfile
+1756289564429:)
+1756289564448:}
+1756289565357:if (interactive()) {
+1756289565380:snfile <- "./Rpackage/.IMPACTncd_Ger_model_pkg_snapshot.qs"
+1756289565401:if (file.exists("/.dockerenv") && file.exists(snfile)) file.remove("./Rpackage/.IMPACTncd_Ger_model_pkg_snapshot.qs")
+1756289565449:if (file.exists(snfile)) snapshot <- changedFiles(qread(snfile))
+1756289565481:if (!nzchar(system.file(package = "IMPACTncdGer")) ||
+1756289565502:!file.exists(snfile) || any(nzchar(snapshot$added),
+1756289565522:nzchar(snapshot$deleted),
+1756289565542:nzchar(snapshot$changed))) {
+1756289565563:if (!nzchar(system.file(package = "remotes")))
+1756289565583:install.packages("remotes")
+1756289565602:if (nzchar(system.file(package = "roxygen2")))
+1756289565622:roxygen2::roxygenise("./Rpackage/IMPACTncd_Ger_model_pkg/", clean = TRUE)
+1756289565640:detach_package <- function(pkg, character.only = FALSE)
+1756289565659:{
+1756289565676:if(!character.only)
+1756289565695:{
+1756289565719:pkg <- deparse(substitute(pkg))
+1756289565742:}
+1756289565762:search_item <- paste("package", pkg, sep = ":")
+1756289565782:while(search_item %in% search())
+1756289565801:{
+1756289565819:detach(search_item, unload = TRUE, character.only = TRUE)
+1756289565838:}
+1756289565856:}
+1756289565877:detach_package(IMPACTncdGer)
+1756289565897:remotes::install_local("./Rpackage/IMPACTncd_Ger_model_pkg/",
+1756289565917:force = TRUE,
+1756289565937:upgrade = "never")
+1756289565969:if (file.exists(snfile)) file.remove(snfile)
+1756289565987:qsave(
+1756289566009:fileSnapshot(
+1756289566032:"./Rpackage/IMPACTncd_Ger_model_pkg/",
+1756289566053:timestamp = NULL,
+1756289566073:md5sum = TRUE,
+1756289566091:recursive = TRUE
+1756289566109:),
+1756289566128:snfile
+1756289566149:)
+1756289566173:}
+1756289566198:}
+1756289596154:if (interactive()) {
+1756289596184:snfile <- "./Rpackage/.IMPACTncd_Ger_model_pkg_snapshot.qs"
+1756289596212:if (file.exists("/.dockerenv") && file.exists(snfile)) file.remove("./Rpackage/.IMPACTncd_Ger_model_pkg_snapshot.qs")
+1756289596269:if (file.exists(snfile)) snapshot <- changedFiles(qread(snfile))
+1756289596311:if (!nzchar(system.file(package = "IMPACTncdGer")) ||
+1756289596332:!file.exists(snfile) || any(nzchar(snapshot$added),
+1756289596352:nzchar(snapshot$deleted),
+1756289596374:nzchar(snapshot$changed))) {
+1756289596397:if (!nzchar(system.file(package = "remotes")))
+1756289596420:install.packages("remotes")
+1756289596441:if (nzchar(system.file(package = "roxygen2")))
+1756289596462:roxygen2::roxygenise("./Rpackage/IMPACTncd_Ger_model_pkg/", clean = TRUE)
+1756289596483:detach_package <- function(pkg, character.only = FALSE)
+1756289596503:{
+1756289596524:if(!character.only)
+1756289596546:{
+1756289596567:pkg <- deparse(substitute(pkg))
+1756289596597:}
+1756289596625:search_item <- paste("package", pkg, sep = ":")
+1756289596651:while(search_item %in% search())
+1756289596677:{
+1756289596703:detach(search_item, unload = TRUE, character.only = TRUE)
+1756289596722:}
+1756289596743:}
+1756289596765:detach_package(IMPACTncdGer)
+1756289596788:remotes::install_local("./Rpackage/IMPACTncd_Ger_model_pkg/",
+1756289596809:force = TRUE,
+1756289596831:upgrade = "never")
+1756289596861:if (file.exists(snfile)) file.remove(snfile)
+1756289596881:qsave(
+1756289596899:fileSnapshot(
+1756289596918:"./Rpackage/IMPACTncd_Ger_model_pkg/",
+1756289596937:timestamp = NULL,
+1756289596958:md5sum = TRUE,
+1756289596977:recursive = TRUE
+1756289596997:),
+1756289597017:snfile
+1756289597037:)
+1756289597056:}
+1756289597076:}
+1756289675176:install.packages("Matrix")
+1756289680570:install.packages("Matrix")

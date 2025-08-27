@@ -1,0 +1,20 @@
+{
+    "colourpicker::colourPickerAddin": {
+        "name": "Colour Picker",
+        "package": "colourpicker",
+        "title": "",
+        "description": "Lets you easily select colours.",
+        "interactive": true,
+        "binding": "colourPickerAddin",
+        "ordinal": 2
+    },
+    "colourpicker::plotHelperAddin": {
+        "name": "Plot Colour Helper",
+        "package": "colourpicker",
+        "title": "",
+        "description": "Interactively pick colours to use in your plot.",
+        "interactive": true,
+        "binding": "plotHelperAddin",
+        "ordinal": 1
+    }
+}

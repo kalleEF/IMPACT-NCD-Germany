@@ -1,0 +1,21 @@
+Start of parallelisation at: 2025-07-06 09:01:53.709933
+Start mc iteration 1 at: 2025-07-06 09:01:53.769906
+Start mc iteration 2 at: 2025-07-06 09:01:53.792291
+Start mc iteration 3 at: 2025-07-06 09:01:53.825627
+Start mc iteration 4 at: 2025-07-06 09:01:53.864609
+End of parallelisation at: 2025-07-06 09:03:33.460167
+Start of parallelisation at: 2025-07-06 09:05:09.352204
+Start mc iteration 1 at: 2025-07-06 09:05:09.39904
+Start mc iteration 2 at: 2025-07-06 09:05:09.431655
+Start mc iteration 3 at: 2025-07-06 09:05:09.463476
+Start mc iteration 4 at: 2025-07-06 09:05:09.495389
+Start of parallelisation at: 2025-07-06 09:05:16.837616
+Start mc iteration 1 at: 2025-07-06 09:05:16.876291
+Start mc iteration 2 at: 2025-07-06 09:05:16.899941
+Start mc iteration 3 at: 2025-07-06 09:05:16.927685
+Start mc iteration 4 at: 2025-07-06 09:05:16.96473
+Start of parallelisation at: 2025-07-06 09:12:16.235506
+Start mc iteration 1 at: 2025-07-06 09:12:16.291167
+Start mc iteration 2 at: 2025-07-06 09:12:16.324107
+Start mc iteration 3 at: 2025-07-06 09:12:16.359225
+Start mc iteration 4 at: 2025-07-06 09:12:16.395681

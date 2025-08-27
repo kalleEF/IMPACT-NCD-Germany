@@ -37,13 +37,15 @@ options(future.fork.enable = TRUE) # TODO remove for production
 options(future.rng.onMisuse = "ignore") # Remove false warning
 options(datatable.verbose = FALSE)
 options(datatable.showProgress = FALSE)
+options(repos = c(CRAN = "https://cloud.r-project.org/"))
 
 dependencies(yaml::read_yaml("./dependencies.yaml"), verbose = TRUE, quiet = FALSE)
 
 if (interactive()) {
   snfile <- "./Rpackage/.IMPACTncd_Ger_model_pkg_snapshot.qs"
+  if (file.exists("/.dockerenv") && file.exists(snfile)) file.remove("./Rpackage/.IMPACTncd_Ger_model_pkg_snapshot.qs")
+  
   if (file.exists(snfile)) snapshot <- changedFiles(qread(snfile))
-
 
   if (!nzchar(system.file(package = "IMPACTncdGer")) ||
       !file.exists(snfile) || any(nzchar(snapshot$added),

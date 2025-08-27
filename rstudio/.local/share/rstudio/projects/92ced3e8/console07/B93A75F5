@@ -1,0 +1,33 @@
+^M[K^?[Ksudo apt install cmake
+[?2004l[sudo] password for rstudio: 
+Sorry, try again.
+[sudo] password for rstudio: 
+rstudio is not in the sudoers file.
+]0;/home[?2004hrstudio@9cd42a6d49fb:/home$ sudo apt install cmake
+[?2004l[sudo] password for rstudio: 
+Sorry, try again.
+[sudo] password for rstudio: 
+sudo: 1 incorrect password attempt
+]0;/home[?2004hrstudio@9cd42a6d49fb:/home$ sudo apt install cmake
+[?2004l[sudo] password for rstudio: 
+Sorry, try again.
+[sudo] password for rstudio: 
+rstudio is not in the sudoers file.
+]0;/home[?2004hrstudio@9cd42a6d49fb:/home$ sudo apt install cmake
+[?2004l[sudo] password for rstudio: 
+sudo: a password is required
+]0;/home[?2004hrstudio@9cd42a6d49fb:/home$ apt s[Kinstall cmake
+[?2004l[1;31mE: [0mCould not open lock file /var/lib/dpkg/lock-frontend - open (13: Permission denied)[0m
+[1;31mE: [0mUnable to acquire the dpkg frontend lock (/var/lib/dpkg/lock-frontend), are you root?[0m
+]0;/home[?2004hrstudio@9cd42a6d49fb:/home$ ^M[KRUN apt-get update && \
+[?2004l[?2004h> ^C[?2004l[?2004h[?2004l
+]0;/home[?2004hrstudio@9cd42a6d49fb:/home$ Run[K[KUN aptg[K-get update && \
+[?2004l[?2004h> apt-get is[Knstall -y cmake && \
+[?2004l[?2004h> ^C[?2004l[?2004h[?2004l
+]0;/home[?2004hrstudio@9cd42a6d49fb:/home$ RUN apt-get update && apt-get install -y cmake &&  echo FB6706F1 && echo $HISTCONTROL && /usr/bin/env && echo 2DF188FD[K[K[K[K[K[K[K[K[K[K[K[K[A[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[K
+[K[A[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[Krm -rf /var/lib/apt/lists/*
+[?2004lbash: RUN: command not found
+]0;/home[?2004hrstudio@9cd42a6d49fb:/home$ RUN apt-get update && apt-get install -y cmake && rm -rf /var/lib/apt/lists/*[C[C[1P[1P[1P
+[?2004lReading package lists... 0%Reading package lists... 0%Reading package lists... 30%Reading package lists... Done
+E: List directory /var/lib/apt/lists/partial is missing. - Acquire (13: Permission denied)
+]0;/home[?2004hrstudio@9cd42a6d49fb:/home$ 

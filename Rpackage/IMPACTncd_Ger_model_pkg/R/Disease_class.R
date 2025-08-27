@@ -152,7 +152,7 @@ Disease <-
           val <- identical(keys, "year")
         }
 
-        if (nzchar(keys) && !val && meta$incidence$type > 1L)
+        if (all(nzchar(keys)) && !val && meta$incidence$type > 1L)
         stop("If present, 1st key needs to be MC and 2nd key needs to be Year")
 
         # Logic to ensure _indx files are up to date.

@@ -1,0 +1,15 @@
+{
+    "initial_working_directory": "~",
+    "cran_mirror": {
+        "name": "Global (CDN)",
+        "host": "RStudio",
+        "url": "https://cran.rstudio.com/",
+        "country": "us",
+        "ok": 1,
+        "secondary": "Test|https://packagemanager.rstudio.com/all/__linux__/focal/latest"
+    },
+    "posix_terminal_shell": "bash",
+    "jobs_tab_visibility": "shown",
+    "show_hidden_files": true,
+    "terminal_initial_directory": "home"
+}

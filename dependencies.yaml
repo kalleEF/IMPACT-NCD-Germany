@@ -16,7 +16,7 @@
 - shinyjs
 - shinyWidgets # http://shinyapps.dreamrs.fr/shinyWidgets/
 - DT
-- plotly
+#- plotly
 - viridis
 - colourpicker
 - dichromat
@@ -29,5 +29,8 @@
 - piggyback
 - igraph # For topological ordering of diseases
 - data.table
-#- gamlss, # only necessary when fitting the models
-#- mc2d, # only necessary for generating fixed_mc
+- gamlss # only necessary when fitting the models
+# - gamlss.tr, # only necessary when fitting the models
+- mc2d # only necessary for generating fixed_mc
+# - mc2d, # for rpert()
+# - shinydashboardPlus

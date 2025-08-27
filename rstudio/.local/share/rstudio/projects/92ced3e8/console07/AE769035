@@ -1,0 +1,13 @@
+]0;~[?2004hrstudio@9cd42a6d49fb:~$ [Krstudio@9cd42a6d49fb:~$ sudo apt install cmake
+[?2004l[sudo] password for rstudio: 
+sudo: a password is required
+]0;~[?2004hrstudio@9cd42a6d49fb:~$ sü[Kp[K[Kapt-get update
+[?2004lReading package lists... 0%Reading package lists... 0%Reading package lists... 30%Reading package lists... Done
+E: List directory /var/lib/apt/lists/partial is missing. - Acquire (13: Permission denied)
+]0;~[?2004hrstudio@9cd42a6d49fb:~$ apt-get -y [K[K[Kinstall -y cmake
+[?2004lE: Could not open lock file /var/lib/dpkg/lock-frontend - open (13: Permission denied)
+E: Unable to acquire the dpkg frontend lock (/var/lib/dpkg/lock-frontend), are you root?
+]0;~[?2004hrstudio@9cd42a6d49fb:~$ ^C[?2004l[?2004h[?2004l
+]0;~[?2004hrstudio@9cd42a6d49fb:~$ USER root
+[?2004lbash: USER: command not found
+]0;~[?2004hrstudio@9cd42a6d49fb:~$ 
