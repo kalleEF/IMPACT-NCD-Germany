@@ -1,13 +1,13 @@
-/* IMPACTncdGer is an implementation of the IMPACTncd framework adapted from
- the IMPACTncdEngl model, developed by Chris Kypridemos with contributions
- from Peter Crowther (Melandra Ltd), Maria Guzman-Castillo, Amandine Robert,
- and Piotr Bandosz. This work has been funded by NIHR  HTA Project:
- 16/165/01 - IMPACTncdEngl: Health Outcomes Research Simulation Environment.
- The views expressed are those of the authors and not necessarily those of
- the NHS, the NIHR or the Department of Health.
- 
+/* IMPACTncdEngl is an implementation of the IMPACTncd framework, developed by Chris
+ Kypridemos with contributions from Peter Crowther (Melandra Ltd), Maria
+ Guzman-Castillo, Amandine Robert, and Piotr Bandosz. This work has been
+ funded by NIHR  HTA Project: 16/165/01 - IMPACTncdEngl: Health Outcomes
+ Research Simulation Environment.  The views expressed are those of the
+ authors and not necessarily those of the NHS, the NIHR or the Department of
+ Health.
+
  Copyright (C) 2018-2020 University of Liverpool, Chris Kypridemos
- 
+
  IMPACTncdEngl is free software; you can redistribute it and/or modify it under
  the terms of the GNU General Public License as published by the Free Software
  Foundation; either version 3 of the License, or (at your option) any later
@@ -21,13 +21,16 @@
 
 #include <Rcpp.h>
 #include <Rmath.h>
-
+#include "aux_functions.h"
 using namespace Rcpp;
 
 //' @export
 // [[Rcpp::export]]
-IntegerVector carry_forward(IntegerVector& x, const LogicalVector& pid_mrk,
-                            const int& y, const bool& byref = false) {
+IntegerVector carry_forward(IntegerVector& x,
+                            const LogicalVector& pid_mrk,
+                            const int& y,
+                            const bool& byref)
+{
   const int n = x.size();
   if (byref) // Alters x by reference
   {
@@ -52,8 +55,8 @@ IntegerVector carry_forward(IntegerVector& x, const LogicalVector& pid_mrk,
 //' @export
 // [[Rcpp::export]]
 IntegerVector carry_forward_incr(IntegerVector& x, const LogicalVector& pid_mrk,
-                                 const bool& recur, const int& y = 1,
-                                 const bool& byref = false) {
+                                 const bool& recur, const int& y,
+                                 const bool& byref) {
   // byref = true changes input x inplace
   // recur = false means that the value constantly increasing until it meets a new pid
   // recur = true means that the process restarts as soon as it finds a value < y
@@ -109,7 +112,7 @@ IntegerVector carry_forward_incr(IntegerVector& x, const LogicalVector& pid_mrk,
 //' @export
 // [[Rcpp::export]]
 IntegerVector carry_backward(const IntegerVector& x, const LogicalVector& pid_mrk,
-                             const int& y = 0) {
+                             const int& y) {
   const int n = x.size();
   IntegerVector out = clone(x);
   for (int i = n - 1; i > 0; i--) // Go backwards but stop from one row before the last
@@ -230,4 +233,11 @@ NumericVector fbound(const NumericVector &x, NumericVector &a, NumericVector &b)
     }
   }
   return out;
+}
+
+//' @export
+// [[Rcpp::export]]
+double antilogit(const double& x)
+{
+  return exp(x)/(1 + exp(x));
 }

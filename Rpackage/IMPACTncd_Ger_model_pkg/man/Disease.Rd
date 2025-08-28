@@ -91,7 +91,7 @@ Generates PARF and stores it to disk if one doesn not
 \if{html}{\out{<div class="r">}}\preformatted{Disease$gen_parf_files(
   design_ = design,
   diseases_ = diseases,
-  popsize = 50000,
+  popsize = 500,
   check = design_$sim_prm$logs,
   keep_intermediate_file = TRUE
 )}\if{html}{\out{</div>}}
@@ -129,7 +129,7 @@ Read PARF file from disk. If missing, generates PARF and
   diseases_ = diseases,
   scenario_p_zero = 1,
   perc_change_m0 = 1,
-  popsize = 5e+05,
+  popsize = 500,
   check = design_$sim_prm$logs,
   keep_intermediate_file = TRUE
 )}\if{html}{\out{</div>}}

@@ -221,7 +221,7 @@ Disease <-
       #' @return The PARF data.table if it was created, otherwise `NULL`.
 
       gen_parf_files = function(design_ = design, diseases_ = diseases,
-                                popsize = 50000, check = design_$sim_prm$logs, #TODO: Right pop size?
+                                popsize = 500, check = design_$sim_prm$logs, #TODO: Right pop size?
                                 keep_intermediate_file = TRUE) {
 
         if ((is.numeric(self$meta$incidence$type) &&
@@ -399,7 +399,7 @@ Disease <-
 
       gen_parf = function(sp = sp, design_ = design, diseases_ = diseases,
                           scenario_p_zero = 1, perc_change_m0 = 1, 
-                          popsize = 500000, check = design_$sim_prm$logs, #TODO: Right pop size?
+                          popsize = 500, check = design_$sim_prm$logs, #TODO: Right pop size?
                           keep_intermediate_file = TRUE) {
 
         # TODO add logic to delete the intermediate synthpop file outside this

@@ -16,7 +16,7 @@
 - shinyjs
 - shinyWidgets # http://shinyapps.dreamrs.fr/shinyWidgets/
 - DT
-#- plotly
+- plotly
 - viridis
 - colourpicker
 - dichromat

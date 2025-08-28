@@ -102,6 +102,31 @@ my_qMN4 <- function(p, mu, sigma, nu, lower_tail = TRUE, log_p = FALSE, n_cpu = 
 }
 
 #' @export
+my_dNBI <- function(x, mu, sigma, log_p, n_cpu) {
+    .Call('_IMPACTncdGer_my_dNBI', PACKAGE = 'IMPACTncdGer', x, mu, sigma, log_p, n_cpu)
+}
+
+#' @export
+my_pNBI <- function(q, mu, sigma, lower_tail, log_p, n_cpu) {
+    .Call('_IMPACTncdGer_my_pNBI', PACKAGE = 'IMPACTncdGer', q, mu, sigma, lower_tail, log_p, n_cpu)
+}
+
+#' @export
+my_qNBI <- function(p, mu, sigma, lower_tail, log_p, n_cpu) {
+    .Call('_IMPACTncdGer_my_qNBI', PACKAGE = 'IMPACTncdGer', p, mu, sigma, lower_tail, log_p, n_cpu)
+}
+
+#' @export
+my_qZANBI <- function(p, mu, sigma, nu, lower_tail, log_p, n_cpu) {
+    .Call('_IMPACTncdGer_my_qZANBI', PACKAGE = 'IMPACTncdGer', p, mu, sigma, nu, lower_tail, log_p, n_cpu)
+}
+
+#' @export
+my_pZANBI_scalar <- function(q, mu, sigma, nu, lower_tail, log_p, check) {
+    .Call('_IMPACTncdGer_my_pZANBI_scalar', PACKAGE = 'IMPACTncdGer', q, mu, sigma, nu, lower_tail, log_p, check)
+}
+
+#' @export
 my_dSICHEL <- function(x, mu, sigma, nu, log_ = FALSE, n_cpu = 1L) {
     .Call('_IMPACTncdGer_my_dSICHEL', PACKAGE = 'IMPACTncdGer', x, mu, sigma, nu, log_, n_cpu)
 }
@@ -127,17 +152,17 @@ my_pZISICHEL <- function(q, mu, sigma, nu, tau, lower_tail = TRUE, log_p = FALSE
 }
 
 #' @export
-carry_forward <- function(x, pid_mrk, y, byref = FALSE) {
+carry_forward <- function(x, pid_mrk, y, byref) {
     .Call('_IMPACTncdGer_carry_forward', PACKAGE = 'IMPACTncdGer', x, pid_mrk, y, byref)
 }
 
 #' @export
-carry_forward_incr <- function(x, pid_mrk, recur, y = 1L, byref = FALSE) {
+carry_forward_incr <- function(x, pid_mrk, recur, y, byref) {
     .Call('_IMPACTncdGer_carry_forward_incr', PACKAGE = 'IMPACTncdGer', x, pid_mrk, recur, y, byref)
 }
 
 #' @export
-carry_backward <- function(x, pid_mrk, y = 0L) {
+carry_backward <- function(x, pid_mrk, y) {
     .Call('_IMPACTncdGer_carry_backward', PACKAGE = 'IMPACTncdGer', x, pid_mrk, y)
 }
 
@@ -169,6 +194,11 @@ hc_effect <- function(x, prb_of_continuation, pid) {
 #' @export
 fbound <- function(x, a, b) {
     .Call('_IMPACTncdGer_fbound', PACKAGE = 'IMPACTncdGer', x, a, b)
+}
+
+#' @export
+antilogit <- function(x) {
+    .Call('_IMPACTncdGer_antilogit', PACKAGE = 'IMPACTncdGer', x)
 }
 
 dtsubset <- function(x, rows, cols) {

@@ -381,3 +381,37 @@
 1756289597076:}
 1756289675176:install.packages("Matrix")
 1756289680570:install.packages("Matrix")
+1756292961610:cat("Initialising IMPACTncd_Ger model...\n\n")
+1756292962237:if (interactive() && !nzchar(system.file(package = "CKutils"))) {
+1756292962324:if (!nzchar(system.file(package = "remotes"))) install.packages("remotes")
+1756292962381:remotes::install_github("ChristK/CKutils", force = TRUE, upgrade = "never")
+1756292962439:}
+1756292963349:library(CKutils)
+1756292964094:options(rgl.useNULL = TRUE)  # suppress error by demography in rstudio server
+1756292964622:options(future.fork.enable = TRUE) # TODO remove for production
+1756292964796:options(future.rng.onMisuse = "ignore") # Remove false warning
+1756292964941:options(datatable.verbose = FALSE)
+1756292965067:options(datatable.showProgress = FALSE)
+1756292965403:options(repos = c(CRAN = "https://cloud.r-project.org/"))
+1756292965727:dependencies(yaml::read_yaml("./dependencies.yaml"), verbose = TRUE, quiet = FALSE)
+1756293053007:dependencies(yaml::read_yaml("./dependencies.yaml"), verbose = TRUE, quiet = FALSE)
+1756293089123:library(mc2d)
+1756293103431:install.packages("mc2d")
+1756293199163:options(repos = c(CRAN = "https://cran.microsoft.com/snapshot/2022-04-01/")
+1756293203173:options(repos = c(CRAN = "https://cran.microsoft.com/snapshot/2022-04-01/"))
+1756293204274:options(repos = c(CRAN = "https://cran.microsoft.com/snapshot/2022-04-01/"))
+1756293219775:install.packages("Matrix")
+1756303943296:source("./global.R")
+1756304040142:source("./global.R")
+1756304062190:cat("Initialising IMPACTncd_Ger model...\n\n")
+1756304069331:library(CKutils_Test)
+1756304113050:cat("Initialising IMPACTncd_Ger model...\n\n")
+1756304113383:if (interactive() && !nzchar(system.file(package = "CKutils"))) {
+1756304113440:if (!nzchar(system.file(package = "remotes"))) install.packages("remotes")
+1756304113482:remotes::install_github("kalleEF/CKutils_Test", force = TRUE, upgrade = "never")
+1756304113533:}
+1756304903461:cat("Initialising IMPACTncd_Ger model...\n\n")
+1756304903688:if (interactive() && !nzchar(system.file(package = "CKutils"))) {
+1756304903716:if (!nzchar(system.file(package = "remotes"))) install.packages("remotes")
+1756304903744:remotes::install_github("ChristK/CKutils", force = TRUE, upgrade = "never")
+1756304903771:}
